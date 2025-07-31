@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/api/webhook/(.*)", "destination": "/api/webhook/$1" },
+    { "source": "/api/trigger/(.*)", "destination": "/api/trigger/$1" },
+    { "source": "/api/process-campaign-message", "destination": "/api/process-campaign-message" },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

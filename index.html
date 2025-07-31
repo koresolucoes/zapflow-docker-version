@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZapFlow AI - WhatsApp Campaign Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xyflow/react@12.0.0-next.12/dist/style.css" />
+    <style>
+      :root {
+        --flow-controls-bg: #ffffff; /* white */
+        --flow-controls-hover-bg: #f3f4f6; /* gray-100 */
+        --flow-controls-border: #e5e7eb; /* gray-200 */
+        --flow-controls-text: #1f2937; /* gray-800 */
+        --flow-controls-shadow: rgba(0, 0, 0, 0.1);
+      }
+      .dark {
+        --flow-controls-bg: #334155; /* slate-700 */
+        --flow-controls-hover-bg: #475569; /* slate-600 */
+        --flow-controls-border: #475569; /* slate-600 */
+        --flow-controls-text: #cbd5e1; /* slate-300 */
+        --flow-controls-shadow: rgba(0, 0, 0, 0.3);
+      }
+      /* For Recharts custom tooltip */
+      .recharts-tooltip-wrapper {
+        outline: none !important;
+      }
+      .xyflow-react .xyflow__panel {
+        display: none;
+      }
+      
+      /* Custom styles for React Flow Controls to match the theme */
+      .react-flow__controls {
+        box-shadow: 0 2px 8px var(--flow-controls-shadow);
+      }
+      .react-flow__controls-button {
+        background-color: var(--flow-controls-bg);
+        border: none;
+        border-bottom: 1px solid var(--flow-controls-border);
+        fill: var(--flow-controls-text);
+      }
+      .react-flow__controls-button:hover {
+        background-color: var(--flow-controls-hover-bg);
+      }
+      .react-flow__controls-button:disabled {
+        fill-opacity: 0.5;
+      }
+
+      /* Keyframes for Toast Animation */
+      @keyframes fadeInRight {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .animate-fade-in-right {
+        animation: fadeInRight 0.3s ease-out forwards;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.10.0",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.52.0",
+    "recharts": "https://esm.sh/recharts@^3.1.0",
+    "@xyflow/react": "https://esm.sh/@xyflow/react@^12.8.2",
+    "@vercel/node": "https://esm.sh/@vercel/node@^5.3.6",
+    "@hcaptcha/react-hcaptcha": "https://esm.sh/@hcaptcha/react-hcaptcha@^1.10.1",
+    "zustand": "https://esm.sh/zustand@^4.5.4",
+    "emoji-picker-react": "https://esm.sh/emoji-picker-react@^4.11.1",
+    "@dnd-kit/core": "https://esm.sh/@dnd-kit/core@6.1.0",
+    "@dnd-kit/sortable": "https://esm.sh/@dnd-kit/sortable@7.0.2",
+    "@dnd-kit/utilities": "https://esm.sh/@dnd-kit/utilities@3.2.2",
+    "@supabase/realtime-js": "https://esm.sh/@supabase/realtime-js@^2.12.2",
+    "@supabase/auth-js": "https://esm.sh/@supabase/auth-js@^2.71.1",
+    "@upstash/qstash/": "https://esm.sh/@upstash/qstash@^2.8.1/",
+    "@upstash/qstash": "https://esm.sh/@upstash/qstash@^2.8.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-300">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

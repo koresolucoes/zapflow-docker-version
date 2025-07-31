@@ -1,0 +1,35 @@
+# Dependências
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build
+/dist
+/build
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Sistema de controle de versão
+.git
+.gitignore
+
+# IDEs e editores
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.backup
+.DS_Store
+Thumbs.db

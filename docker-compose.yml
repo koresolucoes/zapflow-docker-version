@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+  # Backend/API
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - QSTASH_TOKEN=${QSTASH_TOKEN}
+      - APP_URL=http://localhost:5173
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+  # Redis (para cache e filas, se necessário)
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  # Redis Commander (interface web para gerenciar o Redis)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis_data:
