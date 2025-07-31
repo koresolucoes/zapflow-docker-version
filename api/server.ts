@@ -20,8 +20,22 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors());
+// Configuração do CORS para permitir credenciais e cabeçalhos necessários
+app.use(cors({
+  origin: true, // Permite qualquer origem (em produção, defina a origem correta)
+  credentials: true, // Permite o envio de credenciais (cookies, headers de autenticação)
+  allowedHeaders: ['Content-Type', 'Authorization'], // Cabeçalhos permitidos
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] // Métodos HTTP permitidos
+}));
+
 app.use(express.json());
+
+// Middleware para log de requisições (apenas para debug)
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  next();
+});
 
 app.all('/api/conversation', conversationHandler);
 app.post('/api/analyze-sentiment', analyzeSentimentHandler);
