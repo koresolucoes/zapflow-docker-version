@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { SEND_ICON, SPARKLES_ICON } from '../../components/icons';
-import Button from '../../components/common/Button';
-import { CannedResponse } from '../../types';
-import { useAuthStore } from '../../stores/authStore';
-import { generateReplyWithAI } from '../../services/geminiService';
+import { SEND_ICON, SPARKLES_ICON } from '../../components/icons/index.js';
+import Button from '../../components/common/Button.js';
+import { CannedResponse } from '../../types/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { generateReplyWithAI } from '../../services/geminiService.js';
 
 interface MessageInputProps {
     contactId: string;

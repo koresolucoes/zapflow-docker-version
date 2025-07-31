@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import Modal from '../../components/common/Modal';
-import Button from '../../components/common/Button';
-import { TRASH_ICON, PLUS_ICON } from '../../components/icons';
-import { Pipeline, PipelineStage, StageType } from '../../types';
-import { useAuthStore } from '../../stores/authStore';
-import { useUiStore } from '../../stores/uiStore';
+import Modal from '../../components/common/Modal.js';
+import Button from '../../components/common/Button.js';
+import { TRASH_ICON, PLUS_ICON } from '../../components/icons/index.js';
+import { Pipeline, PipelineStage, StageType } from '../../types/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const StageRow: React.FC<{ stage: PipelineStage }> = ({ stage }) => {
     const { updateStage, deleteStage } = useAuthStore();

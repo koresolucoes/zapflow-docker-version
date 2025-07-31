@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import Card from '../../components/common/Card';
-import { useAuthStore } from '../../stores/authStore';
-import { CAMPAIGN_ICON } from '../../components/icons';
+import Card from '../../components/common/Card.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { CAMPAIGN_ICON } from '../../components/icons/index.js';
 
 const CampaignAnalytics: React.FC = () => {
     const { campaigns, setCurrentPage } = useAuthStore();

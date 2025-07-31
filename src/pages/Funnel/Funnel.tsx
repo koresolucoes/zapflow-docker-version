@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import StageColumn from './StageColumn';
-import { FUNNEL_ICON, PLUS_ICON } from '../../components/icons';
-import Button from '../../components/common/Button';
-import PipelineManagerModal from './PipelineManagerModal';
-import DealClosingModal from './DealClosingModal';
-import { useAuthStore } from '../../stores/authStore';
-import { useUiStore } from '../../stores/uiStore';
-import { Deal, DealWithContact } from '../../types';
-import DealFormModal from '../../components/common/DealFormModal';
+import StageColumn from './StageColumn.js';
+import { FUNNEL_ICON, PLUS_ICON } from '../../components/icons/index.js';
+import Button from '../../components/common/Button.js';
+import PipelineManagerModal from './PipelineManagerModal.js';
+import DealClosingModal from './DealClosingModal.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { useUiStore } from '../../stores/uiStore.js';
+import { Deal, DealWithContact } from '../../types/index.js';
+import DealFormModal from '../../components/common/DealFormModal.js';
 
 const FunnelMetric: React.FC<{ label: string, value: string | number }> = ({ label, value }) => (
     <div className="text-center px-4">

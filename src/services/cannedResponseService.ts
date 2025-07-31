@@ -1,6 +1,6 @@
-import { supabase } from '../lib/supabaseClient';
-import { CannedResponse, CannedResponseInsert } from '../types';
-import { TablesUpdate } from '../types/database.types';
+import { supabase } from '../lib/supabaseClient.js';
+import { CannedResponse, CannedResponseInsert } from '../types/index.js';
+import { TablesUpdate } from '../types/database.types.js';
 
 export const fetchCannedResponses = async (teamId: string): Promise<CannedResponse[]> => {
     const { data, error } = await supabase

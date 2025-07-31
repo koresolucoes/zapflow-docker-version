@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import Card from '../../components/common/Card';
-import { useAuthStore } from '../../stores/authStore';
-import { DashboardData } from '../../services/dataService';
-import { AUTOMATION_ICON } from '../../components/icons';
+import Card from '../../components/common/Card.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { DashboardData } from '../../services/dataService.js';
+import { AUTOMATION_ICON } from '../../components/icons/index.js';
 
 interface AutomationAnalyticsProps {
     data: DashboardData | null;

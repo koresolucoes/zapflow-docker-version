@@ -1,14 +1,14 @@
 import React from 'react';
-import { TimelineEvent } from '../../types';
-import TimelineItemWrapper from './TimelineItemWrapper';
-import { FUNNEL_ICON } from '../../components/icons';
+import { TimelineEvent } from '../../types/index.js';
+import TimelineItemWrapper from './TimelineItemWrapper.js';
+import { FUNNEL_ICON } from '../../components/icons/index.js';
 
 interface TimelineDealItemProps {
     event: TimelineEvent;
     isLast: boolean;
 }
 
-const TimelineDealItem: React.FC<TimelineDealItemProps> = ({ event, isLast }) => {
+const TimelineDealItem: React.FC<TimelineDealItemProps> = ({ event, isLast }: TimelineDealItemProps) => {
     const dealName = event.data.name;
     const dealValue = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(event.data.value || 0);
     const stageName = event.data.pipeline_stages?.name || 'etapa desconhecida';

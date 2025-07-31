@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useAuthStore } from '../../stores/authStore';
-import { CustomFieldDefinitionInsert } from '../../types';
-import Modal from './Modal';
-import Button from './Button';
+import { useAuthStore } from '../../stores/authStore.js';
+import { CustomFieldDefinitionInsert } from '../../types/index.js';
+import Modal from './Modal.js';
+import Button from './Button.js';
 
 interface AddCustomFieldModalProps {
     isOpen: boolean;
@@ -68,7 +68,7 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({ isOpen, onClo
                 name: formData.name,
                 key: formData.key,
                 type: formData.type,
-                options: formData.type === 'LISTA' ? formData.options?.toString().split(',').map(o => o.trim()).filter(Boolean) || [] : null
+                                options: formData.type === 'LISTA' ? formData.options?.toString().split(',').map((o: string) => o.trim()).filter(Boolean) || [] : null
             };
             await addDefinition(definitionToSave);
             onClose();

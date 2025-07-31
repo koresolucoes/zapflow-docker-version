@@ -1,28 +1,28 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabaseClient';
-import type { Session, User } from '@supabase/auth-js';
-import { 
+import { supabase } from '../lib/supabaseClient.js';
+import type { Session, User, RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimePostgresChangesPayload } from '@supabase/realtime-js';
+import type { 
     Profile, EditableProfile, MetaConfig, Team, TeamMemberWithEmail, Page, MessageTemplate, MessageTemplateInsert, Contact,
     EditableContact, ContactWithDetails, Campaign, CampaignWithMetrics, MessageInsert, CampaignWithDetails, CampaignStatus,
     Automation, AutomationNode, Edge, AutomationNodeStats, AutomationNodeLog, AutomationStatus, Pipeline, PipelineStage,
     DealInsert, DealWithContact, CustomFieldDefinition, CustomFieldDefinitionInsert, CannedResponse, CannedResponseInsert,
     Conversation, UnifiedMessage, Message, ContactActivity, ContactActivityInsert, ContactActivityUpdate, TaskWithContact
-} from '../types';
-import { updateProfileInDb } from '../services/profileService';
-import * as teamService from '../services/teamService';
-import type { RealtimeChannel } from '@supabase/realtime-js';
-import { createTemplateOnMetaAndDb } from '../services/templateService';
-import * as contactService from '../services/contactService';
-import { fetchCampaignDetailsFromDb, addCampaignToDb, deleteCampaignFromDb } from '../services/campaignService';
-import * as automationService from '../services/automationService';
-import * as funnelService from '../services/funnelService';
-import * as customFieldService from '../services/customFieldService';
-import * as cannedResponseService from '../services/cannedResponseService';
-import * as inboxService from '../services/inboxService';
-import * as activityService from '../services/activityService';
-import { fetchAllInitialData } from '../services/dataService';
-import { TablesUpdate } from '../types/database.types';
-import { useUiStore } from './uiStore';
+} from '../types/index.js';
+import { updateProfileInDb } from '../services/profileService.js';
+import * as teamService from '../services/teamService.js';
+import { createTemplateOnMetaAndDb } from '../services/templateService.js';
+import * as contactService from '../services/contactService.js';
+import { fetchCampaignDetailsFromDb, addCampaignToDb, deleteCampaignFromDb } from '../services/campaignService.js';
+import * as automationService from '../services/automationService.js';
+import * as funnelService from '../services/funnelService.js';
+import * as customFieldService from '../services/customFieldService.js';
+import * as cannedResponseService from '../services/cannedResponseService.js';
+import * as inboxService from '../services/inboxService.js';
+import * as activityService from '../services/activityService.js';
+import { fetchAllInitialData } from '../services/dataService.js';
+import type { TablesUpdate } from '../types/database.types.js';
+import { useUiStore } from './uiStore.js';
 
 interface AuthState {
   // Auth
@@ -159,7 +159,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     const messagesChannel = supabase.channel(`team-messages-${teamId}`)
         .on('postgres_changes',
             { event: 'INSERT', schema: 'public', table: 'messages', filter: `team_id=eq.${teamId}` },
-            async (payload) => {
+            async (payload: RealtimePostgresChangesPayload<Message>) => {
                 const newMessage = payload.new as Message;
                 await get().fetchConversations();
                 if (get().activeContactId === newMessage.contact_id) {
@@ -175,7 +175,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     const teamMembersChannel = supabase.channel(`team-members-changes-${teamId}`)
         .on('postgres_changes',
             { event: '*', schema: 'public', table: 'team_members', filter: `team_id=eq.${teamId}` },
-            async () => {
+            async (payload: RealtimePostgresChangesPayload<TeamMemberWithEmail>) => {
                 const teamIds = get().userTeams.map(t => t.id);
                 if (teamIds.length > 0) {
                     const updatedMembers = await teamService.getTeamMembersForTeams(teamIds);
@@ -298,7 +298,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
     supabase.auth.getSession().then(({ data: { session } }) => handleSession(session));
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: Session | null) => {
       if (event === 'SIGNED_OUT') {
         handleSession(null);
       } else if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
@@ -314,7 +314,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     };
   },
   
-  updateProfile: async (profileData) => {
+  updateProfile: async (profileData: EditableProfile) => {
     if (!get().user) throw new Error("Usuário não autenticado.");
     const { addToast } = useUiStore.getState();
     try {
@@ -327,7 +327,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     }
   },
 
-  setActiveTeam: (team) => {
+  setActiveTeam: (team: Team) => {
     if (get().activeTeam?.id === team.id) return;
     set({ activeTeam: team, dataLoadedForTeam: null, activeContactId: null, messages: [] });
     _setupSubscriptionsForTeam(team.id);
@@ -336,19 +336,19 @@ export const useAuthStore = create<AuthState>((set, get) => {
   // Navigation
   currentPage: 'dashboard',
   pageParams: {},
-  setCurrentPage: (page, params = {}) => {
+  setCurrentPage: (page: Page, params?: Record<string, any>) => {
     set({ currentPage: page, pageParams: params });
   },
 
   // Data Loading
   dataLoadedForTeam: null,
-  fetchInitialData: async (teamId) => {
+  fetchInitialData: async (teamId: string) => {
     try {
       const data = await fetchAllInitialData(teamId);
       set({
         templates: data.templates,
         contacts: data.contacts,
-        allTags: [...new Set(data.contacts.flatMap(c => c.tags || []))].sort(),
+        allTags: [...new Set(data.contacts.flatMap(c => c.tags || []))] as string[],
         campaigns: data.campaigns,
         automations: data.automations,
         pipelines: data.pipelines,
@@ -389,7 +389,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
   // Templates
   templates: [],
   setTemplates: (updater) => set(state => ({ templates: typeof updater === 'function' ? updater(state.templates) : updater })),
-  createTemplate: async (templateData) => {
+  createTemplate: async (templateData: Omit<MessageTemplateInsert, 'id' | 'team_id' | 'created_at' | 'status' | 'meta_id'>) => {
     const metaConfig = useMetaConfig.getState();
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
@@ -403,7 +403,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
   contactDetails: null,
   setContacts: (updater) => set(state => ({ contacts: typeof updater === 'function' ? updater(state.contacts) : updater })),
   setContactDetails: (updater) => set(state => ({ contactDetails: typeof updater === 'function' ? updater(state.contactDetails) : updater })),
-  addContact: async (contact) => {
+  addContact: async (contact: EditableContact) => {
     const { activeTeam, user } = get();
     const teamId = activeTeam?.id;
     if (!teamId || !user) throw new Error("Nenhuma equipe ativa ou usuário selecionado.");
@@ -412,7 +412,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     
     set(state => ({
       contacts: [newContact, ...state.contacts],
-      allTags: [...new Set([...state.allTags, ...(newContact.tags || [])])].sort()
+      allTags: [...new Set([...state.allTags, ...(newContact.tags || [])])] as string[]
     }));
 
     // Fire and forget automation trigger
@@ -426,7 +426,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         })
     }).catch(e => console.error("Failed to run 'contact_created' trigger:", e));
   },
-  updateContact: async (contact) => {
+  updateContact: async (contact: Contact) => {
     const { activeTeam, user, contacts } = get();
     const teamId = activeTeam?.id;
     if (!teamId || !user) throw new Error("Nenhuma equipe ativa ou usuário selecionado.");
@@ -436,16 +436,19 @@ export const useAuthStore = create<AuthState>((set, get) => {
     
     const updatedContact = await contactService.updateContactInDb(teamId, contact);
 
-    const newTags = new Set(updatedContact.tags || []);
+    const newTags = new Set((updatedContact.tags as string[]) || []);
     const addedTags = [...newTags].filter(tag => !originalTags.has(tag));
 
     set(state => {
         const newContacts = state.contacts.map(c => c.id === updatedContact.id ? updatedContact : c);
-        const newAllTags = [...new Set(newContacts.flatMap(c => c.tags || []))].sort();
+        const newAllTags = [...new Set(newContacts.flatMap(c => c.tags || []))] as string[];
+        const updatedContactDetails = state.contactDetails?.id === updatedContact.id
+            ? { ...state.contactDetails, ...updatedContact }
+            : state.contactDetails;
         return {
             contacts: newContacts,
             allTags: newAllTags,
-            contactDetails: state.contactDetails?.id === updatedContact.id ? { ...state.contactDetails, ...updatedContact } : state.contactDetails
+            contactDetails: updatedContactDetails
         };
     });
 
@@ -463,7 +466,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         }).catch(e => console.error("Failed to run 'tags_added' trigger:", e));
     }
   },
-  deleteContact: async (contactId) => {
+  deleteContact: async (contactId: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     await contactService.deleteContactFromDb(teamId, contactId);
@@ -471,18 +474,18 @@ export const useAuthStore = create<AuthState>((set, get) => {
       contacts: state.contacts.filter(c => c.id !== contactId),
     }));
   },
-  importContacts: async (newContacts) => {
+  importContacts: async (newContacts: EditableContact[]) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     const existingPhones: Set<string> = new Set(get().contacts.map(c => c.phone));
     const { imported, skippedCount } = await contactService.importContactsToDb(teamId, newContacts, existingPhones);
     set(state => ({
       contacts: [...imported, ...state.contacts],
-      allTags: [...new Set([...state.allTags, ...imported.flatMap(c => c.tags || [])])].sort()
+      allTags: [...new Set([...state.allTags, ...imported.flatMap(c => c.tags || [])])] as string[]
     }));
     return { importedCount: imported.length, skippedCount };
   },
-  fetchContactDetails: async (contactId) => {
+  fetchContactDetails: async (contactId: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     try {
@@ -492,7 +495,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       console.error("Failed to fetch contact details", error);
     }
   },
-  sendDirectMessages: async (message, recipients) => {
+  sendDirectMessages: async (message: string, recipients: Contact[]) => {
     const metaConfig = useMetaConfig.getState();
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
@@ -505,7 +508,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
   campaignDetails: null,
   setCampaigns: (updater) => set(state => ({ campaigns: typeof updater === 'function' ? updater(state.campaigns) : updater })),
   setCampaignDetails: (updater) => set(state => ({ campaignDetails: typeof updater === 'function' ? updater(state.campaignDetails) : updater })),
-  addCampaign: async (campaign, messages) => {
+  addCampaign: async (campaign: Omit<Campaign, 'id' | 'team_id' | 'created_at' | 'recipient_count'>, messages: Omit<MessageInsert, 'campaign_id' | 'team_id'>[]) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     const newCampaign = await addCampaignToDb(teamId, campaign, messages);
@@ -520,17 +523,17 @@ export const useAuthStore = create<AuthState>((set, get) => {
     };
     set(state => ({ campaigns: [newCampaignWithMetrics, ...state.campaigns] }));
   },
-  fetchCampaignDetails: async (campaignId) => {
+  fetchCampaignDetails: async (campaignId: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     const details = await fetchCampaignDetailsFromDb(teamId, campaignId);
     set({ campaignDetails: details });
   },
-  deleteCampaign: async (campaignId) => {
+  deleteCampaign: async (campaignId: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     await deleteCampaignFromDb(teamId, campaignId);
-    set(state => ({ campaigns: state.campaigns.filter(c => c.id !== campaignId) }));
+    set(state => ({ campaigns: state.campaigns.filter(c => (c as Campaign).id !== campaignId) }));
   },
 
   // Automations
@@ -545,7 +548,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     set(state => ({ automations: [newAutomation, ...state.automations] }));
     get().setCurrentPage('automation-editor', { automationId: newAutomation.id });
   },
-  updateAutomation: async (automation) => {
+  updateAutomation: async (automation: Automation) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     const updatedAutomation = await automationService.updateAutomationInDb(teamId, automation);
@@ -553,17 +556,17 @@ export const useAuthStore = create<AuthState>((set, get) => {
       automations: state.automations.map(a => a.id === updatedAutomation.id ? updatedAutomation : a)
     }));
   },
-  deleteAutomation: async (automationId) => {
+  deleteAutomation: async (automationId: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     await automationService.deleteAutomationFromDb(automationId, teamId);
     set(state => ({ automations: state.automations.filter(a => a.id !== automationId) }));
   },
-  fetchAutomationStats: async (automationId) => {
+  fetchAutomationStats: async (automationId: string) => {
     const stats = await automationService.fetchStatsForAutomation(automationId);
     set({ automationStats: stats });
   },
-  fetchNodeLogs: async (automationId, nodeId) => {
+  fetchNodeLogs: async (automationId: string, nodeId: string) => {
     return await automationService.fetchLogsForNode(automationId, nodeId);
   },
 
@@ -575,8 +578,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
   setPipelines: (updater) => set(state => ({ pipelines: typeof updater === 'function' ? updater(state.pipelines) : updater })),
   setStages: (updater) => set(state => ({ stages: typeof updater === 'function' ? updater(state.stages) : updater })),
   setDeals: (updater) => set(state => ({ deals: typeof updater === 'function' ? updater(state.deals) : updater })),
-  setActivePipelineId: (id) => set({ activePipelineId: id }),
-  addDeal: async (dealData) => {
+  setActivePipelineId: (id: string | null) => set({ activePipelineId: id }),
+  addDeal: async (dealData: Omit<DealInsert, 'team_id'>) => {
     const { activeTeam, user } = get();
     const teamId = activeTeam?.id;
     if (!teamId || !user) throw new Error("Nenhuma equipe ativa ou usuário selecionado.");
@@ -597,7 +600,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         })
     }).catch(e => console.error("Failed to run 'deal_created' trigger:", e));
   },
-  updateDeal: async (dealId, updates) => {
+  updateDeal: async (dealId: string, updates: TablesUpdate<'deals'>) => {
     const { activeTeam, user, deals } = get();
     const teamId = activeTeam?.id;
     if (!teamId || !user) throw new Error("Nenhuma equipe ativa ou usuário selecionado.");
@@ -624,7 +627,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         }).catch(e => console.error("Failed to run 'deal_stage_changed' trigger:", e));
     }
   },
-  deleteDeal: async (dealId) => {
+  deleteDeal: async (dealId: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     await funnelService.deleteDealFromDb(dealId, teamId);
@@ -640,7 +643,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       activePipelineId: pipeline.id,
     }));
   },
-  addPipeline: async (name) => {
+  addPipeline: async (name: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     const { pipeline, stage } = await funnelService.addPipelineToDb(teamId, name);
@@ -649,13 +652,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
       stages: [...state.stages, stage]
     }));
   },
-  updatePipeline: async (id, name) => {
+  updatePipeline: async (id: string, name: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     const updated = await funnelService.updatePipelineInDb(id, teamId, name);
     set(state => ({ pipelines: state.pipelines.map(p => p.id === id ? updated : p) }));
   },
-  deletePipeline: async (id) => {
+  deletePipeline: async (id: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     await funnelService.deletePipelineFromDb(id, teamId);
@@ -666,17 +669,17 @@ export const useAuthStore = create<AuthState>((set, get) => {
       activePipelineId: state.activePipelineId === id ? (state.pipelines[0]?.id || null) : state.activePipelineId,
     }));
   },
-  addStage: async (pipelineId) => {
+  addStage: async (pipelineId: string) => {
     const existingStages = get().stages.filter(s => s.pipeline_id === pipelineId);
     const maxSortOrder = Math.max(-1, ...existingStages.map(s => s.sort_order));
     const newStage = await funnelService.addStageToDb(pipelineId, maxSortOrder + 1);
     set(state => ({ stages: [...state.stages, newStage] }));
   },
-  updateStage: async (id, updates) => {
+  updateStage: async (id: string, updates: TablesUpdate<'pipeline_stages'>) => {
     const updated = await funnelService.updateStageInDb(id, updates);
     set(state => ({ stages: state.stages.map(s => s.id === id ? updated : s) }));
   },
-  deleteStage: async (id) => {
+  deleteStage: async (id: string) => {
     await funnelService.deleteStageFromDb(id);
     set(state => ({ stages: state.stages.filter(s => s.id !== id) }));
   },
@@ -684,13 +687,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
   // Custom Fields
   definitions: [],
   setDefinitions: (updater) => set(state => ({ definitions: typeof updater === 'function' ? updater(state.definitions) : updater })),
-  addDefinition: async (definition) => {
+  addDefinition: async (definition: Omit<CustomFieldDefinitionInsert, 'team_id' | 'id' | 'created_at'>) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     const newDef = await customFieldService.addCustomFieldDefinition(teamId, definition);
     set(state => ({ definitions: [...state.definitions, newDef] }));
   },
-  deleteDefinition: async (id) => {
+  deleteDefinition: async (id: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     await customFieldService.deleteCustomFieldDefinition(id, teamId);
@@ -700,13 +703,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
   // Canned Responses
   responses: [],
   setResponses: (updater) => set(state => ({ responses: typeof updater === 'function' ? updater(state.responses) : updater })),
-  addResponse: async (response) => {
+  addResponse: async (response: Omit<CannedResponseInsert, 'team_id' | 'id' | 'created_at'>) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     const newRes = await cannedResponseService.addCannedResponse(teamId, response);
     set(state => ({ responses: [...state.responses, newRes].sort((a,b) => a.shortcut.localeCompare(b.shortcut)) }));
   },
-  updateResponse: async (id, updates) => {
+  updateResponse: async (id: string, updates: TablesUpdate<'canned_responses'>) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     const updatedRes = await cannedResponseService.updateCannedResponse(id, teamId, updates);
@@ -714,7 +717,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       responses: state.responses.map(r => r.id === id ? updatedRes : r).sort((a,b) => a.shortcut.localeCompare(b.shortcut))
     }));
   },
-  deleteResponse: async (id) => {
+  deleteResponse: async (id: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) throw new Error("Nenhuma equipe ativa selecionada.");
     await cannedResponseService.deleteCannedResponse(id, teamId);
@@ -748,7 +751,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       set({ inboxLoading: false });
     }
   },
-  setActiveContactId: async (contactId) => {
+  setActiveContactId: async (contactId: string | null) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) return;
     
@@ -777,7 +780,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         set({ inboxLoading: false });
     }
   },
-  sendMessage: async (contactId, text) => {
+  sendMessage: async (contactId: string, text: string) => {
     const teamId = get().activeTeam?.id;
     const contact = get().contacts.find(c => c.id === contactId);
     const metaConfig = useMetaConfig.getState();
@@ -816,7 +819,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         set({ isSending: false });
     }
   },
-  assignConversation: async (contactId, assigneeId) => {
+  assignConversation: async (contactId: string, assigneeId: string | null) => {
     await inboxService.assignConversation(contactId, assigneeId);
     set(state => {
         const membersMap = new Map(state.allTeamMembers.map(m => [m.user_id, m.email]));
@@ -828,7 +831,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         };
     });
   },
-  deleteConversation: async (contactId) => {
+  deleteConversation: async (contactId: string) => {
     await inboxService.deleteConversation(contactId);
     set(state => ({
       conversations: state.conversations.filter(c => c.contact.id !== contactId),
@@ -841,7 +844,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
   activitiesForContact: [],
   todaysTasks: [],
   activityLoading: false,
-  fetchActivitiesForContact: async (contactId) => {
+  fetchActivitiesForContact: async (contactId: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) return;
     set({ activityLoading: true });
@@ -852,7 +855,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       set({ activityLoading: false });
     }
   },
-  addActivity: async (activityData) => {
+  addActivity: async (activityData: Omit<ContactActivityInsert, 'team_id'>) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) return null;
     const newActivity = await activityService.addActivity({ ...activityData, team_id: teamId });
@@ -860,7 +863,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     get().fetchTodaysTasks(); // Refresh dashboard tasks
     return newActivity;
   },
-  updateActivity: async (activityId, updates) => {
+  updateActivity: async (activityId: string, updates: ContactActivityUpdate) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) return null;
     const updatedActivity = await activityService.updateActivity(activityId, teamId, updates);
@@ -868,7 +871,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     get().fetchTodaysTasks(); // Refresh dashboard tasks
     return updatedActivity;
   },
-  deleteActivity: async (activityId) => {
+  deleteActivity: async (activityId: string) => {
     const teamId = get().activeTeam?.id;
     if (!teamId) return;
     await activityService.deleteActivity(activityId, teamId);

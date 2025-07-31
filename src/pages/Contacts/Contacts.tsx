@@ -1,14 +1,14 @@
 import React, { useState, useRef, useMemo } from 'react';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import Modal from '../../components/common/Modal';
-import ContactForm from './ContactForm';
-import { Contact, EditableContact } from '../../types';
-import { PLUS_ICON, TRASH_ICON, CONTACTS_ICON, UPLOAD_ICON, SEND_ICON, SEARCH_ICON } from '../../components/icons';
-import { useAuthStore } from '../../stores/authStore';
-import { useUiStore } from '../../stores/uiStore';
-import DirectMessageModal from './DirectMessageModal';
-import InfoCard from '../../components/common/InfoCard';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import Modal from '../../components/common/Modal.js';
+import ContactForm from './ContactForm.js';
+import { Contact, EditableContact } from '../../types/index.js';
+import { PLUS_ICON, TRASH_ICON, CONTACTS_ICON, UPLOAD_ICON, SEND_ICON, SEARCH_ICON } from '../../components/icons/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { useUiStore } from '../../stores/uiStore.js';
+import DirectMessageModal from './DirectMessageModal.js';
+import InfoCard from '../../components/common/InfoCard.js';
 
 const Tag: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <span className="mr-2 mb-2 inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-sky-500/20 dark:text-sky-400">

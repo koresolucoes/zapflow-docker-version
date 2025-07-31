@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import Modal from '../../components/common/Modal';
-import Button from '../../components/common/Button';
-import InfoCard from '../../components/common/InfoCard';
-import { Contact } from '../../types';
-import { useAuthStore } from '../../stores/authStore';
+import Modal from '../../components/common/Modal.js';
+import Button from '../../components/common/Button.js';
+import InfoCard from '../../components/common/InfoCard.js';
+import { Contact } from '../../types/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
 
 interface DirectMessageModalProps {
     isOpen: boolean;

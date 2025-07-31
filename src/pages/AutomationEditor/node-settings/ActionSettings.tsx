@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { NodeSettingsProps, InputWithVariables, TextareaWithVariables } from './common';
-import { PLUS_ICON, TRASH_ICON } from '../../../components/icons';
-import Button from '../../../components/common/Button';
+import { NodeSettingsProps, InputWithVariables, TextareaWithVariables } from './common.js';
+import { PLUS_ICON, TRASH_ICON } from '../../../components/icons/index.js';
+import Button from '../../../components/common/Button.js';
 
 const baseInputClass = "w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500";
 
@@ -89,7 +89,7 @@ const ActionSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange, ava
                      handleConfigChange('buttons', newButtons);
                 }
                  const removeButton = (index: number) => {
-                    const newButtons = buttons.filter((_, i) => i !== index);
+                                        const newButtons = buttons.filter((_: any, i: number) => i !== index);
                     handleConfigChange('buttons', newButtons);
                 }
                 return (

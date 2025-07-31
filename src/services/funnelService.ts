@@ -1,6 +1,6 @@
-import { supabase } from '../lib/supabaseClient';
-import { Pipeline, PipelineStage, DealInsert, DealWithContact, StageType } from '../types';
-import { TablesInsert, TablesUpdate } from '../types/database.types';
+import { supabase } from '../lib/supabaseClient.js';
+import { Pipeline, PipelineStage, DealInsert, DealWithContact, StageType } from '../types/index.js';
+import { TablesInsert, TablesUpdate } from '@/src/types/database.types.js';
 
 export const addDealToDb = async (dealData: DealInsert): Promise<DealWithContact> => {
     const { data, error } = await supabase.from('deals').insert(dealData as any).select('*, contacts(id, name)').single();

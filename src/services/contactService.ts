@@ -1,7 +1,7 @@
-import { supabase } from '../lib/supabaseClient';
-import { Contact, EditableContact, ContactWithDetails, Deal, MetaConfig, MessageInsert, TimelineEvent } from '../types';
-import { TablesInsert, TablesUpdate } from '../types/database.types';
-import { sendTextMessage } from './meta/messages';
+import { supabase } from '../lib/supabaseClient.js';
+import { Contact, EditableContact, ContactWithDetails, Deal, MetaConfig, MessageInsert, TimelineEvent } from '../types/index.js';
+import { TablesInsert, TablesUpdate } from '@/src/types/database.types.js';
+import { sendTextMessage } from './meta/messages.js';
 
 export const normalizePhoneNumber = (phone: string): string => {
     if (!phone) return '';

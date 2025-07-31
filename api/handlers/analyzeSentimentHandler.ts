@@ -1,5 +1,5 @@
+
 import { Request, Response } from 'express';
-import { GoogleGenAI, Type } from "@google/genai";
 
 export async function analyzeSentimentHandler(req: Request, res: Response) {
   if (req.method !== 'POST') {
@@ -19,6 +19,7 @@ export async function analyzeSentimentHandler(req: Request, res: Response) {
       return res.status(400).json({ message: '`messageText` is required and must be a non-empty string.' });
     }
 
+        const { GoogleGenAI, Type } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const prompt = `

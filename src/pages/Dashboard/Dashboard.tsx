@@ -1,15 +1,15 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import Card from '../../components/common/Card';
-import { useAuthStore } from '../../stores/authStore';
-import { fetchDashboardData, DashboardData } from '../../services/dataService';
+import Card from '../../components/common/Card.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { fetchDashboardData, DashboardData } from '../../services/dataService.js';
 
-import SalesMetrics from './SalesMetrics';
-import AutomationAnalytics from './AutomationAnalytics';
-import CampaignAnalytics from './CampaignAnalytics';
-import ContactGrowth from './ContactGrowth';
-import RecentActivityFeed from './RecentActivityFeed';
-import TodaysTasksCard from './TodaysTasksCard';
-import { CONTACTS_ICON, FUNNEL_ICON, AUTOMATION_ICON } from '../../components/icons';
+import SalesMetrics from './SalesMetrics.js';
+import AutomationAnalytics from './AutomationAnalytics.js';
+import CampaignAnalytics from './CampaignAnalytics.js';
+import ContactGrowth from './ContactGrowth.js';
+import RecentActivityFeed from './RecentActivityFeed.js';
+import TodaysTasksCard from './TodaysTasksCard.js';
+import { CONTACTS_ICON, FUNNEL_ICON, AUTOMATION_ICON } from '../../components/icons/index.js';
 
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';

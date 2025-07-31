@@ -1,6 +1,6 @@
-import { supabase } from '../lib/supabaseClient';
-import { Campaign, CampaignWithMetrics, MessageStatus, TemplateCategory, TemplateStatus, AutomationStatus, Edge, AutomationNode, Contact, MessageTemplate, Automation, Pipeline, PipelineStage, DealWithContact, CustomFieldDefinition, CannedResponse } from '../types';
-import { MetaTemplateComponent } from './meta/types';
+import { supabase } from '../lib/supabaseClient.js';
+import { Campaign, CampaignWithMetrics, MessageStatus, TemplateCategory, TemplateStatus, AutomationStatus, Edge, AutomationNode, Contact, MessageTemplate, Automation, Pipeline, PipelineStage, DealWithContact, CustomFieldDefinition, CannedResponse } from '../types/index.js';
+import { MetaTemplateComponent } from './meta/types.js';
 
 const fetchCampaignsWithMetrics = async (campaignsData: Campaign[]): Promise<CampaignWithMetrics[]> => {
     if (campaignsData.length === 0) return [];

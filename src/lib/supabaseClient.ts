@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/database.types';
+import { Database } from '../types/database.types.js';
 
 // Tenta obter as variáveis de ambiente de diferentes maneiras para maior compatibilidade
 const getEnvVar = (key: string): string => {

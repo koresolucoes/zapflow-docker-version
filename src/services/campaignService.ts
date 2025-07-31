@@ -1,7 +1,7 @@
-import { supabase } from '../lib/supabaseClient';
-import { Campaign, MessageInsert, CampaignWithDetails, MessageWithContact, CampaignStatus, TemplateCategory, TemplateStatus, MessageTemplate } from '../types';
-import { TablesInsert, Tables } from '../types/database.types';
-import { MetaTemplateComponent } from './meta/types';
+import { supabase } from '../lib/supabaseClient.js';
+import { Campaign, MessageInsert, CampaignWithDetails, MessageWithContact, CampaignStatus, TemplateCategory, TemplateStatus, MessageTemplate } from '../types/index.js';
+import { TablesInsert, Tables } from '../types/database.types.js';
+import { MetaTemplateComponent } from './meta/types.js';
 
 
 export const fetchCampaignDetailsFromDb = async (teamId: string, campaignId: string): Promise<CampaignWithDetails> => {

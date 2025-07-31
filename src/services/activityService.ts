@@ -1,5 +1,5 @@
-import { supabase } from '../lib/supabaseClient';
-import { ContactActivity, ContactActivityInsert, ContactActivityUpdate, TaskWithContact } from '../types';
+import { supabase } from '../lib/supabaseClient.js';
+import { ContactActivity, ContactActivityInsert, ContactActivityUpdate, TaskWithContact } from '../types/index.js';
 
 export const fetchActivitiesForContact = async (teamId: string, contactId: string): Promise<ContactActivity[]> => {
     const { data, error } = await supabase

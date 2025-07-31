@@ -1,5 +1,5 @@
-import { supabase } from '../lib/supabaseClient';
-import { CustomFieldDefinition, CustomFieldDefinitionInsert } from '../types';
+import { supabase } from '../lib/supabaseClient.js';
+import { CustomFieldDefinition, CustomFieldDefinitionInsert } from '../types/index.js';
 
 export const addCustomFieldDefinition = async (teamId: string, definition: Omit<CustomFieldDefinitionInsert, 'team_id' | 'id' | 'created_at'>): Promise<CustomFieldDefinition> => {
     const { data, error } = await supabase

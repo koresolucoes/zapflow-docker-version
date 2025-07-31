@@ -1,6 +1,6 @@
-import { supabase } from '../lib/supabaseClient';
-import { Automation, AutomationNode, Edge, AutomationNodeStats, AutomationNodeLog, AutomationStatus, Json } from '../types';
-import { TablesInsert, TablesUpdate, Tables } from '../types/database.types';
+import { supabase } from '../lib/supabaseClient.js';
+import { Automation, AutomationNode, Edge, AutomationNodeStats, AutomationNodeLog, AutomationStatus, Json } from '../types/index.js';
+import { TablesInsert, TablesUpdate, Tables } from '../types/database.types.js';
 
 export const createAutomationInDb = async (teamId: string): Promise<Automation> => {
     const dbAutomation: TablesInsert<'automations'> = { 

@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { useAuthStore } from '../../stores/authStore';
-import { Conversation } from '../../types';
-import { useUiStore } from '../../stores/uiStore';
-import { TRASH_ICON } from '../../components/icons';
-import Button from '../../components/common/Button';
+import { useAuthStore } from '../../stores/authStore.js';
+import { Conversation } from '../../types/index.js';
+import { useUiStore } from '../../stores/uiStore.js';
+import { TRASH_ICON } from '../../components/icons/index.js';
+import Button from '../../components/common/Button.js';
 
 const ConversationListItem: React.FC<{ conversation: Conversation; isActive: boolean; onClick: () => void; onDelete: () => void; }> = ({ conversation, isActive, onClick, onDelete }) => {
     

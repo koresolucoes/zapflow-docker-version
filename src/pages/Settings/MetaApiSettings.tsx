@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { EditableProfile } from '../../types';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import InfoCard from '../../components/common/InfoCard';
-import { COPY_ICON } from '../../components/icons';
-import { useAuthStore } from '../../stores/authStore';
+import { EditableProfile } from '../../types/index.js';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import InfoCard from '../../components/common/InfoCard.js';
+import { COPY_ICON } from '../../components/icons/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
 
 const MetaApiSettings: React.FC = () => {
     const profile = useAuthStore(state => state.profile);
@@ -61,7 +61,7 @@ const MetaApiSettings: React.FC = () => {
         ensureVerifyToken();
     }, [profile, updateProfile]);
 
-    const webhookUrl = user ? `${window.location.origin}/api/webhook/${user.id}` : '';
+    const webhookUrl = user ? `/api/webhook/${user.id}` : '';
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { NodeSettingsProps } from './common';
-import Button from '../../../components/common/Button';
-import { COPY_ICON, PLUS_ICON, TRASH_ICON } from '../../../components/icons';
-import JsonTreeView from './JsonTreeView';
+import { NodeSettingsProps } from './common.js';
+import Button from '../../../components/common/Button.js';
+import { COPY_ICON, PLUS_ICON, TRASH_ICON } from '../../../components/icons/index.js';
+import JsonTreeView from './JsonTreeView.js';
 
 const TabButton: React.FC<{ label: string; active: boolean; onClick: () => void; disabled?: boolean }> = ({ label, active, onClick, disabled }) => (
     <button onClick={onClick} disabled={disabled} className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${active ? 'bg-slate-700 text-white' : 'text-slate-400 hover:bg-slate-700/50 hover:text-slate-200'} disabled:opacity-50 disabled:cursor-not-allowed`}>
@@ -41,7 +40,7 @@ const TriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange, pr
     };
 
     const webhookPath = useMemo(() => `${profile?.webhook_path_prefix || profile?.id}__${node.id}`, [profile, node.id]);
-    const webhookUrl = `${window.location.origin}/api/trigger/${webhookPath}`;
+    const webhookUrl = `/api/trigger/${webhookPath}`;
 
     const updateMapping = (updater: (draft: any[]) => any[]) => {
         const currentMapping = config.data_mapping || [];

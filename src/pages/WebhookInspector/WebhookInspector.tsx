@@ -1,11 +1,11 @@
 
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../lib/supabaseClient';
-import { useAuthStore } from '../../stores/authStore';
-import { WebhookLog } from '../../types';
-import Card from '../../components/common/Card';
-import JsonTreeView from '../AutomationEditor/node-settings/JsonTreeView';
+import { supabase } from '../../lib/supabaseClient.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { WebhookLog } from '../../types/index.js';
+import Card from '../../components/common/Card.js';
+import JsonTreeView from '../AutomationEditor/node-settings/JsonTreeView.js';
 
 const WebhookInspector: React.FC = () => {
     const { user, activeTeam } = useAuthStore();

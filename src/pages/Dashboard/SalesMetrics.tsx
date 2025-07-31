@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import Card from '../../components/common/Card';
-import { useAuthStore } from '../../stores/authStore';
-import { CustomTooltip } from './Dashboard';
-import { FUNNEL_ICON } from '../../components/icons';
-import { useUiStore } from '../../stores/uiStore';
+import Card from '../../components/common/Card.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { CustomTooltip } from './Dashboard.js';
+import { FUNNEL_ICON } from '../../components/icons/index.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const SalesMetrics: React.FC = () => {
     const { deals, stages, activePipelineId } = useAuthStore();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { EditableContact } from '../../types';
-import Button from '../../components/common/Button';
-import { useUiStore } from '../../stores/uiStore';
+import { EditableContact } from '../../types/index.js';
+import Button from '../../components/common/Button.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 interface ContactFormProps {
   contact?: EditableContact;

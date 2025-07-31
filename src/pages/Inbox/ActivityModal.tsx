@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Modal from '../../components/common/Modal';
-import Button from '../../components/common/Button';
-import { ContactActivityInsert } from '../../types';
-import { useAuthStore } from '../../stores/authStore';
+import Modal from '../../components/common/Modal.js';
+import Button from '../../components/common/Button.js';
+import { ContactActivityInsert } from '../../types/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
 
 interface ActivityModalProps {
     isOpen: boolean;

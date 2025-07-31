@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Pipeline, PipelineStage, Deal, DealInsert } from '../../types';
-import Button from './Button';
-import Modal from './Modal';
+import { Pipeline, PipelineStage, Deal, DealInsert } from '../../types/index.js';
+import Button from './Button.js';
+import Modal from './Modal.js';
 
 interface DealFormModalProps {
     isOpen: boolean;

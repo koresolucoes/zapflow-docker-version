@@ -1,26 +1,26 @@
 import React, { Suspense, lazy, useEffect } from 'react';
-import { useAuthStore } from './stores/authStore';
-import { useUiStore } from './stores/uiStore';
-import MainLayout from './components/layout/MainLayout';
-import { ToastContainer } from './components/common/Toast';
-import ConfirmationModal from './components/common/ConfirmationModal';
+import { useAuthStore } from './stores/authStore.js';
+import { useUiStore } from './stores/uiStore.js';
+import MainLayout from './components/layout/MainLayout.js';
+import { ToastContainer } from './components/common/Toast.js';
+import ConfirmationModal from './components/common/ConfirmationModal.js';
 
-const Auth = lazy(() => import('./pages/Auth/Auth'));
-const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'));
-const Campaigns = lazy(() => import('./pages/Campaigns/Campaigns'));
-const CampaignDetails = lazy(() => import('./pages/CampaignDetails/CampaignDetails'));
-const Templates = lazy(() => import('./pages/Templates/Templates'));
-const TemplateEditor = lazy(() => import('./pages/TemplateEditor/TemplateEditor'));
-const Contacts = lazy(() => import('./pages/Contacts/Contacts'));
-const ContactDetails = lazy(() => import('./pages/ContactDetails/ContactDetails'));
-const Funnel = lazy(() => import('./pages/Funnel/Funnel'));
-const NewCampaign = lazy(() => import('./pages/NewCampaign/NewCampaign'));
-const CompanyProfile = lazy(() => import('./pages/Profile/CompanyProfile'));
-const Settings = lazy(() => import('./pages/Settings/Settings'));
-const Automations = lazy(() => import('./pages/Automations/Automations'));
-const AutomationEditor = lazy(() => import('./pages/AutomationEditor/AutomationEditor'));
-const Inbox = lazy(() => import('./pages/Inbox/Inbox'));
-const WebhookInspector = lazy(() => import('./pages/WebhookInspector/WebhookInspector'));
+const Auth = lazy(() => import('./pages/Auth/Auth.js'));
+const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard.js'));
+const Campaigns = lazy(() => import('./pages/Campaigns/Campaigns.js'));
+const CampaignDetails = lazy(() => import('./pages/CampaignDetails/CampaignDetails.js'));
+const Templates = lazy(() => import('./pages/Templates/Templates.js'));
+const TemplateEditor = lazy(() => import('./pages/TemplateEditor/TemplateEditor.js'));
+const Contacts = lazy(() => import('./pages/Contacts/Contacts.js'));
+const ContactDetails = lazy(() => import('./pages/ContactDetails/ContactDetails.js'));
+const Funnel = lazy(() => import('./pages/Funnel/Funnel.js'));
+const NewCampaign = lazy(() => import('./pages/NewCampaign/NewCampaign.js'));
+const CompanyProfile = lazy(() => import('./pages/Profile/CompanyProfile.js'));
+const Settings = lazy(() => import('./pages/Settings/Settings.js'));
+const Automations = lazy(() => import('./pages/Automations/Automations.js'));
+const AutomationEditor = lazy(() => import('./pages/AutomationEditor/AutomationEditor.js'));
+const Inbox = lazy(() => import('./pages/Inbox/Inbox.js'));
+const WebhookInspector = lazy(() => import('./pages/WebhookInspector/WebhookInspector.js'));
 
 const PageSuspenseFallback = () => (
     <div className="flex items-center justify-center w-full h-full p-10">

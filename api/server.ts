@@ -12,6 +12,8 @@ import { runTriggerHandler } from './handlers/runTriggerHandler.js';
 import { setupNewUserHandler } from './handlers/setupNewUserHandler.js';
 import { webhookIdHandler } from './handlers/webhookIdHandler.js';
 import { triggerIdHandler } from './handlers/triggerIdHandler.js';
+import { testWebhookHandler } from './handlers/testWebhookHandler.js';
+import { healthCheckHandler } from './handlers/healthCheckHandler.js';
 
 dotenv.config();
 
@@ -32,6 +34,8 @@ app.post('/api/run-trigger', runTriggerHandler);
 app.post('/api/setup-new-user', setupNewUserHandler);
 app.all('/api/webhook/:id', webhookIdHandler);
 app.all('/api/trigger/:id', triggerIdHandler);
+app.post('/api/test-webhook', testWebhookHandler);
+app.get('/api/health', healthCheckHandler);
 
 app.get('/health', (req, res) => res.send('OK'));
 

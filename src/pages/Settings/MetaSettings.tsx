@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import MetaApiSettings from './MetaApiSettings';
-import CustomFieldsSettings from './CustomFieldsSettings';
+import MetaApiSettings from './MetaApiSettings.js';
+import CustomFieldsSettings from './CustomFieldsSettings.js';
 
 const TabButton = ({ label, isActive, onClick }: { label: string, isActive: boolean, onClick: () => void }) => (
     <button

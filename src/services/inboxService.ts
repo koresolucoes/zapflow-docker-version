@@ -1,6 +1,6 @@
-import { supabase } from '../lib/supabaseClient';
-import { Conversation, UnifiedMessage, Contact, MessageInsert, MessageStatus, MetaConfig, Message, TemplateCategory, TemplateStatus, MetaTemplateComponent } from '../types';
-import { sendTextMessage } from './meta/messages';
+import { supabase } from '../lib/supabaseClient.js';
+import { Conversation, UnifiedMessage, Contact, MessageInsert, MessageStatus, MetaConfig, Message, TemplateCategory, TemplateStatus, MetaTemplateComponent } from '../types/index.js';
+import { sendTextMessage } from './meta/messages.js';
 
 export const mapPayloadToUnifiedMessage = (payload: Message): UnifiedMessage => {
     return {

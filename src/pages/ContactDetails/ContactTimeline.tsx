@@ -1,16 +1,16 @@
 import React from 'react';
-import { TimelineEvent } from '../../types';
-import Card from '../../components/common/Card';
-import TimelineMessageItem from './TimelineMessageItem';
-import TimelineAutomationItem from './TimelineAutomationItem';
-import TimelineDealItem from './TimelineDealItem';
+import { TimelineEvent } from '../../types/index.js';
+import Card from '../../components/common/Card.js';
+import TimelineMessageItem from './TimelineMessageItem.js';
+import TimelineAutomationItem from './TimelineAutomationItem.js';
+import TimelineDealItem from './TimelineDealItem.js';
 
 interface ContactTimelineProps {
     events: TimelineEvent[];
     isLoading: boolean;
 }
 
-const ContactTimeline: React.FC<ContactTimelineProps> = ({ events, isLoading }) => {
+const ContactTimeline: React.FC<ContactTimelineProps> = ({ events, isLoading }: ContactTimelineProps) => {
     return (
         <Card>
             <h2 className="text-lg font-semibold text-white mb-4">Linha do Tempo</h2>

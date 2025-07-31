@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Modal from '../../components/common/Modal';
-import Button from '../../components/common/Button';
+import Modal from '../../components/common/Modal.js';
+import Button from '../../components/common/Button.js';
 
 interface DealClosingModalProps {
     isOpen: boolean;

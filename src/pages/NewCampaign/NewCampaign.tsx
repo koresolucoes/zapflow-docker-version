@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { sendTemplatedMessage } from '../../services/meta/messages';
-import { getMetaTemplateById } from '../../services/meta/templates';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import Modal from '../../components/common/Modal';
-import { MessageInsert, Contact, MessageTemplate } from '../../types';
-import TemplatePreview from '../../components/common/TemplatePreview';
-import { useAuthStore, useMetaConfig } from '../../stores/authStore';
-import { supabase } from '../../lib/supabaseClient';
+import { sendTemplatedMessage } from '../../services/meta/messages.js';
+import { getMetaTemplateById } from '../../services/meta/templates.js';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import Modal from '../../components/common/Modal.js';
+import { MessageInsert, Contact, MessageTemplate } from '../../types/index.js';
+import TemplatePreview from '../../components/common/TemplatePreview.js';
+import { useAuthStore, useMetaConfig } from '../../stores/authStore.js';
+import { supabase } from '../../lib/supabaseClient.js';
 
 interface SendResult {
     success: boolean;

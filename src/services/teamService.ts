@@ -1,5 +1,5 @@
-import { supabase } from '../lib/supabaseClient';
-import { TeamMemberWithEmail } from '../types';
+import { supabase } from '../lib/supabaseClient.js';
+import { TeamMemberWithEmail } from '../types/index.js';
 import type { User } from '@supabase/supabase-js';
 
 export const getTeamMembersForTeams = async (teamIds: string[]): Promise<TeamMemberWithEmail[]> => {

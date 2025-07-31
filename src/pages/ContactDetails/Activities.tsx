@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import ActivityItem from './ActivityItem';
-import { ContactActivityInsert } from '../../types';
-import { useAuthStore } from '../../stores/authStore';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import ActivityItem from './ActivityItem.js';
+import { ContactActivity, ContactActivityInsert } from '../../types/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
 
-const TabButton: React.FC<{ label: string; active: boolean; onClick: () => void }> = ({ label, active, onClick }) => (
+const TabButton: React.FC<{ label: string; active: boolean; onClick: () => void }> = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
     <button
         onClick={onClick}
         className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
@@ -21,7 +21,7 @@ interface ActivitiesProps {
     onDataChange: () => void;
 }
 
-const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }) => {
+const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }: ActivitiesProps) => {
     const { activitiesForContact, fetchActivitiesForContact, addActivity, activityLoading, user } = useAuthStore();
     const [activeTab, setActiveTab] = useState<'list' | 'note' | 'task'>('list');
     
@@ -89,7 +89,7 @@ const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }) => {
                         ) : activitiesForContact.length === 0 ? (
                             <p className="text-center text-slate-400 py-4">Nenhuma nota ou tarefa registrada.</p>
                         ) : (
-                            activitiesForContact.map(activity => (
+                                                        activitiesForContact.map((activity: ContactActivity) => (
                                 <ActivityItem key={activity.id} activity={activity} onDataChange={onDataChange} />
                             ))
                         )}

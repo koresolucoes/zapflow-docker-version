@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { GoogleGenAI } from "@google/genai";
+
 
 interface CompanyProfileData {
   name: string;
@@ -36,6 +36,7 @@ export async function generateReplyHandler(req: Request, res: Response) {
       return res.status(400).json({ message: 'Missing `profile`, `instruction`, or `conversationHistory` in request body.' });
     }
 
+    const { GoogleGenAI } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const formattedHistory = conversationHistory

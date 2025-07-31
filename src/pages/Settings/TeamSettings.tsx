@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { useAuthStore } from '../../stores/authStore';
-import * as teamService from '../../services/teamService';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { USER_PLUS_ICON, TRASH_ICON } from '../../components/icons';
-import { useUiStore } from '../../stores/uiStore';
+import { useAuthStore } from '../../stores/authStore.js';
+import * as teamService from '../../services/teamService.js';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import { USER_PLUS_ICON, TRASH_ICON } from '../../components/icons/index.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const TeamSettings: React.FC = () => {
     const { activeTeam, user, allTeamMembers, teamLoading } = useAuthStore();

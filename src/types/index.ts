@@ -1,8 +1,8 @@
 // Type definitions for Vite environment variables were not being picked up correctly.
 // Removing them to avoid confusion and relying on a local cast where needed.
 
-import { Database, Json, Enums } from './database.types';
-import { MetaTemplateComponent } from '../services/meta/types';
+import { Database, Json, Enums } from './database.types.js';
+import { MetaTemplateComponent } from '../services/meta/types.js';
 import type { Node as XyNode, Edge } from '@xyflow/react';
 import type { Session, User } from '@supabase/auth-js';
 
@@ -168,7 +168,7 @@ export type ContactActivityUpdate = Database['public']['Tables']['contact_activi
 
 
 // Tipo combinado para o frontend, que inclui métricas calculadas
-export interface CampaignWithMetrics extends Campaign {
+export type CampaignWithMetrics = Campaign & {
     recipient_count: number;
     metrics: {
         sent: number;

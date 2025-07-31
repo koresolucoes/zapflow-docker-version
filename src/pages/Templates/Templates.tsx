@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { MessageTemplate, TemplateCategory, TemplateStatus } from '../../types';
-import type { TablesInsert } from '../../types/database.types';
-import { getMetaTemplates } from '../../services/meta/templates';
-import { supabase } from '../../lib/supabaseClient';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { SPARKLES_ICON, SEARCH_ICON } from '../../components/icons';
-import { Json } from '../../types/database.types';
-import { useAuthStore, useMetaConfig } from '../../stores/authStore';
-import { MetaTemplateComponent } from '../../services/meta/types';
+import { MessageTemplate, TemplateCategory, TemplateStatus } from '../../types/index.js';
+import type { TablesInsert } from '../../types/database.types.js';
+import { getMetaTemplates } from '../../services/meta/templates.js';
+import { supabase } from '../../lib/supabaseClient.js';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import { SPARKLES_ICON, SEARCH_ICON } from '../../components/icons/index.js';
+import { Json } from '../../types/database.types.js';
+import { useAuthStore, useMetaConfig } from '../../stores/authStore.js';
+import { MetaTemplateComponent } from '../../services/meta/types.js';
 
 const StatusBadge: React.FC<{ status: MessageTemplate['status'] }> = ({ status }) => {
     const statusStyles: Record<TemplateStatus, string> = {

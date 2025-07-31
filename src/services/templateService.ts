@@ -1,8 +1,8 @@
-import { supabase } from '../lib/supabaseClient';
-import { MessageTemplate, MessageTemplateInsert, MetaConfig, TemplateCategory, TemplateStatus } from '../types';
-import { TablesInsert, Json } from '../types/database.types';
-import { createMetaTemplate } from './meta/templates';
-import { MetaTemplateComponent } from './meta/types';
+import { supabase } from '../lib/supabaseClient.js';
+import { MessageTemplate, MessageTemplateInsert, MetaConfig, TemplateCategory, TemplateStatus } from '../types/index.js';
+import { TablesInsert, Json } from '@/src/types/database.types.js';
+import { createMetaTemplate } from './meta/templates.js';
+import { MetaTemplateComponent } from './meta/types.js';
 
 const addTemplateToDb = async (template: MessageTemplateInsert): Promise<MessageTemplate> => {
     const dbTemplate: TablesInsert<'message_templates'> = {

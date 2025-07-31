@@ -1,14 +1,14 @@
 import React from 'react';
-import { TimelineEvent } from '../../types';
-import TimelineItemWrapper from './TimelineItemWrapper';
-import { ARROW_DOWN_LEFT_ICON, ARROW_UP_RIGHT_ICON } from '../../components/icons';
+import { TimelineEvent } from '../../types/index.js';
+import TimelineItemWrapper from './TimelineItemWrapper.js';
+import { ARROW_DOWN_LEFT_ICON, ARROW_UP_RIGHT_ICON } from '../../components/icons/index.js';
 
 interface TimelineMessageItemProps {
     event: TimelineEvent;
     isLast: boolean;
 }
 
-const TimelineMessageItem: React.FC<TimelineMessageItemProps> = ({ event, isLast }) => {
+const TimelineMessageItem: React.FC<TimelineMessageItemProps> = ({ event, isLast }: TimelineMessageItemProps) => {
     const isOutbound = event.data.type === 'outbound';
     const Icon = isOutbound ? ARROW_UP_RIGHT_ICON : ARROW_DOWN_LEFT_ICON;
     const iconColor = isOutbound ? 'text-sky-400' : 'text-green-400';

@@ -1,5 +1,5 @@
-import { MetaTemplateComponent } from "./meta/types";
-import { UnifiedMessage } from "../types";
+import { MetaTemplateComponent } from "./meta/types.js";
+import { UnifiedMessage } from "../types/index.js";
 
 // This type is defined locally to match the structure expected by the AI service,
 // based on the data provided from the user's profile.

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Contact, DealInsert } from '../../types';
-import { useAuthStore } from '../../stores/authStore';
-import Button from '../../components/common/Button';
-import Card from '../../components/common/Card';
-import DealFormModal from '../../components/common/DealFormModal';
-import AddCustomFieldModal from '../../components/common/AddCustomFieldModal';
-import { PLUS_ICON, X_ICON } from '../../components/icons';
-import ActivityItem from '../ContactDetails/ActivityItem';
+import { Contact, DealInsert } from '../../types/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import Button from '../../components/common/Button.js';
+import DealFormModal from '../../components/common/DealFormModal.js';
+import AddCustomFieldModal from '../../components/common/AddCustomFieldModal.js';
+import { PLUS_ICON, X_ICON } from '../../components/icons/index.js';
+import ActivityItem from '../ContactDetails/ActivityItem.js';
 
 const InfoRow: React.FC<{ label: string, value: string | null | undefined }> = ({ label, value }) => (
     <div>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Page } from '../../types';
-import { ZAPFLOW_AI_LOGO, DASHBOARD_ICON, CAMPAIGN_ICON, TEMPLATE_ICON, CONTACTS_ICON, PROFILE_ICON, SETTINGS_ICON, AUTOMATION_ICON, FUNNEL_ICON, INBOX_ICON, WEBHOOK_INSPECTOR_ICON } from '../icons';
-import { useAuthStore } from '../../stores/authStore';
+import { Page } from '../../types/index.js';
+import { ZAPFLOW_AI_LOGO, DASHBOARD_ICON, CAMPAIGN_ICON, TEMPLATE_ICON, CONTACTS_ICON, PROFILE_ICON, SETTINGS_ICON, AUTOMATION_ICON, FUNNEL_ICON, INBOX_ICON, WEBHOOK_INSPECTOR_ICON } from '../icons/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
 
 interface NavItemProps {
   icon: React.ReactNode;

@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { generateTemplateWithAI } from '../../services/geminiService';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { SPARKLES_ICON, PLUS_ICON, TRASH_ICON } from '../../components/icons';
-import { MessageTemplate, MessageTemplateInsert } from '../../types';
-import { MetaTemplateComponent, MetaButton } from '../../services/meta/types';
-import TemplatePreview from '../../components/common/TemplatePreview';
-import { useAuthStore, useMetaConfig } from '../../stores/authStore';
-import InfoCard from '../../components/common/InfoCard';
+import { generateTemplateWithAI } from '../../services/geminiService.js';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import { SPARKLES_ICON, PLUS_ICON, TRASH_ICON } from '../../components/icons/index.js';
+import { MessageTemplate, MessageTemplateInsert } from '../../types/index.js';
+import { MetaTemplateComponent, MetaButton } from '../../services/meta/types.js';
+import TemplatePreview from '../../components/common/TemplatePreview.js';
+import { useAuthStore, useMetaConfig } from '../../stores/authStore.js';
+import InfoCard from '../../components/common/InfoCard.js';
 
 type EditableTemplate = Omit<MessageTemplateInsert, 'id' | 'team_id' | 'created_at' | 'status' | 'meta_id'>;
 

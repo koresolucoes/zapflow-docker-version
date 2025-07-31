@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { TEMPLATE_ICON, SEND_ICON, MAIL_CHECK_ICON, MAIL_OPEN_ICON, TRASH_ICON, SEARCH_ICON } from '../../components/icons';
-import { CampaignWithMetrics } from '../../types';
-import { useAuthStore } from '../../stores/authStore';
-import { useUiStore } from '../../stores/uiStore';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import { TEMPLATE_ICON, SEND_ICON, MAIL_CHECK_ICON, MAIL_OPEN_ICON, TRASH_ICON, SEARCH_ICON } from '../../components/icons/index.js';
+import { CampaignWithMetrics } from '../../types/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () => void; onDelete: () => void; }> = ({ campaign, onViewDetails, onDelete }) => {
     const readRate = campaign.metrics.sent > 0 ? ((campaign.metrics.read / campaign.metrics.sent) * 100).toFixed(1) + '%' : '0.0%';

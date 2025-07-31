@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { PipelineStage, DealWithContact, Deal } from '../../types';
-import DealCard from './DealCard';
-import { useAuthStore } from '../../stores/authStore';
-import { TRASH_ICON } from '../../components/icons';
-import Button from '../../components/common/Button';
-import { useUiStore } from '../../stores/uiStore';
+import { PipelineStage, DealWithContact, Deal } from '../../types/index.js';
+import DealCard from './DealCard.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { TRASH_ICON } from '../../components/icons/index.js';
+import Button from '../../components/common/Button.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 interface StageColumnProps {
     stage: PipelineStage;

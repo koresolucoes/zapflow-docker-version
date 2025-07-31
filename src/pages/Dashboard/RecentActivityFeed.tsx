@@ -1,8 +1,8 @@
 
 import React from 'react';
-import Card from '../../components/common/Card';
-import { DashboardData, GlobalActivityEvent } from '../../services/dataService';
-import { CONTACTS_ICON, CAMPAIGN_ICON, FUNNEL_ICON } from '../../components/icons';
+import Card from '../../components/common/Card.js';
+import { DashboardData, GlobalActivityEvent } from '../../services/dataService.js';
+import { CONTACTS_ICON, CAMPAIGN_ICON, FUNNEL_ICON } from '../../components/icons/index.js';
 
 interface RecentActivityFeedProps {
     data: DashboardData | null;

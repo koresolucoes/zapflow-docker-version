@@ -1,6 +1,6 @@
 import React from 'react';
-import { UnifiedMessage, MessageStatus } from '../../types';
-import { FILE_TEXT_ICON } from '../../components/icons';
+import { UnifiedMessage, MessageStatus } from '../../types/index.js';
+import { FILE_TEXT_ICON } from '../../components/icons/index.js';
 
 interface MessageBubbleProps {
     message: UnifiedMessage;

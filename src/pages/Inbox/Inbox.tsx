@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import ConversationList from './ConversationList';
-import ChatWindow from './ChatWindow';
-import ContactPanel from './ContactPanel';
-import { useAuthStore } from '../../stores/authStore';
-import { INBOX_ICON } from '../../components/icons';
+import ConversationList from './ConversationList.js';
+import ChatWindow from './ChatWindow.js';
+import ContactPanel from './ContactPanel.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { INBOX_ICON } from '../../components/icons/index.js';
 
 const Inbox: React.FC = () => {
     const { activeContactId } = useAuthStore();

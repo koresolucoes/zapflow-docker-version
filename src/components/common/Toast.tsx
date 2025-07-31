@@ -1,6 +1,6 @@
 import React from 'react';
-import { useUiStore, Toast as ToastTypeData } from '../../stores/uiStore';
-import { X_ICON, INFO_ICON, ALERT_TRIANGLE_ICON } from '../icons';
+import { useUiStore, Toast as ToastTypeData } from '../../stores/uiStore.js';
+import { X_ICON, INFO_ICON, ALERT_TRIANGLE_ICON } from '../icons/index.js';
 
 const toastIcons = {
     success: <INFO_ICON className="w-5 h-5 text-green-400" />,

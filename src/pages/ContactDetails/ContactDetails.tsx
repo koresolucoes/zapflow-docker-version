@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Contact, DealInsert, Json, TimelineEvent } from '../../types';
-import Button from '../../components/common/Button';
-import Card from '../../components/common/Card';
-import { ARROW_LEFT_ICON, PLUS_ICON } from '../../components/icons';
-import AddCustomFieldModal from '../../components/common/AddCustomFieldModal';
-import Activities from './Activities';
-import { useAuthStore } from '../../stores/authStore';
-import { fetchContactTimeline } from '../../services/contactService';
-import DealFormModal from '../../components/common/DealFormModal';
-import { useUiStore } from '../../stores/uiStore';
+import { Contact, DealInsert, Json, TimelineEvent, CustomFieldDefinition, DealWithContact, Pipeline, PipelineStage } from '../../types/index.js';
+import Button from '../../components/common/Button.js';
+import Card from '../../components/common/Card.js';
+import { ARROW_LEFT_ICON, PLUS_ICON } from '../../components/icons/index.js';
+import AddCustomFieldModal from '../../components/common/AddCustomFieldModal.js';
+import Activities from './Activities.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { fetchContactTimeline } from '../../services/contactService.js';
+import DealFormModal from '../../components/common/DealFormModal.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const ContactDetails: React.FC = () => {
     const { 
@@ -17,7 +17,7 @@ const ContactDetails: React.FC = () => {
         contactDetails, 
         fetchContactDetails, 
         updateContact,
-        definitions,
+        definitions: customFieldDefs,
         deals, 
         addDeal, 
         pipelines, 
@@ -25,7 +25,7 @@ const ContactDetails: React.FC = () => {
         user,
         activeTeam
     } = useAuthStore();
-    const addToast = useUiStore(state => state.addToast);
+    const addToast = useUiStore((state: any) => state.addToast);
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -42,7 +42,7 @@ const ContactDetails: React.FC = () => {
             try {
                 const timelineData = await fetchContactTimeline(activeTeam.id, pageParams.contactId);
                 setTimelineEvents(timelineData);
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Failed to load timeline:", error);
             } finally {
                 setIsTimelineLoading(false);
@@ -57,7 +57,7 @@ const ContactDetails: React.FC = () => {
                 try {
                     await fetchContactDetails(pageParams.contactId);
                     await loadData(); // Load timeline and activities
-                } catch (error) {
+                } catch (error: any) {
                     console.error("Failed to load contact details:", error);
                 } finally {
                     setIsLoading(false);
@@ -75,11 +75,11 @@ const ContactDetails: React.FC = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setLocalContact(prev => prev ? { ...prev, [name]: value } : null);
+        setLocalContact((prev: Contact | null) => prev ? { ...prev, [name]: value } : null);
     };
 
     const handleCustomFieldChange = (key: string, value: string | number) => {
-        setLocalContact(prev => {
+        setLocalContact((prev: Contact | null) => {
             if (!prev) return null;
             const newCustomFields: Json = {
                 ...(prev.custom_fields as object || {}),
@@ -102,7 +102,7 @@ const ContactDetails: React.FC = () => {
 
     const removeTag = (tagToRemove: string) => {
         if (localContact) {
-            setLocalContact({ ...localContact, tags: localContact.tags?.filter(t => t !== tagToRemove) || [] });
+            setLocalContact({ ...localContact, tags: localContact.tags?.filter((t: string) => t !== tagToRemove) || [] });
         }
     };
 
@@ -180,7 +180,7 @@ const ContactDetails: React.FC = () => {
                         <Card>
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tags</h2>
                             <div className="flex flex-wrap items-center w-full bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-700 rounded-md p-2">
-                                {localContact.tags?.map(tag => (
+                                {                                (localContact.tags as string[])?.map((tag: string) => (
                                     <span key={tag} className="flex items-center mr-2 mb-1 px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-sky-500/20 dark:text-sky-300">
                                         {tag}
                                         <button type="button" onClick={() => removeTag(tag)} className="ml-1.5 text-blue-700 dark:text-sky-200 hover:text-blue-900 dark:hover:text-white">&times;</button>
@@ -204,7 +204,7 @@ const ContactDetails: React.FC = () => {
                                 </Button>
                             </div>
                             <div className="space-y-4">
-                                {definitions.length > 0 ? definitions.map(def => {
+                                {customFieldDefs.length > 0 ? customFieldDefs.map((def: CustomFieldDefinition) => {
                                     const customFields = (localContact.custom_fields || {}) as { [key: string]: any };
                                     const value = customFields[def.key] ?? '';
                                     
@@ -219,7 +219,7 @@ const ContactDetails: React.FC = () => {
                                                 return (
                                                     <select value={value} onChange={e => handleCustomFieldChange(def.key, e.target.value)} className={baseInputClass}>
                                                         <option value="">Selecione...</option>
-                                                        {def.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                        {def.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
                                                     </select>
                                                 );
                                             case 'TEXTO':
@@ -257,8 +257,8 @@ const ContactDetails: React.FC = () => {
                             </div>
                             <div className="space-y-3">
                                 {contactDeals.length > 0 ? (
-                                    contactDeals.map(deal => {
-                                        const stage = stages.find(s => s.id === deal.stage_id);
+                                                                        contactDeals.map((deal: DealWithContact) => {
+                                                                                const stage = stages.find((s: PipelineStage) => s.id === deal.stage_id);
                                         return (
                                             <div key={deal.id} className="p-3 bg-gray-50 dark:bg-slate-900/50 rounded-lg">
                                                 <p className="font-semibold text-gray-900 dark:text-white truncate">{deal.name}</p>
@@ -289,7 +289,7 @@ const ContactDetails: React.FC = () => {
                     onClose={() => setIsDealModalOpen(false)}
                     onSave={handleSaveDeal}
                     pipeline={defaultPipeline}
-                    stages={stages.filter(s => s.pipeline_id === defaultPipeline.id)}
+                                        stages={stages.filter((s: PipelineStage) => s.pipeline_id === defaultPipeline.id)}
                     contactName={contactDetails.name}
                 />
             )}

@@ -1,8 +1,8 @@
 import React from 'react';
-import Modal from './Modal';
-import Button from './Button';
-import { useUiStore } from '../../stores/uiStore';
-import { ALERT_TRIANGLE_ICON } from '../icons';
+import Modal from './Modal.js';
+import Button from './Button.js';
+import { useUiStore } from '../../stores/uiStore.js';
+import { ALERT_TRIANGLE_ICON } from '../icons/index.js';
 
 const ConfirmationModal: React.FC = () => {
   const {

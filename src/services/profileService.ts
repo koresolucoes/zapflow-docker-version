@@ -1,5 +1,5 @@
-import { supabase } from '../lib/supabaseClient';
-import { Profile, EditableProfile } from '../types';
+import { supabase } from '../lib/supabaseClient.js';
+import { Profile, EditableProfile } from '../types/index.js';
 
 export const getProfile = async (userId: string): Promise<Profile | null> => {
     const { data, error } = await supabase

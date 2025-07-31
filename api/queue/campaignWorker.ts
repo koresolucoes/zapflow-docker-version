@@ -1,11 +1,9 @@
 import { Worker } from 'bullmq';
-import { supabaseAdmin } from '../../api/_lib/supabaseAdmin.js';
-// Importe a lógica de envio de mensagem (ex: processCampaignMessageHandler)
+import { executeCampaignMessage } from '../_lib/campaigns/messageProcessor.js';
 
 const worker = new Worker('campaign-messages', async job => {
   const { messageId, userId, variables } = job.data;
-  // Aqui, chame a lógica de envio de mensagem (ex: processCampaignMessageHandler)
-  // await processCampaignMessageHandler({ messageId, userId, variables });
+    await executeCampaignMessage({ messageId, userId, variables });
 }, {
   connection: {
     host: process.env.REDIS_HOST || 'localhost',

@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { DealWithContact, Deal } from '../../types';
-import { useAuthStore } from '../../stores/authStore';
-import Button from '../../components/common/Button';
-import { EDIT_ICON, TRASH_ICON } from '../../components/icons';
+import { DealWithContact, Deal } from '../../types/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import Button from '../../components/common/Button.js';
+import { EDIT_ICON, TRASH_ICON } from '../../components/icons/index.js';
 
 interface DealCardProps {
     deal: DealWithContact;

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import MetaApiSettings from './MetaApiSettings';
-import CustomFieldsSettings from './CustomFieldsSettings';
-import CannedResponsesSettings from './CannedResponsesSettings';
-import TeamSettings from './TeamSettings';
-import AccountSettings from './AccountSettings';
+import MetaApiSettings from './MetaApiSettings.js';
+import CustomFieldsSettings from './CustomFieldsSettings.js';
+import CannedResponsesSettings from './CannedResponsesSettings.js';
+import TeamSettings from './TeamSettings.js';
+import AccountSettings from './AccountSettings.js';
 
 const TabButton = ({ label, isActive, onClick }: { label: string, isActive: boolean, onClick: () => void }) => (
     <button

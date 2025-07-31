@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
-import { useAuthStore } from '../../stores/authStore';
-import { useUiStore } from '../../stores/uiStore';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import InfoCard from '../../components/common/InfoCard';
+import { supabase } from '../../lib/supabaseClient.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { useUiStore } from '../../stores/uiStore.js';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import InfoCard from '../../components/common/InfoCard.js';
 
 const AccountSettings: React.FC = () => {
     const { user } = useAuthStore();

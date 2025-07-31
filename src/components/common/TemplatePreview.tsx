@@ -1,5 +1,5 @@
 import React from 'react';
-import { MetaTemplateComponent } from '../../services/meta/types';
+import { MetaTemplateComponent } from '../../services/meta/types.js';
 
 interface TemplatePreviewProps {
   components: MetaTemplateComponent[];

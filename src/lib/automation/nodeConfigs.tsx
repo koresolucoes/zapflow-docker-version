@@ -1,13 +1,13 @@
 
 
 import React from 'react';
-import { AutomationNodeData } from '../../types';
-import MetaTriggerSettings from '../../pages/AutomationEditor/node-settings/MetaTriggerSettings';
-import SendTemplateSettings from '../../pages/AutomationEditor/node-settings/SendTemplateSettings';
-import SendWebhookSettings from '../../pages/AutomationEditor/node-settings/SendWebhookSettings';
-import ActionSettings from '../../pages/AutomationEditor/node-settings/ActionSettings';
-import LogicSettings from '../../pages/AutomationEditor/node-settings/LogicSettings';
-import TriggerSettings from '../../pages/AutomationEditor/node-settings/TriggerSettings';
+import { AutomationNodeData } from '../../types/index.js';
+import MetaTriggerSettings from '../../pages/AutomationEditor/node-settings/MetaTriggerSettings.js';
+import SendTemplateSettings from '../../pages/AutomationEditor/node-settings/SendTemplateSettings.js';
+import SendWebhookSettings from '../../pages/AutomationEditor/node-settings/SendWebhookSettings.js';
+import ActionSettings from '../../pages/AutomationEditor/node-settings/ActionSettings.js';
+import LogicSettings from '../../pages/AutomationEditor/node-settings/LogicSettings.js';
+import TriggerSettings from '../../pages/AutomationEditor/node-settings/TriggerSettings.js';
 
 
 interface NodeConfig {

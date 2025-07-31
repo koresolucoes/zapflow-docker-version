@@ -1,14 +1,14 @@
 import React from 'react';
-import { TimelineEvent } from '../../types';
-import TimelineItemWrapper from './TimelineItemWrapper';
-import { AUTOMATION_ICON } from '../../components/icons';
+import { TimelineEvent } from '../../types/index.js';
+import TimelineItemWrapper from './TimelineItemWrapper.js';
+import { AUTOMATION_ICON } from '../../components/icons/index.js';
 
 interface TimelineAutomationItemProps {
     event: TimelineEvent;
     isLast: boolean;
 }
 
-const TimelineAutomationItem: React.FC<TimelineAutomationItemProps> = ({ event, isLast }) => {
+const TimelineAutomationItem: React.FC<TimelineAutomationItemProps> = ({ event, isLast }: TimelineAutomationItemProps) => {
     const statusText = event.data.status === 'success' ? 'executada com sucesso' : 'falhou';
     const textColor = event.data.status === 'success' ? 'text-green-400' : 'text-red-400';
     

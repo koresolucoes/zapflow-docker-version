@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useAuthStore } from '../../stores/authStore';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import Modal from '../../components/common/Modal';
-import { CannedResponse, CannedResponseInsert } from '../../types';
-import { PLUS_ICON, TRASH_ICON, BOLT_ICON } from '../../components/icons';
-import { TablesUpdate } from '../../types/database.types';
-import { useUiStore } from '../../stores/uiStore';
+import { useAuthStore } from '../../stores/authStore.js';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import Modal from '../../components/common/Modal.js';
+import { CannedResponse, CannedResponseInsert } from '../../types/index.js';
+import { PLUS_ICON, TRASH_ICON, BOLT_ICON } from '../../components/icons/index.js';
+import { TablesUpdate } from '../../types/database.types.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const CannedResponseForm: React.FC<{
     response?: CannedResponse;

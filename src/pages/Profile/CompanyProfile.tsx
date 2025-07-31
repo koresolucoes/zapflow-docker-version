@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { EditableProfile } from '../../types';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { useAuthStore } from '../../stores/authStore';
+import { EditableProfile } from '../../types/index.js';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import { useAuthStore } from '../../stores/authStore.js';
 
 const ProfileInput: React.FC<{
     label: string;

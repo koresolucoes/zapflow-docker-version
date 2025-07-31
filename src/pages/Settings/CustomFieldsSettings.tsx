@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useAuthStore } from '../../stores/authStore';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import AddCustomFieldModal from '../../components/common/AddCustomFieldModal';
-import { PLUS_ICON, TRASH_ICON } from '../../components/icons';
-import { useUiStore } from '../../stores/uiStore';
+import { useAuthStore } from '../../stores/authStore.js';
+import Card from '../../components/common/Card.js';
+import Button from '../../components/common/Button.js';
+import AddCustomFieldModal from '../../components/common/AddCustomFieldModal.js';
+import { PLUS_ICON, TRASH_ICON } from '../../components/icons/index.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const CustomFieldsSettings: React.FC = () => {
     const { definitions, deleteDefinition } = useAuthStore();

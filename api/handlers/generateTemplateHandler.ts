@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { GoogleGenAI, Type } from "@google/genai";
+
 
 interface CompanyProfileData {
   name: string;
@@ -27,6 +27,7 @@ export async function generateTemplateHandler(req: Request, res: Response) {
       return res.status(400).json({ message: 'Faltando `profile` ou `campaignGoal` no corpo da requisição.' });
     }
 
+    const { GoogleGenAI, Type } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const prompt = `

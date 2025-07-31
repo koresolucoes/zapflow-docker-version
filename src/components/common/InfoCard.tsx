@@ -1,5 +1,5 @@
 import React from 'react';
-import { INFO_ICON } from '../icons';
+import { INFO_ICON } from '../icons/index.js';
 
 interface InfoCardProps {
   children: React.ReactNode;

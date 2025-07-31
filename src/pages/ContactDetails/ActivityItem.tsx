@@ -1,16 +1,16 @@
 import React from 'react';
-import { ContactActivity } from '../../types';
-import { useAuthStore } from '../../stores/authStore';
-import { useUiStore } from '../../stores/uiStore';
-import { NOTE_ICON, CALENDAR_ICON, TRASH_ICON, CHECK_SQUARE_ICON } from '../../components/icons';
-import Button from '../../components/common/Button';
+import { ContactActivity } from '../../types/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { useUiStore } from '../../stores/uiStore.js';
+import { NOTE_ICON, CALENDAR_ICON, TRASH_ICON, CHECK_SQUARE_ICON } from '../../components/icons/index.js';
+import Button from '../../components/common/Button.js';
 
 interface ActivityItemProps {
     activity: ContactActivity;
     onDataChange: () => void;
 }
 
-const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onDataChange }) => {
+const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onDataChange }: ActivityItemProps) => {
     const { updateActivity, deleteActivity } = useAuthStore();
     const { showConfirmation, addToast } = useUiStore();
     const isTask = activity.type === 'TAREFA';

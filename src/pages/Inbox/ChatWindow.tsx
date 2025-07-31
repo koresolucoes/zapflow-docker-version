@@ -1,11 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { useAuthStore } from '../../stores/authStore';
-import MessageBubble from './MessageBubble';
-import MessageInput from './MessageInput';
-import Button from '../../components/common/Button';
-import { INFO_ICON, NOTE_ICON, CALENDAR_ICON } from '../../components/icons';
-import { UnifiedMessage } from '../../types';
-import ActivityModal from './ActivityModal';
+import { useAuthStore } from '../../stores/authStore.js';
+import MessageBubble from './MessageBubble.js';
+import MessageInput from './MessageInput.js';
+import Button from '../../components/common/Button.js';
+import { INFO_ICON, NOTE_ICON, CALENDAR_ICON } from '../../components/icons/index.js';
+import { UnifiedMessage } from '../../types/index.js';
+import ActivityModal from './ActivityModal.js';
 
 interface ChatWindowProps {
     isPanelOpen: boolean;
