@@ -1,7 +1,15 @@
 # Estágio de construção
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 
 WORKDIR /app
+
+# Definir argumentos de build
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+
+# Criar arquivo .env temporário para o build
+RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
+    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env
 
 # Copiar arquivos de configuração
 COPY package*.json ./

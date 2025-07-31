@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { TablesInsert } from '../_lib/database.types.js';
-import { campaignQueue } from '../../src/queue/campaignQueue';
+import { campaignQueue } from '../_lib/queue/campaignQueue.js';
 
 export async function enqueueCampaignSendHandler(req: Request, res: Response) {
   if (req.method !== 'POST') {
@@ -62,7 +62,10 @@ export async function enqueueCampaignSendHandler(req: Request, res: Response) {
 
     // 3. Enqueue messages with BullMQ
     const delaySeconds = speed === 'slow' ? 60 : speed === 'very_slow' ? 300 : 0;
-    for (const [index, message] of messages.entries()) {
+    // Convert iterator to array to fix the ArrayIterator error
+    const messagesArray = Array.isArray(messages) ? messages : [];
+    for (let index = 0; index < messagesArray.length; index++) {
+      const message = messagesArray[index];
       const delay = scheduleDate
         ? Math.max(0, new Date(scheduleDate).getTime() - Date.now()) + (index * delaySeconds * 1000)
         : index * delaySeconds * 1000;

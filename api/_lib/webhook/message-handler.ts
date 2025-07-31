@@ -10,7 +10,7 @@ const analyzeAndStoreSentiment = async (messageText: string, contactId: string):
     }
 
     try {
-        const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+        const host = process.env.API_URL || 'http://localhost:3000';
         const response = await fetch(`${host}/api/analyze-sentiment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

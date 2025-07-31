@@ -5,17 +5,18 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "tsx watch server.ts",
+    "dev": "node --import tsx watch server.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.53.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "@google/genai": "^1.11.0",
     "redis": "^4.6.4",
-    "tsx": "^3.12.0",
+    "tsx": "^4.9.2",
     "typescript": "^4.9.5"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
-import { handler as processCampaignMessage } from '../process-campaign-message.js';
+import { processCampaignMessageHandler } from '../handlers/processCampaignMessageHandler.js';
 import redisQueue from '../_lib/redisQueue.js';
 
 // Tipos para a requisição e resposta simuladas
@@ -37,7 +37,7 @@ async function processMessage(message: any) {
     };
 
     // Processa a mensagem
-    await processCampaignMessage(req as any, res as any);
+    await processCampaignMessageHandler(req as any, res as any);
   } catch (error) {
     console.error(`Error processing message ${message.messageId}:`, error);
     

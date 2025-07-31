@@ -1,6 +1,6 @@
 import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import * as cors from 'cors';
+import * as dotenv from 'dotenv';
 import { conversationHandler } from './handlers/conversationHandler.js';
 import { analyzeSentimentHandler } from './handlers/analyzeSentimentHandler.js';
 import { generateReplyHandler } from './handlers/generateReplyHandler.js';

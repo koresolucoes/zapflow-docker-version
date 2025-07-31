@@ -4,13 +4,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     ports:
       - "5173:80"
-    volumes:
-      - .:/app
-      - /app/node_modules
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     depends_on:
@@ -29,7 +29,7 @@ services:
       - ./tsconfig.json:/app/tsconfig.json
       - /app/node_modules
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=3001
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}

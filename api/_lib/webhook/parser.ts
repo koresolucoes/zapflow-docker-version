@@ -1,9 +1,9 @@
 
 
-import type { VercelRequest } from '@vercel/node';
+import { IncomingMessage } from 'http';
 import { Buffer } from 'node:buffer';
 
-export const getRawBody = (req: VercelRequest): Promise<Buffer> => {
+export const getRawBody = (req: IncomingMessage): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     req.on('data', (chunk) => chunks.push(chunk));

@@ -1,5 +1,5 @@
-# Estágio de desenvolvimento
-FROM node:18-alpine
+# Development stage
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -19,4 +19,4 @@ COPY . .
 EXPOSE 3001
 
 # Comando para iniciar o servidor de desenvolvimento
-CMD ["npm", "run", "dev"]
+CMD ["npx", "tsx", "watch", "server.ts"]

@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { verifySignature } from "@upstash/qstash";
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { getRawBody } from '../_lib/webhook/parser.js';
 import { getMetaConfig, resolveVariables } from '../_lib/automation/helpers.js';
