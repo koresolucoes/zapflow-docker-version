@@ -3,9 +3,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copiar arquivos de configuração
+# Copiar package.json primeiro
 COPY package*.json ./
-COPY tsconfig.json ./
 
 # Instalar dependências
 RUN npm install
@@ -13,8 +12,8 @@ RUN npm install
 # Copiar o restante do código
 COPY . .
 
-# Construir a aplicação (se necessário)
-# RUN npm run build
+# Copiar tsconfig.json do diretório raiz (será copiado pelo docker-compose)
+# O docker-compose vai montar o volume do diretório raiz
 
 # Porta que a API vai rodar
 EXPOSE 3001

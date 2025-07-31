@@ -1,7 +1,5 @@
-version: '3.8'
 
 services:
-  # Frontend
   frontend:
     build:
       context: .
@@ -20,7 +18,6 @@ services:
     networks:
       - app-network
 
-  # Backend/API
   api:
     build:
       context: ./api
@@ -29,30 +26,36 @@ services:
       - "3001:3001"
     volumes:
       - ./api:/app
+      - ./tsconfig.json:/app/tsconfig.json
       - /app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3001
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - QSTASH_TOKEN=${QSTASH_TOKEN}
       - APP_URL=http://localhost:5173
+      # assegura uso do host do serviço redis
+      - REDIS_URL=redis://redis:6379
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - app-network
 
-  # Redis (para cache e filas, se necessário)
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
-  # Redis Commander (interface web para gerenciar o Redis)
   redis-commander:
     image: rediscommander/redis-commander:latest
     environment:
