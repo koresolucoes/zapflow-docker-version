@@ -21,6 +21,8 @@ class RedisQueue {
     this.client = createClient({
       url: process.env.REDIS_URL || 'redis://redis:6379',
       socket: {
+        host: process.env.REDIS_HOST || 'redis',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
         reconnectStrategy: (retries) => {
           if (retries > 10) {
             console.error('Max reconnection attempts reached');

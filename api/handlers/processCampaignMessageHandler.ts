@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
-import { getRawBody } from '../_lib/webhook/parser.js';
 import { getMetaConfig, resolveVariables } from '../_lib/automation/helpers.js';
 import { sendTemplatedMessage } from '../_lib/meta/messages.js';
 import { getMetaTemplateById } from '../_lib/meta/templates.js';

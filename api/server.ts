@@ -1,5 +1,5 @@
 import express from 'express';
-import * as cors from 'cors';
+import cors from 'cors';
 import * as dotenv from 'dotenv';
 import { conversationHandler } from './handlers/conversationHandler.js';
 import { analyzeSentimentHandler } from './handlers/analyzeSentimentHandler.js';

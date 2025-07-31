@@ -38,13 +38,14 @@ async function processMessage(message: any) {
 
     // Processa a mensagem
     await processCampaignMessageHandler(req as any, res as any);
-  } catch (error) {
-    console.error(`Error processing message ${message.messageId}:`, error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Error processing message ${message.messageId}:`, errorMessage);
     
     // Atualiza o status da mensagem para falha
     await supabaseAdmin
       .from('messages')
-      .update({ status: 'failed', error: error.message })
+      .update({ status: 'failed', error: errorMessage })
       .eq('id', message.messageId);
   }
 }
