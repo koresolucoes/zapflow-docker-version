@@ -46,44 +46,63 @@ const SalesMetrics: React.FC = () => {
     }, [stages, deals, activePipelineId]);
 
     return (
-        <Card>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Métricas de Vendas (Funil)</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 text-center">
-                <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Valor em Aberto</p>
-                    <p className="text-2xl font-bold text-green-400">{salesKPIs.openValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                </div>
-                 <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Ganhos este Mês</p>
-                    <p className="text-2xl font-bold text-slate-800 dark:text-sky-400">{salesKPIs.wonValueThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">{salesKPIs.wonCountThisMonth} negócios</p>
-                </div>
-                 <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Taxa de Conversão</p>
-                    <p className="text-2xl font-bold text-amber-400">{salesKPIs.conversionRate.toFixed(1)}%</p>
+        <Card className="h-full w-full">
+            <div className="p-4 h-full flex flex-col">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Métricas de Vendas (Funil)</h2>
+                <div className="flex-1 flex flex-col">
+                    {funnelChartData.length > 0 ? (
+                        <div className="w-full h-[200px] min-h-[200px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={funnelChartData}
+                                    layout="vertical"
+                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                    barSize={20}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                    <XAxis type="number" hide />
+                                    <YAxis 
+                                        dataKey="name" 
+                                        type="category" 
+                                        scale="band"
+                                        width={100}
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <Tooltip 
+                                        content={<CustomTooltip />} 
+                                        cursor={{ fill: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}
+                                    />
+                                    <Bar dataKey="Negócios" radius={[0, 4, 4, 0]}>
+                                        {funnelChartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                            <FUNNEL_ICON className="w-12 h-12 text-slate-400 dark:text-slate-600 mb-2" />
+                            <p className="text-slate-500 dark:text-slate-400">Nenhum dado disponível para exibir</p>
+                        </div>
+                    )}
+                    
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                            <p className="text-slate-500 dark:text-slate-400">Valor em Aberto</p>
+                            <p className="font-semibold text-slate-900 dark:text-white">
+                                {salesKPIs.openValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            </p>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                            <p className="text-slate-500 dark:text-slate-400">Ganhos (Mês)</p>
+                            <p className="font-semibold text-slate-900 dark:text-white">
+                                {salesKPIs.wonCountThisMonth} ({salesKPIs.wonValueThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            {funnelChartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={funnelChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#334155' : 'rgba(100, 116, 139, 0.2)'} />
-                        <XAxis dataKey="name" tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} fontSize={12} interval={0} angle={-15} textAnchor="end" height={50} />
-                        <YAxis tick={{ fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} allowDecimals={false} />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(100, 116, 139, 0.1)' }} />
-                        <Bar dataKey="Negócios" name="Negócios" barSize={40}>
-                            {funnelChartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.fill} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-            ) : (
-                 <div className="text-center py-10">
-                    <FUNNEL_ICON className="w-12 h-12 mx-auto text-slate-400 dark:text-slate-600" />
-                    <h3 className="text-md text-slate-800 dark:text-white mt-2">Nenhum dado de funil para exibir.</h3>
-                    <p className="text-slate-500 dark:text-slate-500 text-sm mt-1">Adicione negócios ao seu funil para ver as métricas aqui.</p>
-                </div>
-            )}
         </Card>
     );
 };

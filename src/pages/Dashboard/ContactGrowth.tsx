@@ -47,43 +47,71 @@ const ContactGrowth: React.FC = () => {
     }, [contacts]);
 
     return (
-        <Card>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                    <h2 className="text-lg font-semibold text-white mb-4">Crescimento de Contatos (Últimos 30 dias)</h2>
+        <Card className="h-full w-full">
+            <div className="p-4 h-full flex flex-col">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Crescimento de Contatos</h2>
+                <div className="flex-1 flex flex-col">
+                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3">Últimos 30 dias</h3>
+                    
                     {growthData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={200}>
-                            <LineChart data={growthData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                <XAxis dataKey="name" tick={{ fill: '#94a3b8' }} fontSize={12} />
-                                <YAxis tick={{ fill: '#94a3b8' }} allowDecimals={false} />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Line type="monotone" dataKey="Novos Contatos" stroke="#34d399" strokeWidth={2} />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        <div className="w-full h-[180px] min-h-[180px] mb-4">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart 
+                                    data={growthData} 
+                                    margin={{ top: 5, right: 10, left: -15, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
+                                    <XAxis 
+                                        dataKey="name" 
+                                        tick={{ fill: '#94a3b8' }} 
+                                        fontSize={10}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <YAxis 
+                                        tick={{ fill: '#94a3b8' }} 
+                                        allowDecimals={false}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        width={25}
+                                    />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Line 
+                                        type="monotone" 
+                                        dataKey="Novos Contatos" 
+                                        stroke="#34d399" 
+                                        strokeWidth={2}
+                                        dot={false}
+                                        activeDot={{ r: 4, strokeWidth: 2, stroke: '#ffffff', strokeOpacity: 0.5 }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
                     ) : (
-                        <div className="h-[200px] flex items-center justify-center text-center">
-                             <div>
-                                <CONTACTS_ICON className="w-12 h-12 mx-auto text-slate-600" />
-                                <p className="text-sm text-slate-500 mt-2">Nenhum novo contato nos últimos 30 dias.</p>
-                             </div>
+                        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                            <CONTACTS_ICON className="w-10 h-10 text-slate-400 dark:text-slate-600 mb-2" />
+                            <p className="text-slate-500 dark:text-slate-400">Nenhum novo contato registrado</p>
                         </div>
                     )}
-                </div>
-                <div className="md:col-span-1">
-                    <h2 className="text-lg font-semibold text-white mb-4">Tags Populares</h2>
-                     {popularTags.length > 0 ? (
-                        <ul className="space-y-2">
-                            {popularTags.map(([tag, count]) => (
-                                <li key={tag} className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-300 px-2 py-1 bg-sky-500/10 text-sky-300 rounded text-xs">{tag}</span>
-                                    <span className="font-mono font-semibold text-white">{count}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-sm text-slate-500 text-center pt-8">Nenhuma tag utilizada.</p>
-                    )}
+                    
+                    <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3">Tags Populares</h3>
+                        {popularTags.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                                {popularTags.map(([tag, count]) => (
+                                    <div 
+                                        key={tag}
+                                        className="flex items-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs px-2.5 py-1 rounded-full"
+                                    >
+                                        <span className="truncate max-w-[100px]">{tag}</span>
+                                        <span className="ml-1.5 font-medium text-slate-900 dark:text-white">{count}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-slate-400 dark:text-slate-500">Nenhuma tag utilizada</p>
+                        )}
+                    </div>
                 </div>
             </div>
         </Card>

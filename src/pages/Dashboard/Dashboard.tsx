@@ -17,19 +17,19 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 const StatCard: React.FC<{ title: string; value: string; icon: React.ReactNode; footer?: string; }> = ({ title, value, icon, footer }) => (
-    <Card className="flex flex-col justify-between p-4 h-full">
-        <div>
-            <div className="flex items-start justify-between">
-                <div>
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400">{title}</h3>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+    <Card className="flex flex-col justify-between p-4 h-full w-full overflow-hidden">
+        <div className="w-full">
+            <div className="flex items-start justify-between w-full">
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 truncate">{title}</h3>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1 truncate">{value}</p>
                 </div>
-                <div className="p-3 bg-gray-100 dark:bg-slate-700 rounded-lg">
+                <div className="ml-4 flex-shrink-0 p-3 bg-gray-100 dark:bg-slate-700 rounded-lg">
                     {icon}
                 </div>
             </div>
+            {footer && <p className="text-xs text-gray-400 dark:text-slate-500 mt-2 truncate">{footer}</p>}
         </div>
-        {footer && <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">{footer}</p>}
     </Card>
 );
 
@@ -183,10 +183,12 @@ const Dashboard: React.FC = () => {
       
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={cardOrder} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 w-full">
                  {cardOrder.map(id => (
                     <SortableCardWrapper key={id} id={id} className={cardClassNames[id]}>
-                        {cardComponents[id]}
+                        <div className="h-full w-full">
+                            {cardComponents[id]}
+                        </div>
                     </SortableCardWrapper>
                 ))}
             </div>

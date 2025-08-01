@@ -37,48 +37,70 @@ const CampaignAnalytics: React.FC = () => {
     }, [campaigns]);
 
     return (
-        <Card className="flex flex-col">
-            <h2 className="text-lg font-semibold text-white mb-4">Análise de Campanhas</h2>
-
-            <div className="grid grid-cols-3 gap-4 text-center mb-4 p-3 bg-slate-900/50 rounded-lg">
-                <div>
-                    <p className="text-2xl font-bold text-sky-400">{stats.totalCampaigns}</p>
-                    <p className="text-xs text-slate-400">Campanhas</p>
-                </div>
-                <div>
-                    <p className="text-2xl font-bold text-white">{stats.totalSent.toLocaleString('pt-BR')}</p>
-                    <p className="text-xs text-slate-400">Enviadas</p>
-                </div>
-                <div>
-                    <p className="text-2xl font-bold text-pink-400">{stats.overallReadRate}</p>
-                    <p className="text-xs text-slate-400">Taxa de Leitura</p>
-                </div>
-            </div>
-
-            <div>
-                <h3 className="text-sm font-semibold text-slate-300 mb-2">Últimas Campanhas Enviadas</h3>
-                {mostRecentCampaigns.length > 0 ? (
-                    <ul className="space-y-2">
-                        {mostRecentCampaigns.map(campaign => {
-                            const readRate = campaign.metrics.sent > 0 ? ((campaign.metrics.read / campaign.metrics.sent) * 100).toFixed(1) + '%' : '0.0%';
-                            return (
-                                <li
-                                    key={campaign.id}
-                                    className="flex justify-between items-center p-2 bg-slate-800 rounded-md text-sm"
-                                    title={campaign.name}
-                                >
-                                    <span className="font-medium text-slate-200 truncate pr-2">{campaign.name}</span>
-                                    <span className="font-mono font-semibold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded">{readRate}</span>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                ) : (
-                    <div className="text-center py-6">
-                        <CAMPAIGN_ICON className="w-10 h-10 mx-auto text-slate-600"/>
-                        <p className="text-sm text-slate-500 mt-2">Nenhuma campanha enviada ainda.</p>
+        <Card className="h-full w-full">
+            <div className="p-4 h-full flex flex-col">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Análise de Campanhas</h2>
+                
+                <div className="grid grid-cols-3 gap-3 mb-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <div className="text-center">
+                        <p className="text-xl font-bold text-sky-500 dark:text-sky-400">{stats.totalCampaigns}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Campanhas</p>
                     </div>
-                )}
+                    <div className="text-center">
+                        <p className="text-xl font-bold text-slate-900 dark:text-white">
+                            {stats.totalSent.toLocaleString('pt-BR')}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Enviadas</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-xl font-bold text-green-500 dark:text-green-400">
+                            {stats.overallReadRate}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Taxa de Leitura</p>
+                    </div>
+                </div>
+
+                <div className="flex-1">
+                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3">Campanhas Recentes</h3>
+                    
+                    {mostRecentCampaigns.length > 0 ? (
+                        <ul className="space-y-3">
+                            {mostRecentCampaigns.map(campaign => (
+                                <li key={campaign.id} className="flex items-start">
+                                    <div className="flex-shrink-0 mt-0.5">
+                                        <CAMPAIGN_ICON className="w-4 h-4 text-slate-400" />
+                                    </div>
+                                    <div className="ml-3 flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                            {campaign.name}
+                                        </p>
+                                        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                                            <span>Enviada em {new Date(campaign.sent_at!).toLocaleDateString('pt-BR')}</span>
+                                            <span className="font-medium">
+                                                {campaign.metrics.read} / {campaign.metrics.sent}
+                                            </span>
+                                        </div>
+                                        <div className="mt-1 w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+                                            <div 
+                                                className="bg-blue-500 h-1.5 rounded-full" 
+                                                style={{ 
+                                                    width: `${(campaign.metrics.read / (campaign.metrics.sent || 1)) * 100}%` 
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center text-center p-4">
+                            <CAMPAIGN_ICON className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-2" />
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">
+                                Nenhuma campanha encontrada.
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
         </Card>
     );

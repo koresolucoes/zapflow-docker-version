@@ -30,47 +30,50 @@ const AutomationAnalytics: React.FC<AutomationAnalyticsProps> = ({ data, isLoadi
     }, [automations]);
     
     return (
-        <Card className="flex flex-col">
-            <h2 className="text-lg font-semibold text-white mb-4">Análise de Automações</h2>
-            
-            <div className="grid grid-cols-3 gap-4 text-center mb-4 p-3 bg-slate-900/50 rounded-lg">
-                <div>
-                    <p className="text-2xl font-bold text-pink-400">{activeAutomationsCount}</p>
-                    <p className="text-xs text-slate-400">Ativas</p>
-                </div>
-                <div>
-                    <p className="text-2xl font-bold text-white">{stats.totalRuns}</p>
-                    <p className="text-xs text-slate-400">Execuções (7d)</p>
-                </div>
-                <div>
-                    <p className="text-2xl font-bold text-green-400">{stats.successRate}</p>
-                    <p className="text-xs text-slate-400">Sucesso (7d)</p>
-                </div>
-            </div>
-
-            <div>
-                <h3 className="text-sm font-semibold text-slate-300 mb-2">Mais Ativas (Últimos 7 dias)</h3>
-                 {isLoading ? (
-                    <p className="text-center text-xs text-slate-500">Carregando...</p>
-                ) : stats.mostActive.length > 0 ? (
-                    <ul className="space-y-2">
-                        {stats.mostActive.map(item => (
-                            <li
-                                key={item.automation_id}
-                                className="flex justify-between items-center p-2 bg-slate-800 rounded-md text-sm"
-                                title={item.automations?.name}
-                            >
-                                <span className="font-medium text-slate-200 truncate pr-2">{item.automations?.name}</span>
-                                <span className="font-mono font-semibold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded">{item.count}</span>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <div className="text-center py-6">
-                        <AUTOMATION_ICON className="w-10 h-10 mx-auto text-slate-600"/>
-                        <p className="text-sm text-slate-500 mt-2">Nenhuma automação executada nos últimos 7 dias.</p>
+        <Card className="h-full w-full">
+            <div className="p-4 h-full flex flex-col">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Análise de Automações</h2>
+                
+                <div className="grid grid-cols-3 gap-3 mb-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <div className="text-center">
+                        <p className="text-xl font-bold text-pink-500 dark:text-pink-400">{activeAutomationsCount}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Ativas</p>
                     </div>
-                )}
+                    <div className="text-center">
+                        <p className="text-xl font-bold text-slate-900 dark:text-white">{stats.totalRuns}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Execuções (7d)</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-xl font-bold text-green-500 dark:text-green-400">{stats.successRate}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Sucesso (7d)</p>
+                    </div>
+                </div>
+
+                <div className="flex-1">
+                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3">Mais Ativas (7 dias)</h3>
+                    
+                    {stats.mostActive.length > 0 ? (
+                        <ul className="space-y-2">
+                            {stats.mostActive.map((item, index) => (
+                                <li key={index} className="flex justify-between items-center text-sm">
+                                    <span className="text-slate-700 dark:text-slate-300 truncate pr-2">
+                                        {item.automations?.name || `Automação #${index + 1}`}
+                                    </span>
+                                    <span className="font-mono font-semibold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                        {item.count}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center text-center p-4">
+                            <AUTOMATION_ICON className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-2" />
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">
+                                {isLoading ? 'Carregando...' : 'Nenhuma automação executada nos últimos 7 dias.'}
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
         </Card>
     );

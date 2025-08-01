@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -7,6 +7,19 @@
     <title>ZapFlow AI - WhatsApp Campaign Manager</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xyflow/react@12.0.0-next.12/dist/style.css" />
     <link rel="stylesheet" href="/src/index.css">
+    <script>
+      // Verifica o tema salvo no localStorage ou a preferência do sistema
+      (function() {
+        const storedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (storedTheme === 'dark' || (!storedTheme && systemPrefersDark)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
     <style>
       .xyflow-react .xyflow__panel {
         display: none;
@@ -44,7 +57,7 @@
         animation: fadeInRight 0.3s ease-out forwards;
       }
     </style>
-  <script type="importmap">
+    <script type="importmap">
 {
   "imports": {
     "react/": "https://esm.sh/react@^19.1.0/",
@@ -68,9 +81,9 @@
   }
 }
 </script>
-</head>
-  <body class="bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-300">
-    <div id="root"></div>
+  </head>
+  <body class="h-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+    <div id="root" class="h-full"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
