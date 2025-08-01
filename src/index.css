@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+:root {
+  --flow-controls-bg: #ffffff;
+  --flow-controls-hover-bg: #f3f4f6;
+  --flow-controls-border: #e5e7eb;
+  --flow-controls-text: #1f2937;
+  --flow-controls-shadow: rgba(0, 0, 0, 0.1);
+}
+
+.dark {
+  --flow-controls-bg: #334155;
+  --flow-controls-hover-bg: #475569;
+  --flow-controls-border: #475569;
+  --flow-controls-text: #cbd5e1;
+  --flow-controls-shadow: rgba(0, 0, 0, 0.3);
+}
+
+/* For Recharts custom tooltip */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+.xyflow-react .xyflow__panel {
+  display: none;
+}

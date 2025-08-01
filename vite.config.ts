@@ -1,5 +1,7 @@
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
 export default defineConfig(({ mode }) => {
     // Carregar todas as variáveis de ambiente que começam com VITE_
@@ -17,8 +19,31 @@ export default defineConfig(({ mode }) => {
     };
     
     return {
-        define: envWithProcessPrefix,
+        // Configuração do CSS
+        css: {
+            postcss: {
+                plugins: [
+                    tailwindcss,
+                    autoprefixer,
+                ],
+            },
+        },
+        // Configuração de build
+        build: {
+            outDir: 'dist',
+            emptyOutDir: true,
+            rollupOptions: {
+                input: 'index.html',
+            },
+            target: 'esnext',
+            minify: 'esbuild',
+            cssCodeSplit: true,
+            sourcemap: false,
+        },
+        // Configuração do servidor de desenvolvimento
         server: {
+            port: 5173,
+            strictPort: true,
             proxy: {
                 '/api': {
                     target: 'http://localhost:3001',
@@ -27,10 +52,13 @@ export default defineConfig(({ mode }) => {
                 },
             },
         },
+        // Configuração de resolução de módulos
         resolve: {
             alias: {
-                '@': path.resolve(__dirname, '.'),
+                '@': path.resolve(__dirname, './src'),
             },
         },
+        // Define as variáveis de ambiente
+        define: envWithProcessPrefix,
     };
 });
