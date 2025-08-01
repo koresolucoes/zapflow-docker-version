@@ -3,6 +3,22 @@ import { EditableProfile } from '../../types/index.js';
 import { Card } from '../../components/common/Card.js';
 import { Button } from '../../components/common/Button.js';
 import { useAuthStore } from '../../stores/authStore.js';
+import { cn } from '../../lib/utils.js';
+
+const inputClasses = cn(
+  "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+  "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+  "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2",
+  "focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+);
+
+const textareaClasses = cn(
+  "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+  "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2",
+  "focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+);
+
+const labelClasses = "block text-sm font-medium text-foreground mb-1";
 
 const ProfileInput: React.FC<{
     label: string;
@@ -11,14 +27,14 @@ const ProfileInput: React.FC<{
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }> = ({ label, id, value, onChange }) => (
     <div>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1">{label}</label>
+        <label htmlFor={id} className={labelClasses}>{label}</label>
         <input
             type="text"
             id={id}
             name={id}
             value={value}
             onChange={onChange}
-            className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md p-2 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-sky-500"
+            className={inputClasses}
         />
     </div>
 );
@@ -31,14 +47,14 @@ const ProfileTextarea: React.FC<{
     rows?: number;
 }> = ({ label, id, value, onChange, rows = 3 }) => (
      <div>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1">{label}</label>
+        <label htmlFor={id} className={labelClasses}>{label}</label>
         <textarea
             id={id}
             name={id}
             value={value}
             onChange={onChange}
             rows={rows}
-            className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md p-2 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-sky-500"
+            className={textareaClasses}
         />
     </div>
 );
@@ -89,10 +105,10 @@ const CompanyProfile: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Perfil da Empresa</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-8">Perfil da Empresa</h1>
       <Card>
         <form onSubmit={handleSave} className="space-y-6">
-          <p className="text-gray-500 dark:text-slate-400 text-sm">Esta informação será usada pela IA para gerar conteúdo personalizado para suas campanhas.</p>
+          <p className="text-muted-foreground text-sm">Esta informação será usada pela IA para gerar conteúdo personalizado para suas campanhas.</p>
           <ProfileInput label="Nome da Empresa" id="company_name" value={localProfile.company_name || ''} onChange={handleChange} />
           <ProfileTextarea label="Descrição da Empresa" id="company_description" value={localProfile.company_description || ''} onChange={handleChange} />
           <ProfileTextarea label="Produtos / Serviços" id="company_products" value={localProfile.company_products || ''} onChange={handleChange} />
@@ -100,8 +116,8 @@ const CompanyProfile: React.FC = () => {
           <ProfileInput label="Tom de Voz da Marca" id="company_tone" value={localProfile.company_tone || ''} onChange={handleChange} />
           
           <div className="flex justify-end items-center gap-4">
-              {isSaved && <p className="text-green-500 dark:text-green-400 text-sm">Perfil salvo com sucesso!</p>}
-              {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
+              {isSaved && <p className="text-green-500 text-sm">Perfil salvo com sucesso!</p>}
+              {error && <p className="text-red-500 text-sm">{error}</p>}
               <Button type="submit" variant="default" isLoading={isSaving}>Salvar Alterações</Button>
           </div>
         </form>

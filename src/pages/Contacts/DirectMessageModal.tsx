@@ -46,7 +46,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({ isOpen, onClose
                 </InfoCard>
 
                 <div>
-                    <label htmlFor="directMessage" className="block text-sm font-medium text-slate-300 mb-1">
+                    <label htmlFor="directMessage" className="block text-sm font-medium text-foreground mb-1">
                         Mensagem
                     </label>
                     <textarea
@@ -54,25 +54,39 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({ isOpen, onClose
                         rows={4}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500"
+                        className="w-full rounded-md border border-input bg-background p-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Digite sua mensagem aqui..."
                     />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Selecionar Destinatários
                   </label>
-                  <div className="space-y-3 p-4 bg-slate-700/50 rounded-md">
+                  <div className="space-y-3 p-4 bg-muted/50 rounded-md border border-border">
                       <div className="flex items-center">
-                          <input type="radio" id="dmSendToAll" name="dmRecipientType" checked={sendToAll} onChange={() => setSendToAll(true)} className="h-4 w-4 text-sky-600 bg-slate-800 border-slate-600 focus:ring-sky-500"/>
-                          <label htmlFor="dmSendToAll" className="ml-3 block text-sm font-medium text-white">
+                          <input 
+                              type="radio" 
+                              id="dmSendToAll" 
+                              name="dmRecipientType" 
+                              checked={sendToAll} 
+                              onChange={() => setSendToAll(true)} 
+                              className="h-4 w-4 text-primary border-input focus:ring-primary"
+                          />
+                          <label htmlFor="dmSendToAll" className="ml-3 block text-sm font-medium text-foreground">
                               Todos os Contatos ({contacts.length})
                           </label>
                       </div>
                       <div className="flex items-center">
-                          <input type="radio" id="dmSendToSegment" name="dmRecipientType" checked={!sendToAll} onChange={() => setSendToAll(false)} className="h-4 w-4 text-sky-600 bg-slate-800 border-slate-600 focus:ring-sky-500"/>
-                          <label htmlFor="dmSendToSegment" className="ml-3 block text-sm font-medium text-white">
+                          <input 
+                              type="radio" 
+                              id="dmSendToSegment" 
+                              name="dmRecipientType" 
+                              checked={!sendToAll} 
+                              onChange={() => setSendToAll(false)} 
+                              className="h-4 w-4 text-primary border-input focus:ring-primary"
+                          />
+                          <label htmlFor="dmSendToSegment" className="ml-3 block text-sm font-medium text-foreground">
                               Segmentar por Tags
                           </label>
                       </div>
@@ -86,27 +100,32 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({ isOpen, onClose
                                                 type="checkbox"
                                                 checked={selectedTags.includes(tag)}
                                                 onChange={() => handleTagToggle(tag)}
-                                                className="h-4 w-4 rounded bg-slate-800 border-slate-600 text-sky-600 focus:ring-sky-500"
+                                                className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                                             />
-                                            <label htmlFor={`dm-tag-${tag}`} className="ml-3 text-sm text-slate-300">
+                                            <label htmlFor={`dm-tag-${tag}`} className="ml-3 text-sm text-muted-foreground">
                                                 {tag}
                                             </label>
                                         </div>
                                     ))
                                ) : (
-                                   <p className="text-sm text-slate-400">Nenhuma tag encontrada para segmentar.</p>
+                                   <p className="text-sm text-muted-foreground">Nenhuma tag encontrada para segmentar.</p>
                                )}
                           </div>
                       )}
-                      <div className="pt-2 text-center text-sm font-semibold text-sky-300">
+                      <div className="pt-2 text-center text-sm font-semibold text-primary">
                           <p>Total de destinatários: {recipients.length}</p>
                       </div>
                   </div>
                 </div>
             </div>
-            <div className="mt-6 flex justify-end gap-3">
-                <Button variant="secondary" onClick={onClose} disabled={isSending}>Cancelar</Button>
-                <Button variant="default" onClick={handleSendClick} isLoading={isSending} disabled={!message.trim() || recipients.length === 0}>
+            <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-border">
+                <Button variant="outline" onClick={onClose} disabled={isSending}>Cancelar</Button>
+                <Button 
+                    variant="default" 
+                    onClick={handleSendClick} 
+                    isLoading={isSending} 
+                    disabled={!message.trim() || recipients.length === 0}
+                >
                     Enviar para {recipients.length} Contato(s)
                 </Button>
             </div>

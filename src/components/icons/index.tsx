@@ -1,7 +1,7 @@
 import React from 'react';
 
-export const ZAPFLOW_AI_LOGO = (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-slate-900 dark:text-sky-400">
+export const ZAPFLOW_AI_LOGO = ({ className }: { className?: string }) => (
+    <svg className={className} width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M2 7L12 12L22 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M12 12V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -196,7 +196,7 @@ export const MAIL_OPEN_ICON = ({ className }: { className?: string }) => (
 
 export const ARROW_LEFT_ICON = ({ className }: { className?: string }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
+        <path d="M19 12H5"/><path d="M12 5l7 7-7 7"/>
     </svg>
 );
 

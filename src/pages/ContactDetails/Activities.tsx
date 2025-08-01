@@ -9,7 +9,7 @@ const TabButton: React.FC<{ label: string; active: boolean; onClick: () => void 
     <button
         onClick={onClick}
         className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-            active ? 'bg-slate-700 text-white' : 'text-slate-400 hover:bg-slate-700/50 hover:text-slate-200'
+            active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
         }`}
     >
         {label}
@@ -73,8 +73,8 @@ const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }: Acti
     return (
         <Card>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-white">Atividades</h2>
-                <div className="flex items-center gap-2 p-1 bg-slate-900/50 rounded-lg">
+                <h2 className="text-lg font-semibold text-foreground">Atividades</h2>
+                <div className="flex items-center gap-2 p-1 bg-accent/10 rounded-lg">
                     <TabButton label="Todas" active={activeTab === 'list'} onClick={() => setActiveTab('list')} />
                     <TabButton label="Adicionar Nota" active={activeTab === 'note'} onClick={() => setActiveTab('note')} />
                     <TabButton label="Adicionar Tarefa" active={activeTab === 'task'} onClick={() => setActiveTab('task')} />
@@ -85,11 +85,11 @@ const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }: Acti
                 {activeTab === 'list' && (
                     <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                         {activityLoading ? (
-                            <p className="text-center text-slate-400 py-4">Carregando...</p>
+                            <p className="text-center text-muted-foreground py-4">Carregando...</p>
                         ) : activitiesForContact.length === 0 ? (
-                            <p className="text-center text-slate-400 py-4">Nenhuma nota ou tarefa registrada.</p>
+                            <p className="text-center text-muted-foreground py-4">Nenhuma nota ou tarefa registrada.</p>
                         ) : (
-                                                        activitiesForContact.map((activity: ContactActivity) => (
+                            activitiesForContact.map((activity: ContactActivity) => (
                                 <ActivityItem key={activity.id} activity={activity} onDataChange={onDataChange} />
                             ))
                         )}
@@ -102,10 +102,12 @@ const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }: Acti
                             onChange={e => setNoteContent(e.target.value)}
                             placeholder="Escreva sua nota aqui..."
                             rows={4}
-                            className="w-full bg-slate-700 p-2 rounded-md"
+                            className="w-full bg-background p-2 rounded-md border border-input text-foreground"
                         />
                         <div className="flex justify-end">
-                            <Button type="submit" variant="default" isLoading={isSaving} disabled={!noteContent.trim()}>Salvar Nota</Button>
+                            <Button type="submit" variant="default" isLoading={isSaving} disabled={!noteContent.trim()}>
+                                Salvar Nota
+                            </Button>
                         </div>
                     </form>
                 )}
@@ -116,16 +118,24 @@ const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }: Acti
                             onChange={e => setTaskContent(e.target.value)}
                             placeholder="Descreva a tarefa..."
                             rows={3}
-                            className="w-full bg-slate-700 p-2 rounded-md"
+                            className="w-full bg-background p-2 rounded-md border border-input text-foreground"
                         />
-                         <input
-                            type="date"
-                            value={taskDueDate}
-                            onChange={e => setTaskDueDate(e.target.value)}
-                            className="w-full bg-slate-700 p-2 rounded-md"
-                        />
-                        <div className="flex justify-end">
-                            <Button type="submit" variant="default" isLoading={isSaving} disabled={!taskContent.trim() || !taskDueDate}>Salvar Tarefa</Button>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-muted-foreground mb-1">Data de Vencimento</label>
+                                <input
+                                    type="date"
+                                    value={taskDueDate}
+                                    onChange={e => setTaskDueDate(e.target.value)}
+                                    className="w-full bg-background p-2 rounded-md border border-input text-foreground"
+                                    min={new Date().toISOString().split('T')[0]}
+                                />
+                            </div>
+                            <div className="flex items-end">
+                                <Button type="submit" variant="default" isLoading={isSaving} disabled={!taskContent.trim() || !taskDueDate}>
+                                    Adicionar Tarefa
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 )}

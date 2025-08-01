@@ -4,6 +4,7 @@ import { Conversation } from '../../types/index.js';
 import { useUiStore } from '../../stores/uiStore.js';
 import { TRASH_ICON } from '../../components/icons/index.js';
 import { Button } from '../../components/common/Button.js';
+import { cn } from '../../lib/utils.js';
 
 const ConversationListItem: React.FC<{ conversation: Conversation; isActive: boolean; onClick: () => void; onDelete: () => void; }> = ({ conversation, isActive, onClick, onDelete }) => {
     
@@ -32,7 +33,10 @@ const ConversationListItem: React.FC<{ conversation: Conversation; isActive: boo
     return (
         <li
             onClick={onClick}
-            className={`group flex items-center p-3 cursor-pointer transition-colors duration-150 rounded-lg ${isActive ? 'bg-slate-700/80' : 'hover:bg-slate-800/50'}`}
+            className={cn(
+                'group flex items-center p-3 cursor-pointer transition-colors duration-150 rounded-lg',
+                isActive ? 'bg-accent/20' : 'hover:bg-accent/10'
+            )}
         >
             <div className="relative flex-shrink-0">
                 <img
@@ -42,32 +46,32 @@ const ConversationListItem: React.FC<{ conversation: Conversation; isActive: boo
                 />
                 {conversation.assignee_email && (
                      <img
-                        className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full object-cover border-2 border-slate-800"
+                        className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full object-cover border-2 border-card"
                         src={`https://api.dicebear.com/8.x/initials/svg?seed=${conversation.assignee_email}`}
                         alt="Assignee Avatar"
-                        title={`Atribuído a: ${conversation.assignee_email}`}
+                        title={`Atendido por: ${conversation.assignee_email}`}
                     />
                 )}
             </div>
             <div className="flex-grow ml-3 overflow-hidden">
                 <div className="flex justify-between items-center">
-                    <h3 className="font-semibold text-white truncate flex items-center">
+                    <h3 className="font-semibold text-foreground truncate flex items-center">
                        {conversation.contact.sentiment && <span className="mr-1.5 text-lg">{conversation.contact.sentiment}</span>}
                        <span className="truncate">{conversation.contact.name}</span>
                     </h3>
                     {conversation.last_message && (
-                        <p className="text-xs text-slate-400 flex-shrink-0">
+                        <p className="text-xs text-muted-foreground flex-shrink-0">
                             {formatTime(conversation.last_message.created_at)}
                         </p>
                     )}
                 </div>
                 <div className="flex justify-between items-start mt-0.5">
-                    <p className="text-sm text-slate-400 truncate pr-2">
+                    <p className="text-sm text-muted-foreground truncate pr-2">
                         {conversation.last_message?.type === 'outbound' && 'Você: '}
                         {truncate(conversation.last_message?.content, 30)}
                     </p>
                      {conversation.unread_count > 0 && (
-                        <span className="ml-2 flex-shrink-0 bg-sky-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                        <span className="ml-2 flex-shrink-0 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                             {conversation.unread_count}
                         </span>
                     )}
@@ -75,9 +79,9 @@ const ConversationListItem: React.FC<{ conversation: Conversation; isActive: boo
             </div>
              <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                className="ml-2 flex-shrink-0 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="ml-2 flex-shrink-0 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                 title="Excluir conversa"
             >
                 <TRASH_ICON className="w-4 h-4" />
@@ -89,7 +93,10 @@ const ConversationListItem: React.FC<{ conversation: Conversation; isActive: boo
 const FilterButton: React.FC<{ label: string; isActive: boolean; onClick: () => void }> = ({ label, isActive, onClick }) => (
     <button
         onClick={onClick}
-        className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${isActive ? 'bg-sky-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+        className={cn(
+            'px-3 py-1 text-xs font-semibold rounded-full transition-colors',
+            isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent/50'
+        )}
     >
         {label}
     </button>
@@ -130,14 +137,14 @@ const ConversationList: React.FC = () => {
     };
 
     return (
-        <aside className="w-96 flex-shrink-0 bg-slate-800/10 border-r border-slate-700/50 flex flex-col">
+        <aside className="w-96 flex-shrink-0 bg-card border-r border-border flex flex-col">
             <div className="p-4 space-y-3">
                 <input
                     type="search"
                     placeholder="Pesquisar..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-slate-700 border-slate-600 rounded-lg p-2 text-sm text-white placeholder-slate-400"
+                    className="w-full bg-background border border-input rounded-lg p-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
                 />
                 <div className="flex items-center gap-2">
                     <FilterButton label="Todas" isActive={filter === 'all'} onClick={() => setFilter('all')} />
@@ -147,9 +154,9 @@ const ConversationList: React.FC = () => {
             </div>
             <ul className="flex-grow overflow-y-auto px-2">
                  {inboxLoading && conversations.length === 0 ? (
-                    <div className="p-4 text-center text-slate-400">Carregando conversas...</div>
+                    <div className="p-4 text-center text-muted-foreground">Carregando conversas...</div>
                 ) : filteredConversations.length === 0 ? (
-                    <div className="p-4 text-center text-slate-400">Nenhuma conversa encontrada.</div>
+                    <div className="p-4 text-center text-muted-foreground">Nenhuma conversa encontrada.</div>
                 ) : (
                     filteredConversations.map(conv => (
                         <ConversationListItem

@@ -11,7 +11,7 @@ interface TimelineMessageItemProps {
 const TimelineMessageItem: React.FC<TimelineMessageItemProps> = ({ event, isLast }: TimelineMessageItemProps) => {
     const isOutbound = event.data.type === 'outbound';
     const Icon = isOutbound ? ARROW_UP_RIGHT_ICON : ARROW_DOWN_LEFT_ICON;
-    const iconColor = isOutbound ? 'text-sky-400' : 'text-green-400';
+    const iconColor = isOutbound ? 'text-primary' : 'text-green-500';
 
     const sourceText = {
         campaign: 'Campanha',
@@ -26,12 +26,12 @@ const TimelineMessageItem: React.FC<TimelineMessageItemProps> = ({ event, isLast
             timestamp={event.timestamp}
             isLast={isLast}
         >
-            <p className="text-sm text-slate-300">
-                {isOutbound && <span className="font-semibold text-white">Você: </span>}
+            <p className="text-sm text-foreground">
+                {isOutbound && <span className="font-semibold text-foreground">Você: </span>}
                 {event.data.content}
             </p>
             {event.data.source && (
-                 <span className="text-xs font-semibold text-slate-400 bg-slate-700/50 px-2 py-0.5 rounded-full">
+                 <span className="text-xs font-medium text-muted-foreground bg-accent px-2 py-0.5 rounded-full">
                     {sourceText[event.data.source as keyof typeof sourceText] || event.data.source}
                 </span>
             )}

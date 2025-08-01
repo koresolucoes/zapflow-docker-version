@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { EditableContact } from '../../types/index.js';
 import { Button } from '../../components/common/Button.js';
 import { useUiStore } from '../../stores/uiStore.js';
+import { cn } from '../../lib/utils.js';
 
 interface ContactFormProps {
   contact?: EditableContact;
@@ -69,13 +70,39 @@ const ContactForm: React.FC<ContactFormProps> = ({ contact, onSave, onCancel, is
     onSave(formData);
   };
 
-  const inputClasses = "w-full bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md p-2 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-sky-500";
-  const labelClasses = "block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1";
+  const inputClasses = cn(
+    "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+    "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+    "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2",
+    "focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+  );
+  
+  const labelClasses = "block text-sm font-medium text-foreground mb-1";
+  const tagContainerClasses = cn(
+    "flex flex-wrap items-center w-full border rounded-md p-2 gap-1 min-h-[42px]",
+    "bg-background border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+  );
+  const tagClasses = cn(
+    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+    "bg-primary/10 text-primary-foreground"
+  );
+  const tagRemoveButtonClasses = cn(
+    "ml-1.5 -mr-1 text-muted-foreground hover:text-destructive transition-colors",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full"
+  );
+  const tagInputClasses = cn(
+    "bg-transparent flex-1 min-w-[100px] focus:outline-none text-sm",
+    "placeholder:text-muted-foreground text-foreground"
+  );
+  const formSectionClasses = "space-y-6 p-6 bg-card rounded-lg border border-border";
+  const formActionsClasses = "flex justify-end gap-3 pt-4 border-t border-border mt-6";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className={formSectionClasses}>
       <div>
-        <label htmlFor="name" className={labelClasses}>Nome Completo</label>
+        <label htmlFor="name" className={labelClasses}>
+          Nome Completo
+        </label>
         <input
           type="text"
           id="name"
@@ -86,8 +113,11 @@ const ContactForm: React.FC<ContactFormProps> = ({ contact, onSave, onCancel, is
           className={inputClasses}
         />
       </div>
+      
       <div>
-        <label htmlFor="phone" className={labelClasses}>Número de Telefone</label>
+        <label htmlFor="phone" className={labelClasses}>
+          Número de Telefone
+        </label>
         <input
           type="tel"
           id="phone"
@@ -99,9 +129,12 @@ const ContactForm: React.FC<ContactFormProps> = ({ contact, onSave, onCancel, is
           className={inputClasses}
         />
       </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="email" className={labelClasses}>E-mail</label>
+          <label htmlFor="email" className={labelClasses}>
+            E-mail
+          </label>
           <input
             type="email"
             id="email"
@@ -112,8 +145,11 @@ const ContactForm: React.FC<ContactFormProps> = ({ contact, onSave, onCancel, is
             className={inputClasses}
           />
         </div>
+        
         <div>
-          <label htmlFor="company" className={labelClasses}>Empresa</label>
+          <label htmlFor="company" className={labelClasses}>
+            Empresa
+          </label>
           <input
             type="text"
             id="company"
@@ -125,31 +161,53 @@ const ContactForm: React.FC<ContactFormProps> = ({ contact, onSave, onCancel, is
           />
         </div>
       </div>
+      
       <div>
-          <label htmlFor="tags" className={labelClasses}>Tags (pressione Enter para adicionar)</label>
-          <div className="flex flex-wrap items-center w-full bg-gray-50 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md p-2">
-              {formData.tags.map(tag => (
-                  <span key={tag} className="flex items-center mr-2 mb-1 px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700 dark:bg-sky-500/20 dark:text-sky-300">
-                      {tag}
-                      <button type="button" onClick={() => removeTag(tag)} className="ml-1.5 text-gray-600 dark:text-sky-200 hover:text-black dark:hover:text-white">
-                          &times;
-                      </button>
-                  </span>
-              ))}
-              <input
-                type="text"
-                id="tags"
-                value={tagInput}
-                onChange={handleTagInputChange}
-                onKeyDown={handleTagInputKeyDown}
-                placeholder="vip, novo-cliente..."
-                className="bg-transparent flex-1 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none min-w-[100px]"
-            />
-          </div>
+        <label htmlFor="tags" className={labelClasses}>
+          Tags (pressione Enter para adicionar)
+        </label>
+        <div className={tagContainerClasses}>
+          {formData.tags.map(tag => (
+            <span key={tag} className={tagClasses}>
+              {tag}
+              <button 
+                type="button" 
+                onClick={() => removeTag(tag)} 
+                className={tagRemoveButtonClasses}
+                aria-label={`Remover tag ${tag}`}
+              >
+                &times;
+              </button>
+            </span>
+          ))}
+          <input
+            type="text"
+            id="tags"
+            value={tagInput}
+            onChange={handleTagInputChange}
+            onKeyDown={handleTagInputKeyDown}
+            placeholder="vip, novo-cliente..."
+            className={tagInputClasses}
+          />
+        </div>
       </div>
-      <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={isLoading}>Cancelar</Button>
-        <Button type="submit" variant="default" isLoading={isLoading}>Salvar Contato</Button>
+      
+      <div className={formActionsClasses}>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel} 
+          disabled={isLoading}
+        >
+          Cancelar
+        </Button>
+        <Button 
+          type="submit" 
+          variant="default" 
+          isLoading={isLoading}
+        >
+          Salvar Contato
+        </Button>
       </div>
     </form>
   );

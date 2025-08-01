@@ -10,13 +10,13 @@ interface RecentActivityFeedProps {
 
 const ActivityIcon: React.FC<{ type: GlobalActivityEvent['type'] }> = ({ type }) => {
     const icons = {
-        NEW_CONTACT: <CONTACTS_ICON className="w-4 h-4 text-sky-400" />,
-        CAMPAIGN_SENT: <CAMPAIGN_ICON className="w-4 h-4 text-pink-400" />,
-        DEAL_WON: <FUNNEL_ICON className="w-4 h-4 text-green-400" />,
-        DEAL_LOST: <FUNNEL_ICON className="w-4 h-4 text-red-400" />,
+        NEW_CONTACT: <CONTACTS_ICON className="w-4 h-4 text-primary" />,
+        CAMPAIGN_SENT: <CAMPAIGN_ICON className="w-4 h-4 text-accent" />,
+        DEAL_WON: <FUNNEL_ICON className="w-4 h-4 text-success" />,
+        DEAL_LOST: <FUNNEL_ICON className="w-4 h-4 text-destructive" />,
     };
     return (
-        <div className="w-8 h-8 flex-shrink-0 bg-slate-700 rounded-full flex items-center justify-center">
+        <div className="w-8 h-8 flex-shrink-0 bg-muted rounded-full flex items-center justify-center">
             {icons[type]}
         </div>
     );
@@ -44,26 +44,26 @@ const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({ data, isLoading
     return (
         <Card className="h-full w-full">
             <div className="p-4 h-full flex flex-col">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Atividades Recentes</h2>
+                <h2 className="text-lg font-semibold text-foreground mb-4">Atividades Recentes</h2>
                 
                 <div className="flex-1 overflow-y-auto pr-1 -mr-1">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full">
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">Carregando atividades...</p>
+                            <p className="text-muted-foreground text-sm">Carregando atividades...</p>
                         </div>
                     ) : data?.activityFeed && data.activityFeed.length > 0 ? (
                         <ul className="space-y-3">
                             {data.activityFeed.map((activity, index) => (
-                                <li key={index} className="flex items-start pb-3 border-b border-slate-100 dark:border-slate-700 last:border-0 last:pb-0">
+                                <li key={index} className="flex items-start pb-3 border-b border-border last:border-0 last:pb-0">
                                     <div className="flex-shrink-0 mt-0.5">
                                         <ActivityIcon type={activity.type} />
                                     </div>
                                     <div className="ml-3 flex-1 min-w-0">
-                                        <p className="text-sm text-slate-800 dark:text-slate-200">
+                                        <p className="text-sm text-foreground">
                                             {activity.value}
                                         </p>
                                         <div className="flex justify-between items-center mt-1">
-                                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                                            <span className="text-xs text-muted-foreground">
                                                 {formatTimeAgo(activity.timestamp)}
                                             </span>
                                         </div>
@@ -73,23 +73,23 @@ const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({ data, isLoading
                         </ul>
                     ) : (
                         <div className="h-full flex flex-col items-center justify-center text-center p-4">
-                            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
-                                <CONTACTS_ICON className="w-6 h-6 text-slate-400" />
+                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                                <CONTACTS_ICON className="w-6 h-6 text-muted-foreground/60" />
                             </div>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">
+                            <p className="text-muted-foreground text-sm">
                                 Nenhuma atividade recente para exibir.
                             </p>
-                            <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">
+                            <p className="text-muted-foreground/80 text-xs mt-1">
                                 As atividades recentes aparecerão aqui.
                             </p>
                         </div>
                     )}
                 </div>
                 
-                <div className="pt-3 mt-auto border-t border-slate-100 dark:border-slate-700">
+                <div className="pt-3 mt-auto border-t border-border">
                     <button 
                         onClick={() => {}}
-                        className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="w-full text-center text-sm font-medium text-primary hover:text-primary/80"
                     >
                         Ver todas as atividades
                     </button>

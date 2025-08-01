@@ -21,8 +21,8 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick }) => 
       }}
       className={`flex items-center p-3 my-1 rounded-lg transition-colors duration-200 ${
         isActive 
-          ? 'bg-blue-50 text-blue-600 font-bold dark:bg-slate-700/50 dark:text-sky-400' 
-          : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+          ? 'bg-accent text-accent-foreground font-semibold' 
+          : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
       }`}
     >
       {icon}
@@ -51,14 +51,19 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-white dark:bg-slate-800/50 p-4 flex flex-col justify-between border-r border-gray-200 dark:border-slate-700/50">
-      <div>
-        <div className="flex items-center space-x-3 p-3 mb-6">
-          {ZAPFLOW_AI_LOGO}
-          <span className="text-xl font-bold text-gray-900 dark:text-white">ZapFlow AI</span>
+    <aside className="hidden md:flex md:flex-shrink-0">
+      <div className="flex flex-col w-64 border-r border-border h-screen bg-background">
+        {/* Logo */}
+        <div className="flex items-center h-16 px-4 border-b border-border">
+          <div className="flex items-center">
+            <ZAPFLOW_AI_LOGO className="h-8 w-auto" />
+            <span className="ml-2 text-lg font-bold text-foreground">ZapFlow</span>
+          </div>
         </div>
-        <nav>
-          <ul>
+        
+        {/* Navegação principal */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <ul className="space-y-2">
             {navItems.map((item) => (
               <NavItem
                 key={item.page}
@@ -71,24 +76,24 @@ const Sidebar: React.FC = () => {
             ))}
           </ul>
         </nav>
-      </div>
-       <div>
-         <nav>
-            <ul>
-                {bottomNavItems.map((item) => (
-                <NavItem
-                    key={item.page}
-                    icon={item.icon}
-                    label={item.label}
-                    page={item.page}
-                    isActive={currentPage === item.page}
-                    onClick={() => setCurrentPage(item.page)}
-                />
-                ))}
-            </ul>
-         </nav>
+        
+        {/* Navegação inferior */}
+        <div className="p-3 border-t border-border">
+          <ul className="space-y-2">
+            {bottomNavItems.map((item) => (
+              <NavItem
+                key={item.page}
+                icon={item.icon}
+                label={item.label}
+                page={item.page}
+                isActive={currentPage === item.page}
+                onClick={() => setCurrentPage(item.page)}
+              />
+            ))}
+          </ul>
+        </div>
         <div className="p-4 mt-4 bg-gray-50 dark:bg-slate-800 rounded-lg text-center">
-            <p className="text-xs text-gray-500 dark:text-slate-400">© 2024 ZapFlow AI. Todos os direitos reservados.</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400"> 2024 ZapFlow AI. Todos os direitos reservados.</p>
         </div>
       </div>
     </aside>

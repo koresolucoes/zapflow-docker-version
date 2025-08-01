@@ -19,9 +19,9 @@ const ThemeToggle: React.FC = () => {
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
         >
             {theme === 'dark' ? (
-                <SUN_ICON className="w-5 h-5 text-slate-400 hover:text-amber-400" />
+                <SUN_ICON className="w-5 h-5 text-muted-foreground hover:text-foreground" />
             ) : (
-                <MOON_ICON className="w-5 h-5 text-gray-500 hover:text-gray-900" />
+                <MOON_ICON className="w-5 h-5 text-muted-foreground hover:text-foreground" />
             )}
         </Button>
     );
@@ -43,11 +43,11 @@ const TeamSwitcher: React.FC = () => {
     }, []);
 
     if (teamLoading) {
-        return <div className="text-sm text-gray-500 dark:text-slate-400">Carregando equipes...</div>;
+        return <div className="text-sm text-muted-foreground">Carregando equipes...</div>;
     }
     
     if (!activeTeam) {
-        return <div className="text-sm text-gray-500 dark:text-slate-400">Nenhuma equipe encontrada.</div>;
+        return <div className="text-sm text-muted-foreground">Nenhuma equipe encontrada.</div>;
     }
 
     const switchTeam = (team: Team) => {
@@ -95,19 +95,24 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex-shrink-0 bg-white/80 dark:bg-slate-900/70 backdrop-blur-sm flex items-center justify-end p-4 border-b border-gray-200 dark:border-slate-700/50">
-      <div className="flex items-center space-x-4">
-        <ThemeToggle />
-        <TeamSwitcher />
-        <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{user?.email}</span>
-        <img
-          className="h-9 w-9 rounded-full object-cover"
-          src={`https://api.dicebear.com/8.x/initials/svg?seed=${user?.email}`}
-          alt="User avatar"
-        />
-        <Button variant="secondary" size="sm" onClick={handleLogout}>
-          Sair
-        </Button>
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex items-center h-16 px-4">
+        <div className="flex items-center space-x-4">
+          <div className="font-semibold text-foreground">ZapFlow</div>
+        </div>
+        <div className="flex items-center justify-end flex-1 space-x-4">
+          <TeamSwitcher />
+          <ThemeToggle />
+          <span className="text-sm font-medium text-foreground">{user?.email}</span>
+          <img
+            className="h-9 w-9 rounded-full object-cover"
+            src={`https://api.dicebear.com/8.x/initials/svg?seed=${user?.email}`}
+            alt="User avatar"
+          />
+          <Button variant="secondary" size="sm" onClick={handleLogout}>
+            Sair
+          </Button>
+        </div>
       </div>
     </header>
   );

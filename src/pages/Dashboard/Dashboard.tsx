@@ -16,30 +16,41 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-const StatCard: React.FC<{ title: string; value: string; icon: React.ReactNode; footer?: string; }> = ({ title, value, icon, footer }) => (
-    <Card className="flex flex-col justify-between p-4 h-full w-full overflow-hidden">
-        <div className="w-full">
-            <div className="flex items-start justify-between w-full">
-                <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 truncate">{title}</h3>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1 truncate">{value}</p>
+interface StatCardProps {
+    title: string;
+    value: string | number;
+    icon: React.ReactNode;
+    footer?: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, footer }) => {
+    return (
+        <Card className="flex flex-col justify-between p-4 h-full w-full overflow-hidden">
+            <div className="w-full">
+                <div className="flex items-start justify-between w-full">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-medium text-muted-foreground truncate">{title}</h3>
+                        <p className="text-2xl font-bold text-foreground mt-1 truncate">{value}</p>
+                    </div>
+                    <div className="ml-4 flex-shrink-0 p-3 bg-accent/10 rounded-lg">
+                        <div className="w-6 h-6 text-accent-foreground">
+                            {icon}
+                        </div>
+                    </div>
                 </div>
-                <div className="ml-4 flex-shrink-0 p-3 bg-gray-100 dark:bg-slate-700 rounded-lg">
-                    {icon}
-                </div>
+                {footer && <p className="text-xs text-muted-foreground/80 mt-2 truncate">{footer}</p>}
             </div>
-            {footer && <p className="text-xs text-gray-400 dark:text-slate-500 mt-2 truncate">{footer}</p>}
-        </div>
-    </Card>
-);
+        </Card>
+    );
+};
 
 export const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm p-3 rounded-lg border border-gray-300 dark:border-slate-600 shadow-xl">
-        <p className="label font-bold text-gray-900 dark:text-white">{`${label}`}</p>
+      <div className="bg-popover/90 backdrop-blur-sm p-3 rounded-lg border border-border shadow-xl">
+        <p className="label font-bold text-foreground">{`${label}`}</p>
         {payload.map((pld: any) => (
-          <p key={pld.dataKey} style={{ color: pld.color }} className="text-gray-700 dark:text-current">
+          <p key={pld.dataKey} className="text-foreground/80">
             {`${pld.name}: ${pld.value.toLocaleString('pt-BR')}`}
           </p>
         ))}
@@ -130,10 +141,10 @@ const Dashboard: React.FC = () => {
   const cardComponents: { [key: string]: React.ReactNode } = {
     stats: (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard title="Total de Contatos" value={mainMetrics.totalContacts} icon={<CONTACTS_ICON className="w-6 h-6 text-gray-600 dark:text-sky-500" />} />
-            <StatCard title="Negócios em Aberto" value={mainMetrics.openDealsValue} icon={<FUNNEL_ICON className="w-6 h-6 text-green-500" />} />
+            <StatCard title="Total de Contatos" value={mainMetrics.totalContacts} icon={<CONTACTS_ICON />} />
+            <StatCard title="Negócios em Aberto" value={mainMetrics.openDealsValue} icon={<FUNNEL_ICON />} />
             <StatCard title="Taxa de Conversão" value={mainMetrics.conversionRate} icon={<span className="text-amber-500 font-bold text-xl">%</span>} footer="Negócios Ganhos vs. Perdidos" />
-            <StatCard title="Automações Ativas" value={mainMetrics.activeAutomations} icon={<AUTOMATION_ICON className="w-6 h-6 text-pink-500" />} />
+            <StatCard title="Automações Ativas" value={mainMetrics.activeAutomations} icon={<AUTOMATION_ICON />} />
         </div>
     ),
     sales: <SalesMetrics />,
@@ -179,7 +190,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard Geral</h1>
+      <h1 className="text-3xl font-bold text-foreground">Dashboard Geral</h1>
       
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={cardOrder} strategy={rectSortingStrategy}>

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Pipeline, PipelineStage, Deal, DealInsert } from '../../types/index.js';
 import { Button } from './Button.js';
 import Modal from './Modal.js';
+import { cn } from '../../lib/utils.js';
 
 interface DealFormModalProps {
     isOpen: boolean;
@@ -66,19 +67,27 @@ const DealFormModal: React.FC<DealFormModalProps> = ({ isOpen, onClose, onSave, 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Editar Negócio' : 'Criar Novo Negócio'}>
             <form onSubmit={handleSubmit} className="space-y-4">
-                 <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-1">Nome do Negócio</label>
+                <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
+                        Nome do Negócio
+                    </label>
                     <input
                         type="text"
                         id="name"
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
-                        className="w-full bg-slate-700 p-2 rounded-md text-white"
+                        className={cn(
+                            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+                            "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2",
+                            "focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        )}
                     />
                 </div>
-                 <div>
-                    <label htmlFor="value" className="block text-sm font-medium text-slate-300 mb-1">Valor (R$)</label>
+                <div>
+                    <label htmlFor="value" className="block text-sm font-medium text-foreground mb-1">
+                        Valor (R$)
+                    </label>
                     <input
                         type="number"
                         id="value"
@@ -86,26 +95,51 @@ const DealFormModal: React.FC<DealFormModalProps> = ({ isOpen, onClose, onSave, 
                         value={value}
                         onChange={e => setValue(parseFloat(e.target.value))}
                         required
-                        className="w-full bg-slate-700 p-2 rounded-md text-white"
+                        className={cn(
+                            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+                            "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2",
+                            "focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        )}
                     />
                 </div>
-                 <div>
-                    <label htmlFor="stageId" className="block text-sm font-medium text-slate-300 mb-1">Etapa</label>
+                <div>
+                    <label htmlFor="stageId" className="block text-sm font-medium text-foreground mb-1">
+                        Etapa
+                    </label>
                     <select
                         id="stageId"
                         value={stageId}
                         onChange={e => setStageId(e.target.value)}
                         required
-                        className="w-full bg-slate-700 p-2 rounded-md text-white"
+                        className={cn(
+                            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            "focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        )}
                     >
                         {stages.sort((a,b) => a.sort_order - b.sort_order).map(stage => (
-                            <option key={stage.id} value={stage.id}>{stage.name}</option>
+                            <option key={stage.id} value={stage.id} className="bg-background text-foreground">
+                                {stage.name}
+                            </option>
                         ))}
                     </select>
                 </div>
-                 <div className="flex justify-end gap-3 pt-4">
-                    <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>Cancelar</Button>
-                    <Button type="submit" variant="default" isLoading={isLoading}>Salvar</Button>
+                <div className="flex justify-end gap-3 pt-4 border-t border-border mt-4">
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={onClose} 
+                        disabled={isLoading}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button 
+                        type="submit" 
+                        variant="default" 
+                        isLoading={isLoading}
+                    >
+                        {isEditing ? 'Salvar Alterações' : 'Criar Negócio'}
+                    </Button>
                 </div>
             </form>
         </Modal>

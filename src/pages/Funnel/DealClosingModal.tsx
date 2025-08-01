@@ -37,7 +37,7 @@ const DealClosingModal: React.FC<DealClosingModalProps> = ({ isOpen, onClose, on
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="closing_reason" className="block text-sm font-medium text-slate-300 mb-1">
+                    <label htmlFor="closing_reason" className="block text-sm font-medium text-foreground mb-1">
                         {label}
                     </label>
                     <textarea
@@ -46,15 +46,19 @@ const DealClosingModal: React.FC<DealClosingModalProps> = ({ isOpen, onClose, on
                         onChange={(e) => setReason(e.target.value)}
                         rows={4}
                         placeholder={placeholder}
-                        className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500"
+                        className="w-full rounded-md border border-input bg-background p-2 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     />
                 </div>
                 <div className="flex justify-end gap-3 pt-2">
-                    <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+                    <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="default" isLoading={isLoading}>
-                        Salvar e Mover
+                    <Button 
+                        type="submit" 
+                        variant={status === 'Ganho' ? 'default' : 'destructive'}
+                        isLoading={isLoading}
+                    >
+                        {status === 'Ganho' ? 'Confirmar Ganho' : 'Confirmar Perda'}
                     </Button>
                 </div>
             </form>

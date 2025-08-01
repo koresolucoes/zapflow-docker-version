@@ -8,22 +8,42 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Cores base
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        
+        // Cores de borda e input
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        
+        // Cores de estado
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+          hover: 'hsl(var(--primary-hover))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
+          hover: 'hsl(var(--secondary-hover))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
+          hover: 'hsl(var(--destructive-hover))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
