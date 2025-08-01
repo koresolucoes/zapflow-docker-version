@@ -30,7 +30,7 @@ const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () 
 
 
     return (
-        <Card className="flex flex-col justify-between hover:border-primary/50 border border-border transition-colors duration-200 group relative">
+        <Card className="h-full flex flex-col justify-between hover:border-primary/50 border border-border transition-colors duration-200 group relative">
              <Button
                 variant="ghost"
                 size="sm"
