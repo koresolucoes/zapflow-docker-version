@@ -9,6 +9,15 @@
   --flow-controls-border: #e5e7eb;
   --flow-controls-text: #1f2937;
   --flow-controls-shadow: rgba(0, 0, 0, 0.1);
+  
+  /* Cores para os cards */
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 10% 3.9%;
+  --radius: 0.5rem;
 }
 
 .dark {
@@ -17,6 +26,43 @@
   --flow-controls-border: #475569;
   --flow-controls-text: #cbd5e1;
   --flow-controls-shadow: rgba(0, 0, 0, 0.3);
+  
+  /* Cores para os cards no modo escuro */
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
+}
+
+/* Estilos base para os cards */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Estilos para os cards */
+@layer components {
+  .card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+  }
+  
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
+  
+  .card-title {
+    @apply text-2xl font-semibold leading-none tracking-tight;
+  }
+  
+  .card-content {
+    @apply p-6 pt-0;
+  }
 }
 
 /* For Recharts custom tooltip */
