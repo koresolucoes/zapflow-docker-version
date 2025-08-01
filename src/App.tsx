@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useEffect } from 'react';
+import './index.css';
 import { useAuthStore } from './stores/authStore.js';
 import { useUiStore } from './stores/uiStore.js';
 import MainLayout from './components/layout/MainLayout.js';
