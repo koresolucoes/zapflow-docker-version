@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabaseClient.js';
-import { Pipeline, PipelineStage, DealInsert, DealWithContact, StageType } from '../types/index.js';
+import { Pipeline, PipelineStage, DealInsert, DealWithContact, StageType, Deal } from '../types/index.js';
 import { TablesInsert, TablesUpdate } from '@/src/types/database.types.js';
 
 export const addDealToDb = async (dealData: DealInsert): Promise<DealWithContact> => {
@@ -87,4 +87,54 @@ export const updateStageInDb = async (id: string, updates: TablesUpdate<'pipelin
 export const deleteStageFromDb = async (id: string): Promise<void> => {
     const { error } = await supabase.from('pipeline_stages').delete().eq('id', id);
     if (error) throw error;
+};
+
+export const fetchPipelines = async (teamId: string): Promise<Pipeline[]> => {
+    const { data, error } = await supabase
+        .from('pipelines')
+        .select('*')
+        .eq('team_id', teamId)
+        .order('created_at', { ascending: true });
+    
+    if (error) {
+        console.error('Error fetching pipelines:', error);
+        throw error;
+    }
+    
+    return data as unknown as Pipeline[];
+};
+
+export const fetchStages = async (pipelineId?: string): Promise<PipelineStage[]> => {
+    let query = supabase
+        .from('pipeline_stages')
+        .select('*')
+        .order('sort_order', { ascending: true });
+    
+    if (pipelineId) {
+        query = query.eq('pipeline_id', pipelineId);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+        console.error('Error fetching stages:', error);
+        throw error;
+    }
+    
+    return data as unknown as PipelineStage[];
+};
+
+export const fetchContactDeals = async (contactId: string): Promise<DealWithContact[]> => {
+    const { data, error } = await supabase
+        .from('deals')
+        .select('*, contacts(*), pipeline_stages(*), pipelines(*)')
+        .eq('contact_id', contactId)
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('Error fetching contact deals:', error);
+        throw error;
+    }
+    
+    return data as unknown as DealWithContact[];
 };

@@ -1,229 +1,446 @@
 import React, { useEffect, useState } from 'react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Contact, DealInsert, Json, TimelineEvent, CustomFieldDefinition, DealWithContact, Pipeline, PipelineStage } from '../../types/index.js';
 import { Button } from '../../components/common/Button.js';
 import { Card } from '../../components/common/Card.js';
 import { 
   ARROW_LEFT_ICON, 
   PLUS_ICON, 
-  EDIT_ICON, 
-  TAG_ICON as TAG_ICON_IMPORT 
+  EDIT_ICON,
+  TAG_ICON
 } from '../../components/icons/index.js';
-import Activities from './Activities.js';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore.js';
-import { fetchContactTimeline } from '../../services/contactService.js';
 import { useUiStore } from '../../stores/uiStore.js';
+import Activities from './Activities.js';
 import Modal from '../../components/common/Modal.js';
 import DealFormModal from '../../components/common/DealFormModal.js';
 import ContactCard from '../../components/common/ContactCard.js';
-import { cn } from '../../lib/utils.js';
+import { fetchContactTimeline } from '../../services/contactService.js';
+import { fetchPipelines, fetchStages, fetchContactDeals } from '../../services/funnelService.js';
+import { getCustomFieldDefinitions } from '../../services/customFieldService.js';
 
-// Alias para o ícone de tag para evitar conflito de nomes
-const TAG_ICON = TAG_ICON_IMPORT;
+// Função auxiliar para formatar moeda
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
+};
+
+// Função auxiliar para obter o nome do estágio
+const getStageName = (stageId: string, stages: PipelineStage[]): string => {
+  const stage = stages.find(s => s.id === stageId);
+  return stage?.name || 'Sem estágio';
+};
 
 const ContactDetails: React.FC = () => {
     const { 
-        pageParams, 
-        setCurrentPage,
-        contactDetails, 
+        activeTeam, 
+        setCurrentPage, 
         fetchContactDetails, 
-        updateContact,
-        definitions: customFieldDefs,
-        deals, 
-        addDeal, 
-        pipelines, 
+        updateContact, 
+        addDeal,
+        contactDetails: storeContactDetails,
+        deals,
+        pipelines,
         stages,
         user,
-        activeTeam
+        definitions: customFieldDefs,
+        setPipelines,
+        setStages,
+        setDefinitions,
+        setDeals,
+        pageParams  // Get pageParams from auth store
     } = useAuthStore();
-    const addToast = useUiStore((state: any) => state.addToast);
-
+    const { addToast } = useUiStore();
+    const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Get contactId from pageParams
+    const contactId = pageParams?.contactId;
+    
+    const [localContact, setLocalContact] = useState<Contact | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [tagInput, setTagInput] = useState('');
     const [isCustomFieldModalOpen, setIsCustomFieldModalOpen] = useState(false);
     const [isDealModalOpen, setIsDealModalOpen] = useState(false);
-    const [localContact, setLocalContact] = useState<Contact | null>(null);
-    const [tagInput, setTagInput] = useState('');
     const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
     const [isTimelineLoading, setIsTimelineLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
+    const [isEditingTags, setIsEditingTags] = useState(false);
+    const [activeTab, setActiveTab] = useState<'activities' | 'deals'>('activities');
+    const [error, setError] = useState<string | null>(null);
 
-    const loadData = async () => {
-        if (pageParams.contactId && activeTeam) {
-            setIsTimelineLoading(true);
-            try {
-                const timelineData = await fetchContactTimeline(activeTeam.id, pageParams.contactId);
-                setTimelineEvents(timelineData);
-            } catch (error: any) {
-                console.error("Failed to load timeline:", error);
-            } finally {
-                setIsTimelineLoading(false);
-            }
-        }
-    };
-    
+    // Reset loading state when contactId changes
     useEffect(() => {
-        const loadDetails = async () => {
-            if (pageParams.contactId) {
-                setIsLoading(true);
-                try {
-                    await fetchContactDetails(pageParams.contactId);
-                    await loadData(); // Load timeline and activities
-                } catch (error: any) {
-                    console.error("Failed to load contact details:", error);
-                } finally {
+        if (contactId && activeTeam) {
+            setIsLoading(true);
+            setError(null);
+            console.log('Contact ID found:', contactId);
+        } else {
+            console.error('Contact ID is missing or no active team');
+            setError(contactId ? 'Nenhum time ativo selecionado' : 'ID do contato não encontrado');
+            setIsLoading(false);
+        }
+    }, [contactId, activeTeam]);
+
+    // Carregar detalhes do contato
+    useEffect(() => {
+        let isMounted = true;
+        
+        const loadContactDetails = async () => {
+            if (!contactId || !activeTeam) {
+                if (!contactId) {
+                    console.error('Contact ID is missing');
+                    setError('ID do contato não encontrado');
+                }
+                if (!activeTeam) {
+                    console.error('No active team');
+                    setError('Nenhum time ativo selecionado');
+                }
+                if (isMounted) {
                     setIsLoading(false);
+                }
+                return;
+            }
+            
+            console.log('ContactDetails: Starting to load contact details for', contactId);
+            
+            try {
+                // Fetch contact details first
+                console.log('ContactDetails: Fetching contact details');
+                await fetchContactDetails(contactId);
+                
+                // Then fetch other data in parallel
+                console.log('ContactDetails: Fetching additional data in parallel');
+                const [pipelinesData, stagesData, customFields, contactDeals] = await Promise.all([
+                    fetchPipelines(activeTeam.id).catch(e => {
+                        console.error('Error fetching pipelines:', e);
+                        return null;
+                    }),
+                    fetchStages().catch(e => {
+                        console.error('Error fetching stages:', e);
+                        return null;
+                    }),
+                    getCustomFieldDefinitions(activeTeam.id).catch(e => {
+                        console.error('Error fetching custom fields:', e);
+                        return null;
+                    }),
+                    fetchContactDeals(contactId).catch(e => {
+                        console.error('Error fetching contact deals:', e);
+                        return [];
+                    })
+                ]);
+
+                if (!isMounted) return;
+
+                console.log('ContactDetails: Data fetched', { 
+                    pipelinesData: !!pipelinesData, 
+                    stagesData: !!stagesData, 
+                    customFields: !!customFields,
+                    contactDeals: !!contactDeals
+                });
+
+                // Update state with fetched data
+                if (pipelinesData) {
+                    console.log('ContactDetails: Setting pipelines');
+                    setPipelines(pipelinesData);
+                }
+                if (stagesData) {
+                    console.log('ContactDetails: Setting stages');
+                    setStages(stagesData);
+                }
+                if (customFields) {
+                    console.log('ContactDetails: Setting custom fields');
+                    setDefinitions(customFields);
+                }
+                if (contactDeals) {
+                    console.log('ContactDetails: Setting contact deals');
+                    setDeals(contactDeals);
+                }
+
+                // Finally, fetch the timeline
+                console.log('ContactDetails: Fetching timeline');
+                const timeline = await fetchContactTimeline(activeTeam.id, contactId).catch(e => {
+                    console.error('Error fetching timeline:', e);
+                    return [];
+                });
+                
+                if (isMounted) {
+                    console.log('ContactDetails: Timeline fetched', { timelineLength: timeline.length });
+                    setTimelineEvents(timeline);
+                }
+                
+            } catch (error) {
+                console.error('ContactDetails: Error loading contact details:', error);
+                if (isMounted) {
+                    setError('Erro ao carregar detalhes do contato');
+                    addToast('Erro ao carregar detalhes do contato', 'error');
+                }
+            } finally {
+                if (isMounted) {
+                    console.log('ContactDetails: Finished loading, setting loading to false');
+                    setIsLoading(false);
+                    setIsTimelineLoading(false);
                 }
             }
         };
-        loadDetails();
-    }, [pageParams.contactId, fetchContactDetails, activeTeam]);
 
+        loadContactDetails();
+        
+        return () => {
+            isMounted = false;
+        };
+    }, [contactId, activeTeam, fetchContactDetails, addToast, setPipelines, setStages, setDefinitions, setDeals]);
+
+    // Sincronizar localContact com storeContactDetails
     useEffect(() => {
-        if (contactDetails) {
-            setLocalContact(contactDetails);
+        if (storeContactDetails) {
+            setLocalContact(storeContactDetails);
         }
-    }, [contactDetails]);
+    }, [storeContactDetails]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setLocalContact((prev: Contact | null) => prev ? { ...prev, [name]: value } : null);
-    };
-
-    const handleCustomFieldChange = (key: string, value: string | number) => {
-        setLocalContact((prev: Contact | null) => {
-            if (!prev) return null;
-            const newCustomFields: Json = {
-                ...(prev.custom_fields as object || {}),
-                [key]: value
-            };
-            return { ...prev, custom_fields: newCustomFields };
+    // Função para lidar com mudanças nos campos personalizados
+    const handleCustomFieldChange = (fieldKey: string, value: string | number) => {
+        if (!localContact) return;
+        
+        setLocalContact({
+            ...localContact,
+            custom_fields: {
+                ...(localContact.custom_fields || {}),
+                [fieldKey]: value
+            } as Json
         });
     };
 
-    const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if ((e.key === 'Enter' || e.key === ',') && localContact) {
-            e.preventDefault();
-            const newTag = tagInput.trim().toLowerCase();
-            if (newTag && !localContact.tags?.includes(newTag)) {
-                setLocalContact({ ...localContact, tags: [...(localContact.tags || []), newTag].sort() });
-            }
-            setTagInput('');
-        }
-    };
-
-    const removeTag = (tagToRemove: string) => {
-        if (localContact) {
-            setLocalContact({ ...localContact, tags: localContact.tags?.filter((t: string) => t !== tagToRemove) || [] });
-        }
-    };
-
-    const handleSave = async () => {
-        if (!localContact) return;
-        setIsSaving(true);
-        try {
-            await updateContact(localContact);
-            addToast('Contato salvo com sucesso!', 'success');
-        } catch (err: any) {
-            addToast(`Erro ao salvar: ${err.message}`, 'error');
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const handleSaveDeal = async (dealData: { id?: string; name: string; value: number; stage_id: string; pipeline_id: string; }) => {
-        if (!user || !pageParams.contactId || !activeTeam) return;
-        try {
-            await addDeal({ 
-                ...dealData,
-                contact_id: pageParams.contactId,
-                pipeline_id: dealData.pipeline_id,
-                stage_id: dealData.stage_id
-            });
-            setIsDealModalOpen(false);
-            addToast('Negócio criado com sucesso!', 'success');
-        } catch (err: any) {
-            addToast(`Erro ao criar negócio: ${err.message}`, 'error');
-        }
-    };
-
-    const handleEditContact = () => {
-        setIsEditing(true);
-    };
-
+    // Função para lidar com o salvamento do contato
     const handleSaveContact = async () => {
         if (!localContact) return;
+        
         setIsSaving(true);
         try {
             await updateContact(localContact);
             addToast('Contato atualizado com sucesso!', 'success');
             setIsEditing(false);
-        } catch (err: any) {
-            addToast(`Erro ao salvar: ${err.message}`, 'error');
+            setIsEditingTags(false);
+        } catch (error) {
+            console.error('Erro ao salvar contato:', error);
+            addToast('Erro ao salvar contato', 'error');
         } finally {
             setIsSaving(false);
         }
     };
 
-    if (isLoading) return <div className="text-center text-foreground p-8">Carregando detalhes do contato...</div>;
-    if (!contactDetails || !localContact) return <div className="text-center text-foreground p-8">Contato não encontrado.</div>;
-
-    const contactDeals = deals.filter(d => d.contact_id === contactDetails.id);
-    const defaultPipeline = pipelines[0];
-
-    return (
-        <div className="space-y-6">
-            {/* Cabeçalho */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="flex items-center gap-3">
-                    <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => setCurrentPage('contacts')}
-                        className="h-9 w-9"
-                    >
-                        <ARROW_LEFT_ICON className="w-5 h-5" />
-                    </Button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Detalhes do Contato</h1>
-                        <p className="text-sm text-muted-foreground">Visualize e gerencie as informações deste contato</p>
-                    </div>
-                </div>
-                {!isEditing ? (
+    // Renderização dos campos personalizados
+    const renderCustomFields = () => {
+        if (!customFieldDefs || customFieldDefs.length === 0) {
+            return (
+                <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                    <TAG_ICON className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+                    <p className="text-sm">Nenhum campo personalizado criado</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                        Adicione campos personalizados nas configurações
+                    </p>
                     <Button 
                         variant="outline" 
-                        onClick={handleEditContact}
-                        className="gap-1.5"
+                        size="sm" 
+                        className="mt-4"
+                        onClick={() => setCurrentPage('settings', { tab: 'custom-fields' })}
                     >
-                        <EDIT_ICON className="w-4 h-4" />
-                        Editar Contato
+                        Ir para Configurações
                     </Button>
-                ) : (
-                    <div className="flex gap-2">
-                        <Button 
-                            variant="outline" 
-                            onClick={() => {
-                                setLocalContact(contactDetails);
-                                setIsEditing(false);
-                            }}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button 
-                            onClick={handleSaveContact} 
-                            isLoading={isSaving}
-                            className="gap-1.5"
-                        >
-                            Salvar Alterações
-                        </Button>
-                    </div>
-                )}
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-4">
+                {customFieldDefs.map((def: CustomFieldDefinition) => {
+                    const customFields = (localContact?.custom_fields || {}) as { [key: string]: any };
+                    const value = customFields[def.key] ?? '';
+                    
+                    return (
+                        <div key={def.id} className="space-y-1">
+                            <label className="block text-sm font-medium text-muted-foreground">
+                                {def.name}
+                            </label>
+                            {isEditing ? (
+                                <input
+                                    type={def.type === 'NUMERO' ? 'number' : 'text'}
+                                    value={value}
+                                    onChange={(e) => {
+                                        const newValue = def.type === 'NUMERO' 
+                                            ? parseFloat(e.target.value) || 0 
+                                            : e.target.value;
+                                        handleCustomFieldChange(def.key, newValue);
+                                    }}
+                                    className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-sm"
+                                />
+                            ) : (
+                                <div className="text-sm text-foreground p-2 bg-muted/30 rounded-md min-h-[40px]">
+                                    {value || <span className="text-muted-foreground/70">Não informado</span>}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    // Renderização do conteúdo da aba de atividades
+    const renderActivitiesTab = () => {
+        if (!contactId || !activeTeam) return null;
+        
+        return (
+            <Card>
+                <div className="p-4">
+                    <Activities 
+                        contactId={contactId} 
+                        onDataChange={async () => {
+                            // Recarregar a timeline quando uma nova atividade for adicionada
+                            try {
+                                const updatedTimeline = await fetchContactTimeline(activeTeam.id, contactId);
+                                setTimelineEvents(updatedTimeline);
+                            } catch (error) {
+                                console.error('Erro ao atualizar timeline:', error);
+                                addToast('Erro ao atualizar atividades', 'error');
+                            }
+                        }} 
+                    />
+                </div>
+            </Card>
+        );
+    };
+
+    // Renderização do conteúdo da aba de negócios
+    const renderDealsTab = () => {
+        if (!deals || deals.length === 0) {
+            return (
+                <Card className="p-8 text-center">
+                    <p className="text-muted-foreground">Nenhum negócio encontrado para este contato</p>
+                    <Button 
+                        variant="outline" 
+                        className="mt-4 mx-auto gap-1.5"
+                        onClick={() => setIsDealModalOpen(true)}
+                    >
+                        <PLUS_ICON className="w-3.5 h-3.5" />
+                        Criar Primeiro Negócio
+                    </Button>
+                </Card>
+            );
+        }
+
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {deals.map((deal) => (
+                    <Card 
+                        key={deal.id} 
+                        className="p-4 hover:border-primary/50 transition-colors cursor-pointer"
+                        onClick={() => setCurrentPage('funnel', { dealId: deal.id })}
+                    >
+                        <div className="flex justify-between items-start">
+                            <h3 className="font-medium text-foreground">{deal.name}</h3>
+                            <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                                {getStageName(deal.stage_id, stages)}
+                            </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Valor: {formatCurrency(deal.value || 0)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Atualizado em {format(new Date(deal.updated_at), 'dd/MM/yyyy', { locale: ptBR })}
+                        </p>
+                    </Card>
+                ))}
+            </div>
+        );
+    };
+
+    // Handle save deal
+    const handleSaveDeal = async (dealData: any) => {
+        if (!contactId) return;
+        
+        try {
+            await addDeal({
+                ...dealData,
+                contact_id: contactId,
+                pipeline_id: dealData.pipeline_id,
+                stage_id: dealData.stage_id
+            });
+            
+            // Atualizar a lista de negócios após adicionar um novo
+            const updatedDeals = await fetchContactDeals(contactId);
+            setDeals(updatedDeals);
+            
+            setIsDealModalOpen(false);
+            addToast('Negócio criado com sucesso!', 'success');
+        } catch (error) {
+            console.error('Erro ao criar negócio:', error);
+            addToast('Erro ao criar negócio', 'error');
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+                <span className="text-gray-600">Carregando detalhes do contato...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center p-8">
+                <div className="text-red-500 mb-4">{error}</div>
+                <Button 
+                    onClick={() => setCurrentPage('contacts')}
+                    className="mt-4"
+                >
+                    Voltar para contatos
+                </Button>
+            </div>
+        );
+    }
+
+    if (!localContact) {
+        return (
+            <div className="text-center p-8">
+                <p className="text-gray-600 mb-4">Nenhum contato encontrado.</p>
+                <Button 
+                    onClick={() => setCurrentPage('contacts')}
+                    className="mt-4"
+                >
+                    Voltar para contatos
+                </Button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="container mx-auto p-4 md:p-6 max-w-7xl">
+            {/* Cabeçalho */}
+            <div className="mb-6 flex items-center gap-4">
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setCurrentPage('contacts')}
+                    className="h-9 w-9"
+                >
+                    <ARROW_LEFT_ICON className="h-5 w-5" />
+                </Button>
+                <h1 className="text-2xl font-bold tracking-tight">Detalhes do Contato</h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Coluna da esquerda - Informações do Contato */}
-                <div className="lg:col-span-1 space-y-4">
+                {/* Coluna da esquerda - Informações do contato */}
+                <div className="lg:col-span-1 space-y-6">
                     {isEditing ? (
-                        <Card className="space-y-4">
+                        <Card className="space-y-4 p-4">
                             <h2 className="text-lg font-semibold text-foreground">Editar Contato</h2>
                             <div className="space-y-4">
                                 <div>
@@ -231,18 +448,8 @@ const ContactDetails: React.FC = () => {
                                     <input 
                                         id="name" 
                                         name="name" 
-                                        value={localContact.name} 
+                                        value={localContact.name || ''} 
                                         onChange={(e) => setLocalContact({...localContact, name: e.target.value})} 
-                                        className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="phone" className="block text-sm font-medium text-muted-foreground mb-1">Telefone</label>
-                                    <input 
-                                        id="phone" 
-                                        name="phone" 
-                                        value={localContact.phone} 
-                                        onChange={(e) => setLocalContact({...localContact, phone: e.target.value})} 
                                         className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     />
                                 </div>
@@ -258,6 +465,16 @@ const ContactDetails: React.FC = () => {
                                     />
                                 </div>
                                 <div>
+                                    <label htmlFor="phone" className="block text-sm font-medium text-muted-foreground mb-1">Telefone</label>
+                                    <input 
+                                        id="phone" 
+                                        name="phone" 
+                                        value={localContact.phone || ''} 
+                                        onChange={(e) => setLocalContact({...localContact, phone: e.target.value})} 
+                                        className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                    />
+                                </div>
+                                <div>
                                     <label htmlFor="company" className="block text-sm font-medium text-muted-foreground mb-1">Empresa</label>
                                     <input 
                                         id="company" 
@@ -267,172 +484,187 @@ const ContactDetails: React.FC = () => {
                                         className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground mb-1.5">Tags</label>
-                                    <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-[42px]">
-                                        {localContact.tags?.map((tag) => (
-                                            <div key={tag} className="inline-flex items-center bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full">
-                                                {tag}
-                                                <button 
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const newTags = localContact.tags?.filter(t => t !== tag) || [];
-                                                        setLocalContact({...localContact, tags: newTags});
-                                                    }}
-                                                    className="ml-1.5 text-primary/70 hover:text-primary"
-                                                >
-                                                    &times;
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <input
-                                            type="text"
-                                            value={tagInput}
-                                            onChange={(e) => setTagInput(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
-                                                    e.preventDefault();
-                                                    const newTag = tagInput.trim().toLowerCase();
-                                                    if (!localContact.tags?.includes(newTag)) {
-                                                        const updatedTags = [...(localContact.tags || []), newTag];
-                                                        setLocalContact({...localContact, tags: updatedTags});
-                                                    }
-                                                    setTagInput('');
-                                                }
-                                            }}
-                                            placeholder="Adicionar tag..."
-                                            className="flex-1 min-w-[100px] bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-sm"
-                                        />
+                                
+                                {/* Tags */}
+                                <div className="space-y-1.5">
+                                    <div className="flex justify-between items-center">
+                                        <label className="block text-sm font-medium text-muted-foreground">Tags</label>
+                                        {!isEditingTags ? (
+                                            <Button 
+                                                type="button" 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                onClick={() => setIsEditingTags(true)}
+                                                className="h-7 text-xs"
+                                            >
+                                                <EDIT_ICON className="w-3 h-3 mr-1" /> Editar
+                                            </Button>
+                                        ) : null}
                                     </div>
+                                    
+                                    {isEditingTags ? (
+                                        <div className="space-y-2">
+                                            <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-[42px]">
+                                                {localContact.tags?.map((tag) => (
+                                                    <div key={tag} className="inline-flex items-center bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full">
+                                                        {tag}
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newTags = localContact.tags?.filter(t => t !== tag) || [];
+                                                                setLocalContact({...localContact, tags: newTags});
+                                                            }}
+                                                            className="ml-1.5 text-primary/70 hover:text-primary"
+                                                        >
+                                                            &times;
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <input
+                                                    type="text"
+                                                    value={tagInput}
+                                                    onChange={(e) => setTagInput(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+                                                            e.preventDefault();
+                                                            const newTag = tagInput.trim().toLowerCase();
+                                                            if (!localContact.tags?.includes(newTag)) {
+                                                                const updatedTags = [...(localContact.tags || []), newTag];
+                                                                setLocalContact({...localContact, tags: updatedTags});
+                                                            }
+                                                            setTagInput('');
+                                                        }
+                                                    }}
+                                                    placeholder="Digite uma tag e pressione Enter"
+                                                    className="flex-1 min-w-[100px] bg-transparent text-foreground placeholder:text-muted-foreground/50 focus:outline-none text-sm"
+                                                />
+                                            </div>
+                                            <div className="flex justify-end gap-2">
+                                                <Button 
+                                                    type="button" 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    onClick={() => {
+                                                        setIsEditingTags(false);
+                                                        // Reverter para os valores originais se cancelar
+                                                        if (storeContactDetails) {
+                                                            setLocalContact(storeContactDetails);
+                                                        }
+                                                    }}
+                                                >
+                                                    Cancelar
+                                                </Button>
+                                                <Button 
+                                                    type="button" 
+                                                    size="sm" 
+                                                    onClick={handleSaveContact}
+                                                    disabled={isSaving}
+                                                >
+                                                    {isSaving ? 'Salvando...' : 'Salvar'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-1.5 p-2 min-h-[42px] border rounded-md">
+                                            {localContact.tags?.length ? (
+                                                localContact.tags.map(tag => (
+                                                    <span 
+                                                        key={tag} 
+                                                        className="inline-flex items-center bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-sm text-muted-foreground/70">Nenhuma tag adicionada</span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
+                            </div>
+                            
+                            <div className="flex justify-end gap-2 pt-4 border-t">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={() => {
+                                        setIsEditing(false);
+                                        setIsEditingTags(false);
+                                        if (storeContactDetails) {
+                                            setLocalContact(storeContactDetails);
+                                        }
+                                    }}
+                                    disabled={isSaving}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button 
+                                    onClick={handleSaveContact}
+                                    disabled={isSaving}
+                                >
+                                    {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                                </Button>
                             </div>
                         </Card>
                     ) : (
                         <ContactCard 
                             contact={localContact} 
-                            onEdit={handleEditContact}
+                            onEdit={() => setIsEditing(true)}
                             className="sticky top-4"
                         />
                     )}
 
                     {/* Seção de Campos Personalizados */}
                     <Card>
-                        <div className="flex justify-between items-center mb-4">
+                        <div className="flex justify-between items-center p-4 border-b">
                             <h2 className="text-lg font-semibold text-foreground">Informações Adicionais</h2>
                             <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                onClick={() => setIsCustomFieldModalOpen(true)}
+                                onClick={() => setCurrentPage('settings', { tab: 'custom-fields' })}
                                 className="gap-1.5"
                             >
                                 <PLUS_ICON className="w-3.5 h-3.5" />
-                                Novo Campo
+                                Gerenciar Campos
                             </Button>
                         </div>
-                        {customFieldDefs.length > 0 ? (
-                            <div className="space-y-4">
-                                {customFieldDefs.map((def: CustomFieldDefinition) => {
-                                    const customFields = (localContact.custom_fields || {}) as { [key: string]: any };
-                                    const value = customFields[def.key] ?? '';
-                                    
-                                    return (
-                                        <div key={def.id} className="space-y-1">
-                                            <label className="block text-sm font-medium text-muted-foreground">
-                                                {def.name}
-                                            </label>
-                                            <div className="text-sm text-foreground p-2 bg-muted/30 rounded-md">
-                                                {value || <span className="text-muted-foreground/70">Não informado</span>}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="text-center py-6 text-muted-foreground">
-                                <TAG_ICON className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
-                                <p className="text-sm">Nenhum campo personalizado criado</p>
-                                <p className="text-xs text-muted-foreground/70 mt-1">Adicione campos personalizados nas configurações</p>
-                            </div>
-                        )}
+                        <div className="p-4">
+                            {renderCustomFields()}
+                        </div>
                     </Card>
                 </div>
 
                 {/* Coluna da direita - Atividades e Negócios */}
                 <div className="lg:col-span-2 space-y-6">
-                    <Activities contactId={pageParams.contactId} onDataChange={loadData} />
-                    
-                    <Card>
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-semibold text-foreground">Negócios</h2>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsDealModalOpen(true)}
-                                disabled={!defaultPipeline}
-                                title={!defaultPipeline ? "Crie um funil de vendas na página 'Funil' para poder adicionar negócios." : "Adicionar Novo Negócio"}
-                                className="gap-1.5"
+                    {/* Abas */}
+                    <div className="border-b border-border/50">
+                        <div className="flex space-x-4">
+                            <button
+                                onClick={() => setActiveTab('activities')}
+                                className={`py-2 px-4 font-medium text-sm border-b-2 ${
+                                    activeTab === 'activities' 
+                                        ? 'border-primary text-primary' 
+                                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                                }`}
                             >
-                                <PLUS_ICON className="w-3.5 h-3.5" />
-                                Novo Negócio
-                            </Button>
+                                Atividades
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('deals')}
+                                className={`py-2 px-4 font-medium text-sm border-b-2 ${
+                                    activeTab === 'deals' 
+                                        ? 'border-primary text-primary' 
+                                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                Negócios
+                            </button>
                         </div>
-                        <div className="space-y-3">
-                            {contactDeals.length > 0 ? (
-                                contactDeals.map((deal: DealWithContact) => {
-                                    const stage = stages.find((s: PipelineStage) => s.id === deal.stage_id);
-                                    return (
-                                        <div 
-                                            key={deal.id} 
-                                            className="p-4 bg-card rounded-lg border border-border hover:border-primary/50 transition-colors cursor-pointer"
-                                            onClick={() => setCurrentPage('funnel', { dealId: deal.id })}
-                                        >
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="font-medium text-foreground">{deal.name}</h3>
-                                                <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                                    stage?.type === 'Ganho' ? 'bg-success/10 text-success' :
-                                                    stage?.type === 'Perdido' ? 'bg-destructive/10 text-destructive' :
-                                                    'bg-primary/10 text-primary'
-                                                }`}>
-                                                    {stage?.name || 'Sem estágio'}
-                                                </span>
-                                            </div>
-                                            <div className="mt-2 flex justify-between items-center">
-                                                <span className="font-mono font-medium text-foreground">
-                                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.value || 0)}
-                                                </span>
-                                                <span className="text-xs text-muted-foreground">
-                                                    Atualizado em {new Date(deal.updated_at).toLocaleDateString('pt-BR')}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                <div className="text-center py-8">
-                                    <div className="mx-auto w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center mb-3">
-                                        <TAG_ICON className="w-5 h-5 text-muted-foreground/50" />
-                                    </div>
-                                    <h3 className="text-sm font-medium text-foreground">Nenhum negócio encontrado</h3>
-                                    <p className="text-sm text-muted-foreground mt-1">
-                                        {defaultPipeline 
-                                            ? "Adicione um novo negócio para começar"
-                                            : "Crie um funil de vendas para adicionar negócios"}
-                                    </p>
-                                    {defaultPipeline && (
-                                        <Button 
-                                            variant="outline" 
-                                            size="sm" 
-                                            className="mt-4 gap-1.5"
-                                            onClick={() => setIsDealModalOpen(true)}
-                                        >
-                                            <PLUS_ICON className="w-3.5 h-3.5" />
-                                            Adicionar Negócio
-                                        </Button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </Card>
+                    </div>
+
+                    {/* Conteúdo das abas */}
+                    <div className="space-y-6">
+                        {activeTab === 'activities' ? renderActivitiesTab() : renderDealsTab()}
+                    </div>
                 </div>
             </div>
 
@@ -465,14 +697,14 @@ const ContactDetails: React.FC = () => {
                 </div>
             </Modal>
 
-            {defaultPipeline && (
+            {pipelines.length > 0 && (
                 <DealFormModal
                     isOpen={isDealModalOpen}
                     onClose={() => setIsDealModalOpen(false)}
                     onSave={handleSaveDeal}
-                    pipeline={defaultPipeline}
-                    stages={stages.filter((s: PipelineStage) => s.pipeline_id === defaultPipeline.id)}
-                    contactName={localContact.name}
+                    pipeline={pipelines[0]}
+                    stages={stages.filter((s: PipelineStage) => s.pipeline_id === pipelines[0]?.id)}
+                    contactName={localContact?.name || ''}
                 />
             )}
         </div>
