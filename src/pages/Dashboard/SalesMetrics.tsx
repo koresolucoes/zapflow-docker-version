@@ -5,10 +5,12 @@ import { useAuthStore } from '../../stores/authStore.js';
 import { CustomTooltip } from './Dashboard.js';
 import { FUNNEL_ICON } from '../../components/icons/index.js';
 import { useUiStore } from '../../stores/uiStore.js';
+import { useNavigate } from 'react-router-dom';
 
 const SalesMetrics: React.FC = () => {
     const { deals, stages, activePipelineId } = useAuthStore();
     const { theme } = useUiStore();
+    const navigate = useNavigate();
 
     // Get theme colors
     const chartColors = {
@@ -42,6 +44,7 @@ const SalesMetrics: React.FC = () => {
             wonCountThisMonth: wonDealsThisMonth.length,
             wonValueThisMonth: wonDealsThisMonth.reduce((sum, d) => sum + (d.value || 0), 0),
             conversionRate: totalClosed > 0 ? (wonDeals.length / totalClosed) * 100 : 0,
+            totalDeals: relevantDeals.length,
         };
     }, [deals, activePipelineId]);
 
@@ -57,6 +60,10 @@ const SalesMetrics: React.FC = () => {
         }));
     }, [stages, deals, activePipelineId]);
 
+    const handleViewAllDeals = () => {
+        navigate('/deals');
+    };
+
     // Function to get color based on stage type
     const getStageColor = (type: string) => {
         switch (type) {
@@ -70,90 +77,102 @@ const SalesMetrics: React.FC = () => {
     };
 
     return (
-        <Card className="h-full w-full">
-            <div className="p-4 h-full flex flex-col">
-                <h2 className="text-lg font-semibold text-foreground mb-4">Métricas de Vendas (Funil)</h2>
-                <div className="flex-1 flex flex-col">
-                    {funnelChartData.length > 0 ? (
-                        <div className="w-full h-[200px] min-h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    data={funnelChartData}
-                                    layout="vertical"
-                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                                    barSize={20}
+        <Card className="h-full w-full flex flex-col">
+            <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold text-foreground">Métricas de Vendas (Funil)</h2>
+                    <button 
+                        onClick={handleViewAllDeals}
+                        className="text-xs text-primary hover:underline"
+                    >
+                        Ver todos
+                    </button>
+                </div>
+            </div>
+            
+            <div className="flex-1 px-4 pb-4 overflow-y-auto">
+                {funnelChartData.length > 0 ? (
+                    <div className="w-full h-[200px] min-h-[200px] mb-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                data={funnelChartData}
+                                layout="vertical"
+                                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                barSize={20}
+                            >
+                                <CartesianGrid 
+                                    strokeDasharray="3 3" 
+                                    horizontal={false} 
+                                    stroke={chartColors.cardBorder}
+                                />
+                                <XAxis 
+                                    type="number" 
+                                    hide 
+                                />
+                                <YAxis 
+                                    dataKey="name" 
+                                    type="category" 
+                                    scale="band"
+                                    width={100}
+                                    tick={{ 
+                                        fontSize: 12,
+                                        fill: chartColors.mutedText
+                                    }}
+                                />
+                                <Tooltip 
+                                    content={<CustomTooltip />} 
+                                    cursor={{ 
+                                        fill: chartColors.hoverBg 
+                                    }}
+                                />
+                                <Bar 
+                                    dataKey="Negócios" 
+                                    radius={[0, 4, 4, 0]}
                                 >
-                                    <CartesianGrid 
-                                        strokeDasharray="3 3" 
-                                        horizontal={false} 
-                                        stroke={chartColors.cardBorder}
-                                    />
-                                    <XAxis 
-                                        type="number" 
-                                        hide 
-                                    />
-                                    <YAxis 
-                                        dataKey="name" 
-                                        type="category" 
-                                        scale="band"
-                                        width={100}
-                                        tick={{ 
-                                            fontSize: 12,
-                                            fill: chartColors.mutedText
-                                        }}
-                                    />
-                                    <Tooltip 
-                                        content={<CustomTooltip />} 
-                                        cursor={{ 
-                                            fill: chartColors.hoverBg 
-                                        }}
-                                    />
-                                    <Bar 
-                                        dataKey="Negócios" 
-                                        radius={[0, 4, 4, 0]}
-                                    >
-                                        {funnelChartData.map((entry, index) => (
-                                            <Cell 
-                                                key={`cell-${index}`} 
-                                                fill={getStageColor(entry.type)} 
-                                            />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                            <FUNNEL_ICON className="w-12 h-12 text-muted-foreground/50 mb-2" />
-                            <p className="text-muted-foreground">Nenhum dado disponível para exibir</p>
-                        </div>
-                    )}
-                    
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                        <div className="bg-muted/50 p-3 rounded-lg">
-                            <p className="text-muted-foreground">Valor em Aberto</p>
-                            <p className="font-semibold text-foreground">
-                                {salesKPIs.openValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                            </p>
-                        </div>
-                        <div className="bg-muted/50 p-3 rounded-lg">
-                            <p className="text-muted-foreground">Ganhos (Mês)</p>
-                            <p className="font-semibold text-foreground">
-                                {salesKPIs.wonCountThisMonth} ({salesKPIs.wonValueThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
-                            </p>
-                        </div>
-                        <div className="bg-muted/50 p-3 rounded-lg">
-                            <p className="text-muted-foreground">Taxa de Conversão</p>
-                            <p className="font-semibold text-foreground">
-                                {salesKPIs.conversionRate.toFixed(1)}%
-                            </p>
-                        </div>
-                        <div className="bg-muted/50 p-3 rounded-lg">
-                            <p className="text-muted-foreground">Negócios no Funil</p>
-                            <p className="font-semibold text-foreground">
-                                {deals.filter(d => d.pipeline_id === activePipelineId).length}
-                            </p>
-                        </div>
+                                    {funnelChartData.map((entry, index) => (
+                                        <Cell 
+                                            key={`cell-${index}`} 
+                                            fill={getStageColor(entry.type)} 
+                                        />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-4 h-[200px]">
+                        <FUNNEL_ICON className="w-12 h-12 text-muted-foreground/50 mb-2" />
+                        <p className="text-muted-foreground">Nenhum dado disponível para exibir</p>
+                    </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                        <p className="text-muted-foreground">Valor em Aberto</p>
+                        <p className="font-semibold text-foreground">
+                            {salesKPIs.openValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </p>
+                    </div>
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                        <p className="text-muted-foreground">Ganhos (Mês)</p>
+                        <p className="font-semibold text-foreground">
+                            {salesKPIs.wonCountThisMonth} ({salesKPIs.wonValueThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+                        </p>
+                    </div>
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                        <p className="text-muted-foreground">Taxa de Conversão</p>
+                        <p className="font-semibold text-foreground">
+                            {salesKPIs.conversionRate.toFixed(1)}%
+                        </p>
+                    </div>
+                    <div 
+                        className="bg-muted/50 p-3 rounded-lg hover:bg-muted/70 cursor-pointer transition-colors"
+                        onClick={handleViewAllDeals}
+                    >
+                        <p className="text-muted-foreground">Negócios no Funil</p>
+                        <p className="font-semibold text-foreground">
+                            {salesKPIs.totalDeals}
+                        </p>
                     </div>
                 </div>
             </div>

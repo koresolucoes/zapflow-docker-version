@@ -30,7 +30,7 @@ const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () 
 
 
     return (
-        <Card className="h-full flex flex-col justify-between hover:border-primary/50 border border-border transition-colors duration-200 group relative">
+        <Card className="h-full flex flex-col justify-between hover:border-primary/50 border-2 border-border/50 hover:border-primary/70 transition-colors duration-200 group relative overflow-hidden">
              <Button
                 variant="ghost"
                 size="sm"
@@ -40,7 +40,7 @@ const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () 
             >
                 <TRASH_ICON className="w-4 h-4" />
             </Button>
-            <div>
+            <div className="p-5">
                 <div className="flex justify-between items-start gap-2">
                     <h3 className="text-lg font-semibold text-foreground break-all">{campaign.name}</h3>
                     <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${statusStyle[statusText]}`}>
@@ -80,8 +80,16 @@ const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () 
                     </div>
                 </div>
             </div>
-             <div className="mt-6">
-                <Button variant="secondary" size="sm" onClick={onViewDetails} className="w-full">
+             <div className="p-5 pt-0">
+                <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onViewDetails();
+                    }} 
+                    className="w-full"
+                >
                     Ver Relatório Detalhado
                 </Button>
             </div>
@@ -164,7 +172,9 @@ const Campaigns: React.FC = () => {
                         <CampaignCard
                             key={campaign.id}
                             campaign={campaign}
-                            onViewDetails={() => setCurrentPage('campaigns', { campaignId: campaign.id })}
+                            onViewDetails={() => {
+                                setCurrentPage('campaign-details', { campaignId: campaign.id });
+                            }}
                             onDelete={() => handleDeleteCampaign(campaign.id)}
                         />
                     ))}

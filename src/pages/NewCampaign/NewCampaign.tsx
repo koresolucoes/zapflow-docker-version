@@ -56,10 +56,38 @@ const NewCampaign: React.FC = () => {
   const [scheduleDate, setScheduleDate] = useState('');
   const [sendingSpeed, setSendingSpeed] = useState<'instant' | 'slow' | 'very_slow'>('instant');
 
+  // Handle missing templateId
+  useEffect(() => {
+    if (!pageParams?.templateId) {
+      setError('Nenhum template selecionado. Por favor, selecione um template primeiro.');
+      setCurrentPage('templates');
+    }
+  }, [pageParams, setCurrentPage]);
 
   const template = useMemo(() => {
+    if (!pageParams?.templateId) return null;
     return templates.find(t => t.id === pageParams.templateId);
-  }, [pageParams.templateId, templates]);
+  }, [pageParams?.templateId, templates]);
+
+  // Show error message if no template is found
+  if (!template) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+        <div className="p-6 bg-destructive/10 rounded-lg max-w-md">
+          <h2 className="text-xl font-semibold text-destructive mb-2">Template não encontrado</h2>
+          <p className="text-muted-foreground mb-4">
+            O template selecionado não foi encontrado ou não está disponível.
+          </p>
+          <Button 
+            onClick={() => setCurrentPage('templates')}
+            className="mt-4"
+          >
+            Voltar para Templates
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const placeholders = useMemo(() => {
     if (!template?.components) return [];
@@ -353,16 +381,6 @@ const NewCampaign: React.FC = () => {
   }, [recipients, contacts]);
 
 
-  if (!template) {
-    return (
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Template não encontrado.</h2>
-        <p className="text-gray-500 dark:text-slate-400 mt-2">Por favor, volte e selecione um template para começar.</p>
-        <Button className="mt-4" onClick={() => setCurrentPage('templates')}>Voltar para Templates</Button>
-      </div>
-    );
-  }
-
   const variablePlaceholders = placeholders.filter(p => p !== '{{1}}');
   
   const successfulSends = sendResults.filter(r => r.success).length;
@@ -433,7 +451,7 @@ const NewCampaign: React.FC = () => {
               <label className="block text-sm font-medium text-gray-500 dark:text-slate-300 mb-2">3. Agendamento (Opcional)</label>
               <div className="p-4 bg-gray-100 dark:bg-slate-700/50 rounded-md">
                 <label htmlFor="isScheduled" className="flex items-center cursor-pointer">
-                  <input type="checkbox" id="isScheduled" checked={isScheduled} onChange={(e) => setIsScheduled(e.target.checked)} className="h-4 w-4 rounded bg-gray-200 dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-blue-600 dark:text-sky-600 focus:ring-blue-500 dark:focus:ring-sky-500"/>
+                  <input type="checkbox" id="isScheduled" checked={isScheduled} onChange={(e) => setIsScheduled(e.target.checked)} className="h-4 w-4 rounded bg-gray-200 dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-blue-600 dark:text-sky-600 focus:ring-blue-500 dark:focus:ring-sky-600"/>
                   <span className="ml-3 text-sm font-medium text-gray-800 dark:text-white">Agendar envio para uma data específica</span>
                 </label>
                 {isScheduled && (
@@ -505,7 +523,7 @@ const NewCampaign: React.FC = () => {
                                           type="checkbox"
                                           checked={selectedTags.includes(tag)}
                                           onChange={() => handleTagToggle(tag)}
-                                          className="h-4 w-4 rounded bg-gray-200 dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-blue-600 dark:text-sky-600 focus:ring-blue-500 dark:focus:ring-sky-500"
+                                          className="h-4 w-4 rounded bg-gray-200 dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-blue-600 dark:text-sky-600 focus:ring-blue-500 dark:focus:ring-sky-600"
                                       />
                                       <label htmlFor={`tag-${tag}`} className="ml-3 text-sm text-gray-700 dark:text-slate-300">
                                           {tag}
