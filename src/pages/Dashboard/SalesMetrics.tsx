@@ -10,6 +10,18 @@ const SalesMetrics: React.FC = () => {
     const { deals, stages, activePipelineId } = useAuthStore();
     const { theme } = useUiStore();
 
+    // Get theme colors
+    const chartColors = {
+        won: 'hsl(var(--success))',
+        lost: 'hsl(var(--destructive))',
+        intermediate: 'hsl(var(--muted-foreground))',
+        hoverBg: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+        cardBg: 'hsl(var(--card))',
+        cardBorder: 'hsl(var(--border))',
+        text: 'hsl(var(--foreground))',
+        mutedText: 'hsl(var(--muted-foreground))',
+    };
+
     const salesKPIs = useMemo(() => {
         const relevantDeals = deals.filter(d => d.pipeline_id === activePipelineId);
         const openDeals = relevantDeals.filter(d => d.status === 'Aberto');
@@ -41,14 +53,26 @@ const SalesMetrics: React.FC = () => {
         return activeStages.map(stage => ({
             name: stage.name,
             Negócios: deals.filter(d => d.stage_id === stage.id).length,
-            fill: stage.type === 'Ganho' ? '#22c55e' : stage.type === 'Perdido' ? '#ef4444' : '#64748b', // slate-500
+            type: stage.type,
         }));
     }, [stages, deals, activePipelineId]);
+
+    // Function to get color based on stage type
+    const getStageColor = (type: string) => {
+        switch (type) {
+            case 'Ganho':
+                return chartColors.won;
+            case 'Perdido':
+                return chartColors.lost;
+            default:
+                return chartColors.intermediate;
+        }
+    };
 
     return (
         <Card className="h-full w-full">
             <div className="p-4 h-full flex flex-col">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Métricas de Vendas (Funil)</h2>
+                <h2 className="text-lg font-semibold text-foreground mb-4">Métricas de Vendas (Funil)</h2>
                 <div className="flex-1 flex flex-col">
                     {funnelChartData.length > 0 ? (
                         <div className="w-full h-[200px] min-h-[200px]">
@@ -59,22 +83,40 @@ const SalesMetrics: React.FC = () => {
                                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                                     barSize={20}
                                 >
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                    <XAxis type="number" hide />
+                                    <CartesianGrid 
+                                        strokeDasharray="3 3" 
+                                        horizontal={false} 
+                                        stroke={chartColors.cardBorder}
+                                    />
+                                    <XAxis 
+                                        type="number" 
+                                        hide 
+                                    />
                                     <YAxis 
                                         dataKey="name" 
                                         type="category" 
                                         scale="band"
                                         width={100}
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ 
+                                            fontSize: 12,
+                                            fill: chartColors.mutedText
+                                        }}
                                     />
                                     <Tooltip 
                                         content={<CustomTooltip />} 
-                                        cursor={{ fill: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}
+                                        cursor={{ 
+                                            fill: chartColors.hoverBg 
+                                        }}
                                     />
-                                    <Bar dataKey="Negócios" radius={[0, 4, 4, 0]}>
+                                    <Bar 
+                                        dataKey="Negócios" 
+                                        radius={[0, 4, 4, 0]}
+                                    >
                                         {funnelChartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                                            <Cell 
+                                                key={`cell-${index}`} 
+                                                fill={getStageColor(entry.type)} 
+                                            />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -82,22 +124,34 @@ const SalesMetrics: React.FC = () => {
                         </div>
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                            <FUNNEL_ICON className="w-12 h-12 text-slate-400 dark:text-slate-600 mb-2" />
-                            <p className="text-slate-500 dark:text-slate-400">Nenhum dado disponível para exibir</p>
+                            <FUNNEL_ICON className="w-12 h-12 text-muted-foreground/50 mb-2" />
+                            <p className="text-muted-foreground">Nenhum dado disponível para exibir</p>
                         </div>
                     )}
                     
                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                        <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
-                            <p className="text-slate-500 dark:text-slate-400">Valor em Aberto</p>
-                            <p className="font-semibold text-slate-900 dark:text-white">
+                        <div className="bg-muted/50 p-3 rounded-lg">
+                            <p className="text-muted-foreground">Valor em Aberto</p>
+                            <p className="font-semibold text-foreground">
                                 {salesKPIs.openValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                             </p>
                         </div>
-                        <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
-                            <p className="text-slate-500 dark:text-slate-400">Ganhos (Mês)</p>
-                            <p className="font-semibold text-slate-900 dark:text-white">
+                        <div className="bg-muted/50 p-3 rounded-lg">
+                            <p className="text-muted-foreground">Ganhos (Mês)</p>
+                            <p className="font-semibold text-foreground">
                                 {salesKPIs.wonCountThisMonth} ({salesKPIs.wonValueThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+                            </p>
+                        </div>
+                        <div className="bg-muted/50 p-3 rounded-lg">
+                            <p className="text-muted-foreground">Taxa de Conversão</p>
+                            <p className="font-semibold text-foreground">
+                                {salesKPIs.conversionRate.toFixed(1)}%
+                            </p>
+                        </div>
+                        <div className="bg-muted/50 p-3 rounded-lg">
+                            <p className="text-muted-foreground">Negócios no Funil</p>
+                            <p className="font-semibold text-foreground">
+                                {deals.filter(d => d.pipeline_id === activePipelineId).length}
                             </p>
                         </div>
                     </div>

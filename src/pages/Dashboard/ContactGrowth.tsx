@@ -4,9 +4,19 @@ import { Card } from '../../components/common/Card.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { CustomTooltip } from './Dashboard.js';
 import { CONTACTS_ICON } from '../../components/icons/index.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const ContactGrowth: React.FC = () => {
     const { contacts, allTags } = useAuthStore();
+    const { theme } = useUiStore();
+
+    // Get theme colors
+    const chartColors = {
+        grid: theme === 'dark' ? 'hsl(var(--muted))' : 'hsl(var(--muted))',
+        text: theme === 'dark' ? 'hsl(var(--muted-foreground))' : 'hsl(var(--muted-foreground))',
+        line: 'hsl(var(--primary))',
+        activeDot: 'hsl(var(--background))',
+    };
 
     const growthData = useMemo(() => {
         const countsByDay: { [key: string]: number } = {};
@@ -49,9 +59,9 @@ const ContactGrowth: React.FC = () => {
     return (
         <Card className="h-full w-full">
             <div className="p-4 h-full flex flex-col">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Crescimento de Contatos</h2>
+                <h2 className="text-lg font-semibold text-foreground mb-4">Crescimento de Contatos</h2>
                 <div className="flex-1 flex flex-col">
-                    <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3">Últimos 30 dias</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">Últimos 30 dias</h3>
                     
                     {growthData.length > 0 ? (
                         <div className="w-full h-[180px] min-h-[180px] mb-4">
@@ -60,16 +70,20 @@ const ContactGrowth: React.FC = () => {
                                     data={growthData} 
                                     margin={{ top: 5, right: 10, left: -15, bottom: 5 }}
                                 >
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
+                                    <CartesianGrid 
+                                        strokeDasharray="3 3" 
+                                        vertical={false} 
+                                        stroke={chartColors.grid} 
+                                    />
                                     <XAxis 
                                         dataKey="name" 
-                                        tick={{ fill: '#94a3b8' }} 
+                                        tick={{ fill: chartColors.text }} 
                                         fontSize={10}
                                         axisLine={false}
                                         tickLine={false}
                                     />
                                     <YAxis 
-                                        tick={{ fill: '#94a3b8' }} 
+                                        tick={{ fill: chartColors.text }} 
                                         allowDecimals={false}
                                         axisLine={false}
                                         tickLine={false}
@@ -79,37 +93,41 @@ const ContactGrowth: React.FC = () => {
                                     <Line 
                                         type="monotone" 
                                         dataKey="Novos Contatos" 
-                                        stroke="#34d399" 
+                                        stroke={chartColors.line} 
                                         strokeWidth={2}
                                         dot={false}
-                                        activeDot={{ r: 4, strokeWidth: 2, stroke: '#ffffff', strokeOpacity: 0.5 }}
+                                        activeDot={{ 
+                                            r: 4, 
+                                            strokeWidth: 2, 
+                                            stroke: chartColors.activeDot, 
+                                            strokeOpacity: 0.5 
+                                        }}
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                            <CONTACTS_ICON className="w-10 h-10 text-slate-400 dark:text-slate-600 mb-2" />
-                            <p className="text-slate-500 dark:text-slate-400">Nenhum novo contato registrado</p>
+                            <CONTACTS_ICON className="w-10 h-10 text-muted-foreground/50 mb-2" />
+                            <p className="text-muted-foreground">Nenhum novo contato registrado</p>
                         </div>
                     )}
                     
-                    <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3">Tags Populares</h3>
+                    <div className="mt-auto pt-4 border-t border-border">
+                        <h3 className="text-sm font-medium text-muted-foreground mb-3">Tags Populares</h3>
                         {popularTags.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                                 {popularTags.map(([tag, count]) => (
-                                    <div 
-                                        key={tag}
-                                        className="flex items-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs px-2.5 py-1 rounded-full"
+                                    <span 
+                                        key={tag} 
+                                        className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary"
                                     >
-                                        <span className="truncate max-w-[100px]">{tag}</span>
-                                        <span className="ml-1.5 font-medium text-slate-900 dark:text-white">{count}</span>
-                                    </div>
+                                        {tag} ({count})
+                                    </span>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-sm text-slate-400 dark:text-slate-500">Nenhuma tag utilizada</p>
+                            <p className="text-sm text-muted-foreground">Nenhuma tag encontrada</p>
                         )}
                     </div>
                 </div>
