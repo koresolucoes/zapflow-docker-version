@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/authStore.js';
 import { TRASH_ICON } from '../../components/icons/index.js';
 import { Button } from '../../components/common/Button.js';
 import { useUiStore } from '../../stores/uiStore.js';
+import { cn } from '../../lib/utils.js';
 
 interface StageColumnProps {
     stage: PipelineStage;
@@ -69,19 +70,28 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
     const totalValue = deals.reduce((sum, deal) => sum + (deal.value || 0), 0);
     
     const stageTypeStyles = {
-        'Intermediária': 'border-slate-500',
-        'Ganho': 'border-green-500',
-        'Perdido': 'border-red-500',
+        'Intermediária': 'border-border',
+        'Ganho': 'border-success',
+        'Perdido': 'border-destructive',
     };
 
     return (
         <div
-            className={`w-80 flex-shrink-0 h-full flex flex-col bg-slate-800/50 rounded-xl transition-colors duration-300 ${isDragOver ? 'bg-slate-700/80' : ''}`}
+            className={cn(
+                'w-80 flex-shrink-0 h-full flex flex-col bg-card/50 rounded-xl transition-colors',
+                'border border-border/50',
+                isDragOver && 'bg-accent/30',
+                'shadow-sm'
+            )}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
-            <div className={`p-4 border-b-4 ${stageTypeStyles[stage.type]} flex-shrink-0 group`}>
+            <div className={cn(
+                'p-4 border-b-4 flex-shrink-0 group',
+                stageTypeStyles[stage.type],
+                'transition-colors duration-200'
+            )}>
                 <div className="flex justify-between items-center">
                     {isEditing ? (
                         <input
@@ -91,34 +101,47 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
                             onBlur={handleNameBlur}
                             onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
                             autoFocus
-                            className="bg-slate-700 text-white font-bold p-1 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            className="bg-background text-foreground font-medium p-1.5 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
                         />
                     ) : (
-                        <h2 onClick={() => setIsEditing(true)} className="font-bold text-white truncate cursor-pointer" title="Clique para editar">{stage.name}</h2>
+                        <h2 
+                            onClick={() => setIsEditing(true)} 
+                            className="font-semibold text-foreground truncate cursor-pointer hover:text-primary transition-colors" 
+                            title="Clique para editar"
+                        >
+                            {stage.name}
+                        </h2>
                     )}
-                     <Button 
+                    <Button 
                         variant="ghost" 
-                        size="sm" 
-                        onClick={handleDelete} 
-                        className="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity ml-2"
+                        size="icon" 
+                        onClick={handleDelete}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Excluir etapa"
                     >
                         <TRASH_ICON className="w-4 h-4" />
                     </Button>
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
-                    {deals.length} negócios • {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue)}
-                </p>
+                <div className="flex justify-between items-center mt-1">
+                    <span className="text-xs text-muted-foreground">
+                        {deals.length} {deals.length === 1 ? 'negócio' : 'negócios'}
+                    </span>
+                    {totalValue > 0 && (
+                        <span className="text-xs font-medium text-foreground/80">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue)}
+                        </span>
+                    )}
+                </div>
             </div>
-            <div className="p-2 flex-grow overflow-y-auto space-y-3">
-                {deals.map(deal => (
-                    <DealCard 
-                        key={deal.id} 
-                        deal={deal} 
+            <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                {deals.map((deal) => (
+                    <DealCard
+                        key={deal.id}
+                        deal={deal}
                         onDragStart={onDragStart}
-                        isGhost={draggedDealId === deal.id}
                         onEdit={() => onEditDeal(deal)}
                         onDelete={() => onDeleteDeal(deal)}
+                        isGhost={draggedDealId === deal.id}
                     />
                 ))}
             </div>

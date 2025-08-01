@@ -20,7 +20,6 @@ const EditorContext = createContext<{
     onNodeLogsClick: (nodeId: string, nodeLabel: string) => void;
 } | null>(null);
 
-
 // ====================================================================================
 // Custom Edge Component
 // ====================================================================================
@@ -55,7 +54,7 @@ const CustomDeletableEdge: FC<XyEdgeProps> = ({
       <path
         id={id}
         style={style}
-        className="react-flow__edge-path"
+        className="react-flow__edge-path stroke-border"
         d={edgePath}
         markerEnd={markerEnd}
       />
@@ -69,7 +68,7 @@ const CustomDeletableEdge: FC<XyEdgeProps> = ({
           className="nodrag nopan group"
         >
           <button
-            className="w-5 h-5 bg-slate-200 dark:bg-slate-700 hover:bg-red-500 text-slate-800 dark:text-white flex items-center justify-center rounded-full text-xs font-mono transition-colors duration-150 opacity-0 group-hover:opacity-100"
+            className="w-5 h-5 bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center justify-center rounded-full text-xs font-mono transition-colors duration-150 opacity-0 group-hover:opacity-100"
             onClick={onEdgeClick}
             title="Deletar conexão"
           >
@@ -86,18 +85,18 @@ const CustomDeletableEdge: FC<XyEdgeProps> = ({
 // ====================================================================================
 
 const nodeStyles = {
-    base: "relative bg-white dark:bg-slate-800 border-t-4 rounded-xl shadow-xl dark:shadow-2xl text-slate-900 dark:text-white w-72 group cursor-pointer",
+    base: "relative bg-card border-t-4 rounded-xl shadow-sm text-foreground w-72 group cursor-pointer",
     body: "p-4 space-y-2",
     header: "flex items-center gap-3",
     iconContainer: "flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg",
-    trigger: "border-slate-500 dark:border-sky-500",
-    action: "border-pink-500",
-    logic: "border-purple-500",
-    triggerIconBg: "bg-slate-100 dark:bg-sky-500/20",
-    actionIconBg: "bg-pink-100 dark:bg-pink-500/20",
-    logicIconBg: "bg-purple-100 dark:bg-purple-500/20",
-    label: "text-base font-semibold text-slate-800 dark:text-slate-100",
-    description: "text-xs text-slate-500 dark:text-slate-400 min-h-[16px]",
+    trigger: "border-border",
+    action: "border-primary",
+    logic: "border-secondary",
+    triggerIconBg: "bg-muted/50",
+    actionIconBg: "bg-primary/10",
+    logicIconBg: "bg-secondary/10",
+    label: "text-base font-semibold",
+    description: "text-xs text-muted-foreground min-h-[16px]",
 };
 
 const CustomNode: FC<NodeProps<AutomationNode>> = memo(({ data, id, isConnectable }) => {
@@ -124,7 +123,7 @@ const CustomNode: FC<NodeProps<AutomationNode>> = memo(({ data, id, isConnectabl
         <div className={`${nodeStyles.base} ${nodeStyles[nodeType]}`}>
              <button
                 onClick={handleDeleteNode}
-                className="absolute top-2 right-2 p-1 rounded-full text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                className="absolute top-2 right-2 p-1 rounded-full text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/50 hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity z-10"
                 title="Deletar nó"
             >
                 <TRASH_ICON className="w-4 h-4" />
@@ -149,7 +148,7 @@ const CustomNode: FC<NodeProps<AutomationNode>> = memo(({ data, id, isConnectabl
             
             {/* Handles */}
             {nodeType !== 'trigger' && (
-                <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="!bg-slate-400 dark:!bg-slate-500" />
+                <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="!bg-border" />
             )}
             {type === 'condition' ? (
                 <>
@@ -170,7 +169,7 @@ const CustomNode: FC<NodeProps<AutomationNode>> = memo(({ data, id, isConnectabl
                     </Handle>
                 </>
             ) : (
-                <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} className="!bg-slate-400 dark:!bg-slate-500" />
+                <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} className="!bg-border" />
             )}
         </div>
     );
@@ -189,13 +188,13 @@ const edgeTypes = {
 
 const NodeList: FC<{ title: string; items: [string, any][]; onAddNode: (type: string, e: React.MouseEvent) => void; disabled?: boolean }> = ({ title, items, onAddNode, disabled = false }) => (
     <div>
-        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 px-2">{title}</h3>
+        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">{title}</h3>
         <div className="space-y-1">
             {items.map(([type, config]) => (
                 <button
                     key={type}
                     onMouseDown={(e) => onAddNode(type, e)}
-                    className="w-full text-left flex items-center gap-2 p-2 rounded-md text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-left flex items-center gap-2 p-2 rounded-md text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={disabled}
                     title={disabled ? "A automação já possui um gatilho. Remova o existente para adicionar um novo." : ""}
                 >
@@ -213,14 +212,15 @@ const EditorSidebar: FC<{ onAddNode: (type: string, e: React.MouseEvent) => void
     const logic = Object.entries(nodeConfigs).filter(([_, v]) => v.nodeType === 'logic');
 
     return (
-        <aside className="w-72 flex-shrink-0 bg-white/50 dark:bg-slate-800/50 p-4 flex flex-col border-r border-slate-200 dark:border-slate-700/50 overflow-y-auto">
-            <div className="space-y-6">
+        <aside className="w-64 flex-shrink-0 border-r border-border h-full flex flex-col bg-card/50">
+            <div className="p-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-foreground">Blocos de Automação</h2>
+                <p className="text-sm text-muted-foreground">Arraste e solte para adicionar</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-4">
                 <NodeList title="Gatilhos" items={triggers} onAddNode={onAddNode} disabled={hasTrigger} />
                 <NodeList title="Ações" items={actions} onAddNode={onAddNode} />
                 <NodeList title="Lógica" items={logic} onAddNode={onAddNode} />
-            </div>
-            <div className="mt-auto pt-4 text-center text-xs text-slate-500">
-                2024 ZapFlow AI
             </div>
         </aside>
     );
@@ -426,16 +426,16 @@ const AutomationEditor: FC = () => {
 
     return (
         <EditorContext.Provider value={contextValue}>
-            <div className="w-full h-full flex bg-slate-100 dark:bg-slate-900 overflow-hidden">
+            <div className="w-full h-full flex bg-card/50 overflow-hidden">
                 <EditorSidebar onAddNode={onAddNode} hasTrigger={hasTriggerNode} />
 
                 <div className="flex-1 flex flex-col">
-                    <header className="flex-shrink-0 flex items-center justify-between gap-4 p-4 border-b border-slate-200 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10">
+                    <header className="flex-shrink-0 flex items-center justify-between gap-4 p-4 border-b border-border bg-card/80 backdrop-blur-sm z-10">
                         <input 
                             type="text" 
                             value={automation.name} 
                             onChange={(e) => setAutomation({ ...automation, name: e.target.value })} 
-                            className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md p-2 text-slate-900 dark:text-white font-semibold"
+                            className="bg-card border border-border rounded-md p-2 text-foreground font-semibold"
                         />
                         <div className="flex items-center gap-4">
                             <div title={!validationState.isValid ? validationState.reason : (automation.status === 'active' ? 'Desativar Automação' : 'Ativar Automação')}>
@@ -465,7 +465,7 @@ const AutomationEditor: FC = () => {
                             deleteKeyCode={['Backspace', 'Delete']}
                         >
                             <Controls showInteractive={false} />
-                            <Background variant={BackgroundVariant.Dots} gap={16} size={1} className="bg-slate-100 dark:bg-slate-900" />
+                            <Background variant={BackgroundVariant.Dots} gap={16} size={1} className="bg-card/50" />
                         </ReactFlow>
                     </main>
                 </div>
