@@ -11,13 +11,12 @@ export type PublicEnums = {
   campaign_status: "Sent" | "Draft" | "Failed" | "Scheduled"
   custom_field_type: "TEXTO" | "NUMERO" | "DATA" | "LISTA"
   deal_status: "Aberto" | "Ganho" | "Perdido"
-  message_source:
-    | "campaign"
-    | "automation"
-    | "direct"
-    | "inbound_reply"
+  message_source: "campaign" | "automation" | "direct" | "inbound_reply"
   message_status: "sent" | "delivered" | "read" | "failed" | "pending"
   message_type: "inbound" | "outbound"
+  message_metrics_direction: "inbound" | "outbound"
+  message_metrics_status: "sent" | "delivered" | "read" | "failed" | "deleted"
+  message_metrics_type: "text" | "image" | "document" | "audio" | "video" | "button" | "list" | "template"
   stage_type: "Intermediária" | "Ganho" | "Perdido"
   template_category: "MARKETING" | "UTILITY" | "AUTHENTICATION"
   template_status: "APPROVED" | "PENDING" | "REJECTED" | "PAUSED" | "LOCAL"
@@ -391,6 +390,59 @@ export type PublicTables = {
       updated_at?: string
       team_id?: string
       value?: number | null
+    }
+  }
+  message_metrics: {
+    Row: {
+      id: string
+      created_at: string
+      updated_at: string | null
+      profile_id: string
+      message_id: string
+      contact_id: string
+      direction: Database['public']['Enums']['message_metrics_direction']
+      status: Database['public']['Enums']['message_metrics_status']
+      message_type: Database['public']['Enums']['message_metrics_type']
+      timestamp: string
+      response_time: number | null
+      error_code: string | null
+      template_name: string | null
+      campaign_id: string | null
+      session_id: string | null
+    }
+    Insert: {
+      id?: string
+      created_at?: string
+      updated_at?: string | null
+      profile_id: string
+      message_id: string
+      contact_id: string
+      direction: Database['public']['Enums']['message_metrics_direction']
+      status: Database['public']['Enums']['message_metrics_status']
+      message_type: Database['public']['Enums']['message_metrics_type']
+      timestamp: string
+      response_time?: number | null
+      error_code?: string | null
+      template_name?: string | null
+      campaign_id?: string | null
+      session_id?: string | null
+    }
+    Update: {
+      id?: string
+      created_at?: string
+      updated_at?: string | null
+      profile_id?: string
+      message_id?: string
+      contact_id?: string
+      direction?: Database['public']['Enums']['message_metrics_direction']
+      status?: Database['public']['Enums']['message_metrics_status']
+      message_type?: Database['public']['Enums']['message_metrics_type']
+      timestamp?: string
+      response_time?: number | null
+      error_code?: string | null
+      template_name?: string | null
+      campaign_id?: string | null
+      session_id?: string | null
     }
   }
   message_templates: {

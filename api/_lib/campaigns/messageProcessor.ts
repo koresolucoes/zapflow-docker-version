@@ -3,6 +3,7 @@ import { getMetaConfig, resolveVariables } from '../automation/helpers.js';
 import { sendTemplatedMessage } from '../meta/messages.js';
 import { getMetaTemplateById } from '../meta/templates.js';
 import { MessageTemplate } from '../types.js';
+import { MetricsService } from '../services/metrics.service.js';
 
 interface ProcessMessageParams {
     messageId: string;
@@ -105,18 +106,40 @@ export async function executeCampaignMessage({ messageId, userId, variables }: P
             finalComponents.length > 0 ? finalComponents : undefined
         );
 
+        const messageUpdate = {
+            status: 'sent',
+            meta_message_id: response.messages[0].id,
+            sent_at: new Date().toISOString(),
+            content: resolvedContent,
+        };
+
+        // Atualizar a mensagem no banco de dados
         const { error: updateError } = await supabaseAdmin
             .from('messages')
-            .update({
-                status: 'sent',
-                meta_message_id: response.messages[0].id,
-                sent_at: new Date().toISOString(),
-                content: resolvedContent,
-            })
+            .update(messageUpdate)
             .eq('id', messageId);
 
         if (updateError) {
             console.error(`[Process Campaign] Failed to update message status for ${messageId}:`, updateError);
+        }
+
+        // Registrar métrica para a mensagem de campanha
+        try {
+            await MetricsService.logMessage({
+                profileId: userId,
+                messageId: response.messages[0].id,
+                contactId: contact.id,
+                direction: 'outbound',
+                status: 'sent',
+                messageType: 'template',
+                timestamp: new Date(),
+                campaignId: campaignWithTemplate.id,
+                templateName: template.template_name // Corrigido: usando templateName
+            });
+            console.log(`[Metrics] Logged campaign message ${response.messages[0].id} for contact ${contact.id}`);
+        } catch (metricsError) {
+            console.error(`[Metrics] Failed to log campaign message ${response.messages[0].id}:`, metricsError);
+            // Não interrompemos o fluxo se houver erro nas métricas
         }
 
         if (campaignWithTemplate) {
@@ -138,10 +161,42 @@ export async function executeCampaignMessage({ messageId, userId, variables }: P
 
     } catch (err: any) {
         console.error(`Error processing message ${messageId}:`, err);
+        
+        // Registrar falha nas métricas
+        try {
+            const { data: failedMessage } = await supabaseAdmin
+                .from('messages')
+                .select('contact_id, campaign_id') // Buscando apenas os campos necessários
+                .eq('id', messageId)
+                .single();
+                
+                if (failedMessage) {
+                    await MetricsService.logMessage({
+                        profileId: userId,
+                        messageId: `failed_${messageId}_${Date.now()}`,
+                        contactId: failedMessage.contact_id, // Acessando diretamente o campo
+                        direction: 'outbound',
+                        status: 'failed',
+                        messageType: 'template',
+                        timestamp: new Date(),
+                        campaignId: failedMessage.campaign_id, // Acessando diretamente o campo
+                        errorCode: err.message?.substring(0, 100) // Corrigido: usando errorCode
+                    });
+                
+            }
+        } catch (metricsError) {
+            console.error(`[Metrics] Failed to log failed campaign message ${messageId}:`, metricsError);
+        }
+        
+        // Atualizar status da mensagem para falha
         await supabaseAdmin
             .from('messages')
-            .update({ status: 'failed', error_message: err.message })
+            .update({ 
+                status: 'failed', 
+                error_message: err.message?.substring(0, 500) 
+            })
             .eq('id', messageId);
+            
         // Re-throw the error so the caller (worker or API) knows it failed.
         throw err;
     }
