@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { WebhookLog } from '../../types/index.js';
-import Card from '../../components/common/Card.js';
+import { Card } from '../../components/common/Card.js';
 import JsonTreeView from '../AutomationEditor/node-settings/JsonTreeView.js';
 
 const WebhookInspector: React.FC = () => {

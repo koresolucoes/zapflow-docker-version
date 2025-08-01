@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
-import { Automation } from '../../types';
-import Card from '../../components/common/Card';
-import Switch from '../../components/common/Switch';
-import Button from '../../components/common/Button';
-import { TRASH_ICON } from '../../components/icons';
-import { useAuthStore } from '../../stores/authStore';
-import { useUiStore } from '../../stores/uiStore';
+import { Automation } from '../../types/index.js';
+import { Card } from '../../components/common/Card.js';
+import Switch from '../../components/common/Switch.js';
+import { Button } from '../../components/common/Button.js';
+import { TRASH_ICON } from '../../components/icons/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 interface AutomationCardProps {
     automation: Automation;

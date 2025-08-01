@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { AutomationNodeLog } from '../../types';
-import Button from '../../components/common/Button';
+import { AutomationNodeLog } from '../../types/index.js';
+import { Button } from '../../components/common/Button.js';
 
 interface NodeLogsModalProps {
     isOpen: boolean;
@@ -16,7 +16,7 @@ const StatusBadge: React.FC<{ status: AutomationNodeLog['status'] }> = ({ status
         success: 'bg-green-500/20 text-green-400',
         failed: 'bg-red-500/20 text-red-400',
     };
-    const style = statusStyles[status] || 'bg-slate-500/20 text-slate-400';
+    const style = statusStyles[status as keyof typeof statusStyles] || 'bg-slate-500/20 text-slate-400';
     const text = status === 'success' ? 'Sucesso' : 'Falha';
     return <span className={`px-2 py-0.5 text-xs font-semibold rounded-full flex-shrink-0 ${style}`}>{text}</span>;
 };
@@ -71,7 +71,7 @@ const NodeLogsModal: React.FC<NodeLogsModalProps> = ({ isOpen, onClose, nodeLabe
                 </main>
 
                  <footer className="flex-shrink-0 p-4 border-t border-slate-700 flex justify-end">
-                    <Button variant="primary" onClick={onClose}>Fechar</Button>
+                    <Button variant="ghost" onClick={onClose}>Fechar</Button>
                 </footer>
             </div>
         </div>

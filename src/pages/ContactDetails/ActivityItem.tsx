@@ -3,7 +3,7 @@ import { ContactActivity } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { useUiStore } from '../../stores/uiStore.js';
 import { NOTE_ICON, CALENDAR_ICON, TRASH_ICON, CHECK_SQUARE_ICON } from '../../components/icons/index.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 
 interface ActivityItemProps {
     activity: ContactActivity;

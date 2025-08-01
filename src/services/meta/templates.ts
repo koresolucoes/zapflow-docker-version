@@ -1,6 +1,6 @@
-import { MetaConfig } from "../../types";
-import metaApiClient from "./apiClient";
-import { MetaTemplate, MetaTemplateComponent, MetaTemplateCreationPayload } from "./types";
+import { MetaConfig } from "../../types/index.js";
+import metaApiClient from "./apiClient.js";
+import { MetaTemplate, MetaTemplateComponent, MetaTemplateCreationPayload } from "./types.js";
 
 /**
  * Busca templates de mensagem da conta da Meta.

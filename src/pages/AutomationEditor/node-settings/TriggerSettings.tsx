@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { NodeSettingsProps } from './common.js';
-import Button from '../../../components/common/Button.js';
+import { Button } from '../../../components/common/Button.js';
 import { COPY_ICON, PLUS_ICON, TRASH_ICON } from '../../../components/icons/index.js';
 import JsonTreeView from './JsonTreeView.js';
 

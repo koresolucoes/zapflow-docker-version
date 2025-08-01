@@ -1,5 +1,5 @@
-import { MetaConfig } from "../../types";
-import { MetaApiErrorResponse } from "./types";
+import { MetaConfig } from "../../types/index.js";
+import { MetaApiErrorResponse } from "./types.js";
 
 const API_VERSION = 'v23.0';
 const BASE_URL = `https://graph.facebook.com/${API_VERSION}`;

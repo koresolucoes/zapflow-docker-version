@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { AutomationNodeStats } from '../../types';
-import Button from '../../components/common/Button';
+import { AutomationNodeStats } from '../../types/index.js';
+import { Button } from '../../components/common/Button.js';
 
 interface NodeStatsProps {
     stats: AutomationNodeStats | undefined;

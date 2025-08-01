@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
-import Button from '../common/Button.js';
+import { Button } from '../common/Button.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { useUiStore } from '../../stores/uiStore.js';
 import { USERS_ICON, SUN_ICON, MOON_ICON } from '../icons/index.js';

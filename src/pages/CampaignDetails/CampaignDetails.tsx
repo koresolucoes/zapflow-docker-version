@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Message, MessageTemplate } from '../../types';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { ARROW_LEFT_ICON, SEND_ICON, MAIL_CHECK_ICON, MAIL_OPEN_ICON, ALERT_TRIANGLE_ICON } from '../../components/icons';
-import { useAuthStore } from '../../stores/authStore';
+import { Message, MessageTemplate } from '../../types/index.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
+import { ARROW_LEFT_ICON, SEND_ICON, MAIL_CHECK_ICON, MAIL_OPEN_ICON, ALERT_TRIANGLE_ICON } from '../../components/icons/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
 
 const StatCard: React.FC<{ title: string; value: string; icon: React.ReactNode; }> = ({ title, value, icon }) => (
     <Card className="flex items-center p-4">

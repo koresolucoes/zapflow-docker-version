@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Contact, DealInsert } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 import DealFormModal from '../../components/common/DealFormModal.js';
 import AddCustomFieldModal from '../../components/common/AddCustomFieldModal.js';
 import { PLUS_ICON, X_ICON } from '../../components/icons/index.js';
@@ -176,7 +176,7 @@ const ContactPanel: React.FC<{ contactId: string }> = ({ contactId }) => {
 
                 {hasChanges && (
                     <div className="mt-auto pt-4">
-                        <Button variant="primary" className="w-full" onClick={handleSaveChanges} isLoading={isSaving}>
+                        <Button variant="default" className="w-full" onClick={handleSaveChanges} isLoading={isSaving}>
                             Salvar Alterações
                         </Button>
                     </div>

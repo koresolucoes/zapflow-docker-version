@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { SEND_ICON, SPARKLES_ICON } from '../../components/icons/index.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 import { CannedResponse } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { generateReplyWithAI } from '../../services/geminiService.js';
@@ -181,7 +181,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ contactId }) => {
             
             <Button
                 type="submit"
-                variant="primary"
+                variant="default"
                 className="w-12 h-12 rounded-full flex-shrink-0"
                 isLoading={isSending}
                 disabled={!text.trim() || isGenerating}

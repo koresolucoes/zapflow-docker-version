@@ -1,8 +1,8 @@
 
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { NodeSettingsProps } from './common';
-import { InputWithVariables } from './common';
+import { NodeSettingsProps } from './common.js';
+import { InputWithVariables } from './common.js';
 
 const baseInputClass = "w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500";
 

@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { NodeSettingsProps, InputWithVariables, TextareaWithVariables } from './common';
-import Button from '../../../components/common/Button';
-import Switch from '../../../components/common/Switch';
-import { PLUS_ICON, TRASH_ICON } from '../../../components/icons';
+import { NodeSettingsProps, InputWithVariables, TextareaWithVariables } from './common.js';
+import { Button } from '../../../components/common/Button.js';
+import Switch from '../../../components/common/Switch.js';
+import { PLUS_ICON, TRASH_ICON } from '../../../components/icons/index.js';
 
 const baseInputClass = "w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500";
 

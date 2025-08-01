@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { DealWithContact, Deal } from '../../types/index.js';
+import { DealWithContact } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 import { EDIT_ICON, TRASH_ICON } from '../../components/icons/index.js';
 
 interface DealCardProps {

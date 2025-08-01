@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../../components/common/Modal.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 
 interface DealClosingModalProps {
     isOpen: boolean;
@@ -53,7 +53,7 @@ const DealClosingModal: React.FC<DealClosingModalProps> = ({ isOpen, onClose, on
                     <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="primary" isLoading={isLoading}>
+                    <Button type="submit" variant="default" isLoading={isLoading}>
                         Salvar e Mover
                     </Button>
                 </div>

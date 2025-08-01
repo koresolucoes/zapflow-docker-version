@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import ActivityItem from './ActivityItem.js';
 import { ContactActivity, ContactActivityInsert } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
@@ -105,7 +105,7 @@ const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }: Acti
                             className="w-full bg-slate-700 p-2 rounded-md"
                         />
                         <div className="flex justify-end">
-                            <Button type="submit" variant="primary" isLoading={isSaving} disabled={!noteContent.trim()}>Salvar Nota</Button>
+                            <Button type="submit" variant="default" isLoading={isSaving} disabled={!noteContent.trim()}>Salvar Nota</Button>
                         </div>
                     </form>
                 )}
@@ -125,7 +125,7 @@ const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }: Acti
                             className="w-full bg-slate-700 p-2 rounded-md"
                         />
                         <div className="flex justify-end">
-                            <Button type="submit" variant="primary" isLoading={isSaving} disabled={!taskContent.trim() || !taskDueDate}>Salvar Tarefa</Button>
+                            <Button type="submit" variant="default" isLoading={isSaving} disabled={!taskContent.trim() || !taskDueDate}>Salvar Tarefa</Button>
                         </div>
                     </form>
                 )}

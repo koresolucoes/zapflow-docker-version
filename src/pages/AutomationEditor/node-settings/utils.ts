@@ -1,5 +1,5 @@
 
-import { MessageTemplate } from '../../../types';
+import { MessageTemplate } from '../../../types/index.js';
 
 export interface PlaceholderInfo {
   placeholder: string; // e.g., "{{2}}"

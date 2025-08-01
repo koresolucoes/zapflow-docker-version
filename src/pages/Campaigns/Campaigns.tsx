@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import { TEMPLATE_ICON, SEND_ICON, MAIL_CHECK_ICON, MAIL_OPEN_ICON, TRASH_ICON, SEARCH_ICON } from '../../components/icons/index.js';
 import { CampaignWithMetrics } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
@@ -133,7 +133,7 @@ const Campaigns: React.FC = () => {
                             className="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg py-2 pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
-                    <Button variant="primary" onClick={() => setCurrentPage('templates')}>
+                    <Button variant="default" onClick={() => setCurrentPage('templates')}>
                         <TEMPLATE_ICON className="w-5 h-5 mr-2" />
                         Criar Nova Campanha
                     </Button>
@@ -149,7 +149,7 @@ const Campaigns: React.FC = () => {
                 <Card className="text-center py-12">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Nenhuma campanha enviada.</h2>
                     <p className="text-gray-500 dark:text-slate-400 mt-2 mb-6">Crie uma campanha a partir de um template para começar.</p>
-                    <Button variant="primary" onClick={() => setCurrentPage('templates')}>
+                    <Button variant="default" onClick={() => setCurrentPage('templates')}>
                         Ir para Templates
                     </Button>
                 </Card>

@@ -3,8 +3,8 @@ import { MessageTemplate, TemplateCategory, TemplateStatus } from '../../types/i
 import type { TablesInsert } from '../../types/database.types.js';
 import { getMetaTemplates } from '../../services/meta/templates.js';
 import { supabase } from '../../lib/supabaseClient.js';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import { SPARKLES_ICON, SEARCH_ICON } from '../../components/icons/index.js';
 import { Json } from '../../types/database.types.js';
 import { useAuthStore, useMetaConfig } from '../../stores/authStore.js';
@@ -44,7 +44,7 @@ const TemplateCard: React.FC<{ template: MessageTemplate; onUse: () => void }> =
                 </div>
             </div>
             <div className="mt-6 flex justify-end gap-2">
-                <Button variant="primary" size="sm" onClick={onUse} disabled={!isUsable} title={!isUsable ? "Apenas templates APROVADOS podem ser usados" : "Usar este template"}>
+                <Button variant="default" size="sm" onClick={onUse} disabled={!isUsable} title={!isUsable ? "Apenas templates APROVADOS podem ser usados" : "Usar este template"}>
                   Usar Template
                 </Button>
             </div>
@@ -186,7 +186,7 @@ const Templates: React.FC = () => {
             </div>
             <div className="flex gap-2">
                 <Button variant="secondary" onClick={handleSync} isLoading={isLoading}>Sincronizar com Meta</Button>
-                <Button variant="primary" onClick={() => setCurrentPage('template-editor')}>
+                <Button variant="default" onClick={() => setCurrentPage('template-editor')}>
                     <SPARKLES_ICON className="w-5 h-5 mr-2" />
                     Criar com IA
                 </Button>

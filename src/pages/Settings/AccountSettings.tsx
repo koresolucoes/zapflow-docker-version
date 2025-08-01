@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { useUiStore } from '../../stores/uiStore.js';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import InfoCard from '../../components/common/InfoCard.js';
 
 const AccountSettings: React.FC = () => {
@@ -82,7 +82,7 @@ const AccountSettings: React.FC = () => {
                     </div>
                      {emailError && <p className="text-red-500 dark:text-red-400 text-sm">{emailError}</p>}
                     <div className="flex justify-end">
-                        <Button type="submit" variant="primary" isLoading={isUpdatingEmail}>Atualizar E-mail</Button>
+                        <Button onClick={handleUpdateEmail} variant="default" isLoading={isUpdatingEmail}>Atualizar E-mail</Button>
                     </div>
                 </form>
             </Card>
@@ -119,7 +119,7 @@ const AccountSettings: React.FC = () => {
                     </div>
                     {passwordError && <p className="text-red-500 dark:text-red-400 text-sm">{passwordError}</p>}
                     <div className="flex justify-end">
-                        <Button type="submit" variant="primary" isLoading={isUpdatingPassword}>Atualizar Senha</Button>
+                        <Button onClick={handleUpdatePassword} variant="default" isLoading={isUpdatingPassword}>Atualizar Senha</Button>
                     </div>
                 </form>
             </Card>

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import Card from '../../components/common/Card.js';
+import { Card } from '../../components/common/Card.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { CAMPAIGN_ICON } from '../../components/icons/index.js';
 

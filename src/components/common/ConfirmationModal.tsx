@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from './Modal.js';
-import Button from './Button.js';
+import { Button } from './Button.js';
 import { useUiStore } from '../../stores/uiStore.js';
 import { ALERT_TRIANGLE_ICON } from '../icons/index.js';
 
@@ -46,7 +46,7 @@ const ConfirmationModal: React.FC = () => {
             </Button>
             <Button
                 type="button"
-                variant="primary"
+                variant="destructive"
                 onClick={handleConfirm}
                 className="bg-red-600 hover:bg-red-700 focus-visible:ring-red-500"
             >

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import Modal from '../../components/common/Modal.js';
 import ContactForm from './ContactForm.js';
 import { Contact, EditableContact } from '../../types/index.js';
@@ -192,7 +192,7 @@ const Contacts: React.FC = () => {
                             Importar CSV
                         </Button>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".csv" className="hidden" />
-                        <Button variant="primary" onClick={() => handleOpenForm()}>
+                        <Button variant="default" onClick={() => handleOpenForm()}>
                             <PLUS_ICON className="w-5 h-5 mr-2" />
                             Adicionar Contato
                         </Button>

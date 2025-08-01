@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Modal from '../../components/common/Modal.js';
-import Button from '../../components/common/Button.js';
+import  { Button } from '../../components/common/Button.js';
 import InfoCard from '../../components/common/InfoCard.js';
 import { Contact } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
@@ -106,7 +106,7 @@ const DirectMessageModal: React.FC<DirectMessageModalProps> = ({ isOpen, onClose
             </div>
             <div className="mt-6 flex justify-end gap-3">
                 <Button variant="secondary" onClick={onClose} disabled={isSending}>Cancelar</Button>
-                <Button variant="primary" onClick={handleSendClick} isLoading={isSending} disabled={!message.trim() || recipients.length === 0}>
+                <Button variant="default" onClick={handleSendClick} isLoading={isSending} disabled={!message.trim() || recipients.length === 0}>
                     Enviar para {recipients.length} Contato(s)
                 </Button>
             </div>

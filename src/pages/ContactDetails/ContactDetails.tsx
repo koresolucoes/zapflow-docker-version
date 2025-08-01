@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Contact, DealInsert, Json, TimelineEvent, CustomFieldDefinition, DealWithContact, Pipeline, PipelineStage } from '../../types/index.js';
-import Button from '../../components/common/Button.js';
-import Card from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
 import { ARROW_LEFT_ICON, PLUS_ICON } from '../../components/icons/index.js';
 import AddCustomFieldModal from '../../components/common/AddCustomFieldModal.js';
 import Activities from './Activities.js';
@@ -149,7 +149,7 @@ const ContactDetails: React.FC = () => {
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white truncate">{contactDetails.name}</h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="primary" onClick={handleSave} isLoading={isSaving}>Salvar Alterações</Button>
+                        <Button variant="default" onClick={handleSave} isLoading={isSaving}>Salvar Alterações</Button>
                     </div>
                 </div>
 

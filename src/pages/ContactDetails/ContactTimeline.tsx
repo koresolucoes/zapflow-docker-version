@@ -1,6 +1,6 @@
 import React from 'react';
 import { TimelineEvent } from '../../types/index.js';
-import Card from '../../components/common/Card.js';
+import { Card } from '../../components/common/Card.js';
 import TimelineMessageItem from './TimelineMessageItem.js';
 import TimelineAutomationItem from './TimelineAutomationItem.js';
 import TimelineDealItem from './TimelineDealItem.js';

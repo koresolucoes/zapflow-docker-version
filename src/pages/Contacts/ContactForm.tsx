@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { EditableContact } from '../../types/index.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 import { useUiStore } from '../../stores/uiStore.js';
 
 interface ContactFormProps {
@@ -149,7 +149,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ contact, onSave, onCancel, is
       </div>
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={isLoading}>Cancelar</Button>
-        <Button type="submit" variant="primary" isLoading={isLoading}>Salvar Contato</Button>
+        <Button type="submit" variant="default" isLoading={isLoading}>Salvar Contato</Button>
       </div>
     </form>
   );

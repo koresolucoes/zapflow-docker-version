@@ -1,17 +1,17 @@
 import React, { useContext, useState, useEffect, useCallback, memo, FC, useMemo, useRef, createContext } from 'react';
 import { ReactFlow, ReactFlowProvider, useNodesState, useEdgesState, addEdge, Background, Controls, Handle, Position, type Node, type Edge, type Connection, type NodeProps, useReactFlow, NodeTypes, EdgeLabelRenderer, getBezierPath, type EdgeProps as XyEdgeProps, MarkerType, BackgroundVariant } from '@xyflow/react';
-import { Automation, AutomationNode, AutomationNodeData, AutomationNodeStats, AutomationNodeLog, TriggerType, ActionType, LogicType, AutomationStatus } from '../../types';
-import Button from '../../components/common/Button';
-import { supabase } from '../../lib/supabaseClient';
-import { nodeConfigs } from '../../lib/automation/nodeConfigs';
-import NodeSettingsModal from './NodeSettingsModal';
-import NodeStats from './NodeStats';
-import NodeLogsModal from './NodeLogsModal';
-import { nodeIcons } from '../../lib/automation/nodeIcons';
-import Switch from '../../components/common/Switch';
-import { ALERT_TRIANGLE_ICON, ARROW_LEFT_ICON, TRASH_ICON } from '../../components/icons';
-import { useAuthStore } from '../../stores/authStore';
-import { useUiStore } from '../../stores/uiStore';
+import { Automation, AutomationNode, AutomationNodeData, AutomationNodeStats, AutomationNodeLog, TriggerType, ActionType, LogicType, AutomationStatus } from '../../types/index.js';
+import { Button } from '../../components/common/Button.js';
+import { supabase } from '../../lib/supabaseClient.js';
+import { nodeConfigs } from '../../lib/automation/nodeConfigs.js';
+import NodeSettingsModal from './NodeSettingsModal.js';
+import NodeStats from './NodeStats.js';
+import NodeLogsModal from './NodeLogsModal.js';
+import { nodeIcons } from '../../lib/automation/nodeIcons.js';
+import Switch from '../../components/common/Switch.js';
+import { ALERT_TRIANGLE_ICON, ARROW_LEFT_ICON, TRASH_ICON } from '../../components/icons/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const initialNodes: AutomationNode[] = [];
 const initialEdges: Edge[] = [];
@@ -174,7 +174,7 @@ const CustomNode: FC<NodeProps<AutomationNode>> = memo(({ data, id, isConnectabl
             )}
         </div>
     );
-});
+}) as FC<NodeProps<AutomationNode>>; // Add the missing closing memo() call here
 
 
 const nodeTypes: NodeTypes = {
@@ -220,7 +220,7 @@ const EditorSidebar: FC<{ onAddNode: (type: string, e: React.MouseEvent) => void
                 <NodeList title="Lógica" items={logic} onAddNode={onAddNode} />
             </div>
             <div className="mt-auto pt-4 text-center text-xs text-slate-500">
-                © 2024 ZapFlow AI
+                2024 ZapFlow AI
             </div>
         </aside>
     );
@@ -228,8 +228,12 @@ const EditorSidebar: FC<{ onAddNode: (type: string, e: React.MouseEvent) => void
 
 const IconForType: FC<{ type: string, nodeType: string}> = ({ type, nodeType }) => {
     const Icon = nodeIcons[type] || nodeIcons.default;
+    const iconBgStyle = nodeType === 'trigger' ? nodeStyles.triggerIconBg :
+                      nodeType === 'action' ? nodeStyles.actionIconBg :
+                      nodeType === 'logic' ? nodeStyles.logicIconBg : '';
+    
     return (
-        <div className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md ${nodeStyles[`${nodeType}IconBg`]}`}>
+        <div className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md ${iconBgStyle}`}>
             <Icon className="w-4 h-4" />
         </div>
     );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Modal from '../../components/common/Modal.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 import { TRASH_ICON, PLUS_ICON } from '../../components/icons/index.js';
 import { Pipeline, PipelineStage, StageType } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
@@ -154,7 +154,7 @@ const PipelineManagerModal: React.FC<{ isOpen: boolean; onClose: () => void; }> 
                             placeholder="Nome do novo funil"
                             className="w-full bg-slate-700 p-2 rounded-md text-white"
                         />
-                        <Button type="submit" variant="primary">Criar</Button>
+                        <Button type="submit" variant="default">Criar</Button>
                     </div>
                 </form>
             </div>

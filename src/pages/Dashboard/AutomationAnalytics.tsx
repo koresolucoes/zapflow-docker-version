@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import Card from '../../components/common/Card.js';
+import { Card } from '../../components/common/Card.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { DashboardData } from '../../services/dataService.js';
 import { AUTOMATION_ICON } from '../../components/icons/index.js';

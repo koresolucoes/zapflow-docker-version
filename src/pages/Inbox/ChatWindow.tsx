@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore.js';
 import MessageBubble from './MessageBubble.js';
 import MessageInput from './MessageInput.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 import { INFO_ICON, NOTE_ICON, CALENDAR_ICON } from '../../components/icons/index.js';
 import { UnifiedMessage } from '../../types/index.js';
 import ActivityModal from './ActivityModal.js';

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Card from '../../components/common/Card.js';
+import { Card } from '../../components/common/Card.js';
 import { DashboardData, GlobalActivityEvent } from '../../services/dataService.js';
 import { CONTACTS_ICON, CAMPAIGN_ICON, FUNNEL_ICON } from '../../components/icons/index.js';
 

@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { PLUS_ICON, AUTOMATION_ICON, SEARCH_ICON } from '../../components/icons';
-import AutomationCard from './AutomationCard';
-import { useAuthStore } from '../../stores/authStore';
-import { useUiStore } from '../../stores/uiStore';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
+import { PLUS_ICON, AUTOMATION_ICON, SEARCH_ICON } from '../../components/icons/index.js';
+import AutomationCard from './AutomationCard.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { useUiStore } from '../../stores/uiStore.js';
 
 const Automations: React.FC = () => {
     const { automations, createAndNavigateToAutomation } = useAuthStore();
@@ -47,7 +47,7 @@ const Automations: React.FC = () => {
                             className="bg-slate-800 border border-slate-700 rounded-lg py-2 pl-10 pr-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
-                    <Button variant="primary" onClick={handleCreate} isLoading={isCreating}>
+                    <Button variant="default" onClick={handleCreate} isLoading={isCreating}>
                         <PLUS_ICON className="w-5 h-5 mr-2" />
                         Criar Automação
                     </Button>
@@ -59,7 +59,7 @@ const Automations: React.FC = () => {
                     <AUTOMATION_ICON className="w-12 h-12 mx-auto text-slate-500" />
                     <h2 className="text-xl font-semibold text-white mt-4">{searchTerm ? 'Nenhuma automação encontrada.' : 'Nenhuma automação criada ainda.'}</h2>
                     <p className="text-slate-400 mt-2 mb-6">{searchTerm ? `Sua busca por "${searchTerm}" não retornou resultados.` : 'Automatize suas tarefas repetitivas criando seu primeiro fluxo de trabalho.'}</p>
-                    <Button variant="primary" onClick={handleCreate} isLoading={isCreating}>
+                    <Button variant="default" onClick={handleCreate} isLoading={isCreating}>
                         Criar Primeira Automação
                     </Button>
                 </Card>

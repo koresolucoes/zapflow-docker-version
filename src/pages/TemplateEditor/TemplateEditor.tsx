@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { generateTemplateWithAI } from '../../services/geminiService.js';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import { SPARKLES_ICON, PLUS_ICON, TRASH_ICON } from '../../components/icons/index.js';
 import { MessageTemplate, MessageTemplateInsert } from '../../types/index.js';
 import { MetaTemplateComponent, MetaButton } from '../../services/meta/types.js';
@@ -314,7 +314,7 @@ const TemplateEditor: React.FC = () => {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">3. Pré-visualização</h2>
             <TemplatePreview components={template.components} recipientName="Ana Silva" />
              <div className="mt-6">
-                <Button onClick={handleSave} variant="primary" size="lg" className="w-full" isLoading={isSaving} disabled={isSaving || !!successMessage}>
+                <Button onClick={handleSave} variant="default" size="lg" className="w-full" isLoading={isSaving} disabled={isSaving || !!successMessage}>
                     Salvar e Enviar para Aprovação
                 </Button>
             </div>

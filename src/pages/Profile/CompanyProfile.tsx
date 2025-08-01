@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EditableProfile } from '../../types/index.js';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import { useAuthStore } from '../../stores/authStore.js';
 
 const ProfileInput: React.FC<{
@@ -102,7 +102,7 @@ const CompanyProfile: React.FC = () => {
           <div className="flex justify-end items-center gap-4">
               {isSaved && <p className="text-green-500 dark:text-green-400 text-sm">Perfil salvo com sucesso!</p>}
               {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
-              <Button type="submit" variant="primary" isLoading={isSaving}>Salvar Alterações</Button>
+              <Button type="submit" variant="default" isLoading={isSaving}>Salvar Alterações</Button>
           </div>
         </form>
       </Card>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../stores/authStore.js';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import AddCustomFieldModal from '../../components/common/AddCustomFieldModal.js';
 import { PLUS_ICON, TRASH_ICON } from '../../components/icons/index.js';
 import { useUiStore } from '../../stores/uiStore.js';
@@ -34,7 +34,7 @@ const CustomFieldsSettings: React.FC = () => {
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Gerenciar Campos Personalizados</h2>
                         <p className="text-sm text-gray-500 dark:text-slate-400">Crie e gerencie campos de dados para seus contatos.</p>
                     </div>
-                    <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+                    <Button variant="default" onClick={() => setIsModalOpen(true)}>
                         <PLUS_ICON className="w-5 h-5 mr-2" />
                         Adicionar Campo
                     </Button>

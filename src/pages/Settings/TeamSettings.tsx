@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useAuthStore } from '../../stores/authStore.js';
 import * as teamService from '../../services/teamService.js';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import { USER_PLUS_ICON, TRASH_ICON } from '../../components/icons/index.js';
 import { useUiStore } from '../../stores/uiStore.js';
 
@@ -99,7 +99,7 @@ const TeamSettings: React.FC = () => {
                         required
                         disabled={!canManageTeam}
                     />
-                    <Button type="submit" variant="primary" isLoading={isInviting} disabled={!canManageTeam}>
+                    <Button type="submit" variant="default" isLoading={isInviting} disabled={!canManageTeam}>
                         <USER_PLUS_ICON className="w-5 h-5 mr-2" />
                         Convidar
                     </Button>

@@ -14,6 +14,7 @@ import { webhookIdHandler } from './handlers/webhookIdHandler.js';
 import { triggerIdHandler } from './handlers/triggerIdHandler.js';
 import { testWebhookHandler } from './handlers/testWebhookHandler.js';
 import { healthCheckHandler } from './handlers/healthCheckHandler.js';
+import { metricsHandler } from './handlers/metricsHandler.js';
 
 dotenv.config();
 
@@ -52,6 +53,15 @@ app.post('/api/test-webhook', testWebhookHandler);
 app.get('/api/health', healthCheckHandler);
 
 app.get('/health', (req, res) => res.send('OK'));
+
+app.all('/api/metrics/summary', metricsHandler);
+app.all('/api/metrics/average-response-time', metricsHandler);
+app.all('/api/metrics/status', metricsHandler);
+app.all('/api/metrics/campaigns', metricsHandler);
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Found' });
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

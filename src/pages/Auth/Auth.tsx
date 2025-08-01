@@ -1,8 +1,8 @@
 import React, { useState, FC } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { ZAPFLOW_AI_LOGO, GOOGLE_ICON } from '../../components/icons/index.js';
-import Button from '../../components/common/Button.js';
-import Card from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
 import { useUiStore } from '../../stores/uiStore.js';
 
 type AuthView = 'login' | 'signup' | 'reset_password';

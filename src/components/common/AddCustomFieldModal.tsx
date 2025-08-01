@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuthStore } from '../../stores/authStore.js';
 import { CustomFieldDefinitionInsert } from '../../types/index.js';
 import Modal from './Modal.js';
-import Button from './Button.js';
+import { Button } from './Button.js';
 
 interface AddCustomFieldModalProps {
     isOpen: boolean;
@@ -113,7 +113,7 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({ isOpen, onClo
                 )}
                 <div className="flex justify-end gap-2 pt-4">
                     <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
-                    <Button type="submit" variant="primary" isLoading={isLoading}>Salvar</Button>
+                    <Button type="submit" variant="default" isLoading={isLoading}>Salvar</Button>
                 </div>
             </form>
         </Modal>

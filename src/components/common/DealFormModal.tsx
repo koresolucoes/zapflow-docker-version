@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Pipeline, PipelineStage, Deal, DealInsert } from '../../types/index.js';
-import Button from './Button.js';
+import { Button } from './Button.js';
 import Modal from './Modal.js';
 
 interface DealFormModalProps {
@@ -105,7 +105,7 @@ const DealFormModal: React.FC<DealFormModalProps> = ({ isOpen, onClose, onSave, 
                 </div>
                  <div className="flex justify-end gap-3 pt-4">
                     <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>Cancelar</Button>
-                    <Button type="submit" variant="primary" isLoading={isLoading}>Salvar</Button>
+                    <Button type="submit" variant="default" isLoading={isLoading}>Salvar</Button>
                 </div>
             </form>
         </Modal>

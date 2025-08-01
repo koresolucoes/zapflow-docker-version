@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../../components/common/Modal.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 import { ContactActivityInsert } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
 
@@ -82,7 +82,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ isOpen, onClose, type, co
                 )}
                 <div className="flex justify-end gap-3 pt-2">
                     <Button type="button" variant="secondary" onClick={onClose} disabled={isSaving}>Cancelar</Button>
-                    <Button type="submit" variant="primary" isLoading={isSaving} disabled={!content.trim() || (type === 'TAREFA' && !dueDate)}>Salvar</Button>
+                    <Button type="submit" variant="default" isLoading={isSaving} disabled={!content.trim() || (type === 'TAREFA' && !dueDate)}>Salvar</Button>
                 </div>
             </form>
         </Modal>

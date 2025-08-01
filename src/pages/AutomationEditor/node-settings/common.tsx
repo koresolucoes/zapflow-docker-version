@@ -1,5 +1,5 @@
 import React, { useState, useRef, memo } from 'react';
-import { AutomationNode, MessageTemplate, Profile, AutomationNodeData, Pipeline, PipelineStage } from '../../../types/index.js';
+import { AutomationNode, MessageTemplate, Profile, Pipeline, PipelineStage } from '../../../types/index.js';
 
 
 // ====================================================================================

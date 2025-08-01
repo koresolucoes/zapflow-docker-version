@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { sendTemplatedMessage } from '../../services/meta/messages.js';
 import { getMetaTemplateById } from '../../services/meta/templates.js';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import Modal from '../../components/common/Modal.js';
 import { MessageInsert, Contact, MessageTemplate } from '../../types/index.js';
 import TemplatePreview from '../../components/common/TemplatePreview.js';
@@ -556,7 +556,7 @@ const NewCampaign: React.FC = () => {
             </div>
             <div className="mt-6 flex justify-end gap-3">
                 <Button variant="secondary" onClick={() => setIsConfirmModalOpen(false)}>Cancelar</Button>
-                <Button variant="primary" onClick={handleLaunch} isLoading={isLoading}>
+                <Button variant="default" onClick={handleLaunch} isLoading={isLoading}>
                     Sim, {getModalButtonText()}
                 </Button>
             </div>
@@ -594,7 +594,7 @@ const NewCampaign: React.FC = () => {
                 )}
             </div>
             <div className="mt-6 flex justify-end">
-                <Button variant="primary" onClick={() => setCurrentPage('campaigns')}>
+                <Button variant="default" onClick={() => setCurrentPage('campaigns')}>
                     Ir para Campanhas
                 </Button>
             </div>

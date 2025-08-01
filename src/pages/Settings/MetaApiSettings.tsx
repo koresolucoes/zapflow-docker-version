@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EditableProfile } from '../../types/index.js';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import InfoCard from '../../components/common/InfoCard.js';
 import { COPY_ICON } from '../../components/icons/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
@@ -185,7 +185,7 @@ const MetaApiSettings: React.FC = () => {
                     <div className="flex justify-end items-center gap-4 pt-4 border-t border-gray-200 dark:border-slate-700/50">
                         {error && <p className="text-red-500 dark:text-red-400 text-sm text-right flex-1">{error}</p>}
                         {isSaved && <p className="text-green-600 dark:text-green-400 text-sm">Configurações salvas com sucesso!</p>}
-                        <Button type="submit" variant="primary" isLoading={isSaving}>Salvar Configurações</Button>
+                        <Button type="submit" variant="default" isLoading={isSaving}>Salvar Configurações</Button>
                     </div>
                 </form>
             </Card>

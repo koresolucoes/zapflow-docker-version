@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import StageColumn from './StageColumn.js';
 import { FUNNEL_ICON, PLUS_ICON } from '../../components/icons/index.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 import PipelineManagerModal from './PipelineManagerModal.js';
 import DealClosingModal from './DealClosingModal.js';
 import { useAuthStore } from '../../stores/authStore.js';

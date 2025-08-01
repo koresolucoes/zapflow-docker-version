@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../stores/authStore.js';
-import Card from '../../components/common/Card.js';
-import Button from '../../components/common/Button.js';
+import { Card } from '../../components/common/Card.js';
+import { Button } from '../../components/common/Button.js';
 import Modal from '../../components/common/Modal.js';
 import { CannedResponse, CannedResponseInsert } from '../../types/index.js';
 import { PLUS_ICON, TRASH_ICON, BOLT_ICON } from '../../components/icons/index.js';
@@ -58,8 +58,8 @@ const CannedResponseForm: React.FC<{
                 />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
-                <Button type="submit" variant="primary" isLoading={isLoading}>Salvar</Button>
+                <Button onClick={onCancel} variant="default">Cancelar</Button>
+                <Button onClick={handleSubmit} variant="default" isLoading={isLoading}>Salvar</Button>
             </div>
         </form>
     );
@@ -112,7 +112,7 @@ const CannedResponsesSettings: React.FC = () => {
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Gerenciar Respostas Rápidas</h2>
                         <p className="text-sm text-gray-500 dark:text-slate-400">Crie atalhos para mensagens usadas com frequência na Caixa de Entrada.</p>
                     </div>
-                    <Button variant="primary" onClick={() => handleOpenModal()}>
+                    <Button variant="default" onClick={() => handleOpenModal()}>
                         <PLUS_ICON className="w-5 h-5 mr-2" />
                         Nova Resposta
                     </Button>

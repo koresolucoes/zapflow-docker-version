@@ -3,7 +3,7 @@ import { PipelineStage, DealWithContact, Deal } from '../../types/index.js';
 import DealCard from './DealCard.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { TRASH_ICON } from '../../components/icons/index.js';
-import Button from '../../components/common/Button.js';
+import { Button } from '../../components/common/Button.js';
 import { useUiStore } from '../../stores/uiStore.js';
 
 interface StageColumnProps {

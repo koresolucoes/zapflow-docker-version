@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import Card from '../../components/common/Card.js';
+import { Card } from '../../components/common/Card.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { CustomTooltip } from './Dashboard.js';
 import { FUNNEL_ICON } from '../../components/icons/index.js';

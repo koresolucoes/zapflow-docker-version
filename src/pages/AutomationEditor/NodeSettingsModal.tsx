@@ -1,9 +1,9 @@
 import React, { useMemo, useContext } from 'react';
 import { Node } from '@xyflow/react';
-import { AutomationNode, MessageTemplate, Profile, AutomationNodeData, Pipeline, PipelineStage } from '../../types';
-import Button from '../../components/common/Button';
-import { getContextVariables } from './node-settings/common';
-import { nodeConfigs } from '../../lib/automation/nodeConfigs';
+import { AutomationNode, MessageTemplate, Profile, AutomationNodeData, Pipeline, PipelineStage } from '../../types/index.js';
+import { Button } from '../../components/common/Button.js';
+import { getContextVariables } from './node-settings/common.js';
+import { nodeConfigs } from '../../lib/automation/nodeConfigs.js';
 
 
 interface NodeSettingsModalProps {
@@ -92,7 +92,7 @@ const NodeSettingsModal: React.FC<NodeSettingsModalProps> = ({
                 </main>
 
                 <footer className="flex-shrink-0 p-4 border-t border-slate-700 flex justify-end">
-                    <Button variant="primary" onClick={onClose}>Fechar</Button>
+                    <Button variant="ghost" onClick={onClose}>Fechar</Button>
                 </footer>
             </div>
         </div>
