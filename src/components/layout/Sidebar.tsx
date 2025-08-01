@@ -2,6 +2,7 @@ import React from 'react';
 import { Page } from '../../types/index.js';
 import { ZAPFLOW_AI_LOGO, DASHBOARD_ICON, CAMPAIGN_ICON, TEMPLATE_ICON, CONTACTS_ICON, PROFILE_ICON, SETTINGS_ICON, AUTOMATION_ICON, FUNNEL_ICON, INBOX_ICON, WEBHOOK_INSPECTOR_ICON } from '../icons/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
+import { cn } from '../../lib/utils.js';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -19,11 +20,12 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick }) => 
         e.preventDefault();
         onClick();
       }}
-      className={`flex items-center p-3 my-1 rounded-lg transition-colors duration-200 ${
+      className={cn(
+        'flex items-center p-3 my-1 rounded-lg transition-colors',
         isActive 
           ? 'bg-accent text-accent-foreground font-semibold' 
           : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
-      }`}
+      )}
     >
       {icon}
       <span className="ml-4 text-sm font-medium">{label}</span>
@@ -54,7 +56,7 @@ const Sidebar: React.FC = () => {
     <aside className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-64 border-r border-border h-screen bg-background">
         {/* Logo */}
-        <div className="flex items-center h-16 px-4 border-b border-border">
+        <div className="flex items-center h-16 px-4 border-b border-border bg-card">
           <div className="flex items-center">
             <ZAPFLOW_AI_LOGO className="h-8 w-auto" />
             <span className="ml-2 text-lg font-bold text-foreground">ZapFlow</span>
@@ -78,7 +80,7 @@ const Sidebar: React.FC = () => {
         </nav>
         
         {/* Navegação inferior */}
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border bg-card">
           <ul className="space-y-2">
             {bottomNavItems.map((item) => (
               <NavItem
@@ -92,8 +94,8 @@ const Sidebar: React.FC = () => {
             ))}
           </ul>
         </div>
-        <div className="p-4 mt-4 bg-gray-50 dark:bg-slate-800 rounded-lg text-center">
-            <p className="text-xs text-gray-500 dark:text-slate-400"> 2024 ZapFlow AI. Todos os direitos reservados.</p>
+        <div className="p-4 mt-auto bg-muted/50 rounded-t-lg text-center">
+            <p className="text-xs text-muted-foreground"> 2024 ZapFlow AI. Todos os direitos reservados.</p>
         </div>
       </div>
     </aside>

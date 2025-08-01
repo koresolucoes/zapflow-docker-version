@@ -59,23 +59,29 @@ const TeamSwitcher: React.FC = () => {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 p-2 rounded-lg bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                className="flex items-center gap-2 p-2 rounded-lg bg-secondary hover:bg-muted transition-colors"
             >
-                <USERS_ICON className="w-5 h-5 text-gray-600 dark:text-sky-400" />
-                <span className="font-semibold text-gray-800 dark:text-white text-sm">{activeTeam.name}</span>
-                 <svg className={`w-4 h-4 text-gray-500 dark:text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <USERS_ICON className="w-5 h-5 text-muted-foreground" />
+                <span className="font-semibold text-foreground text-sm">{activeTeam.name}</span>
+                <svg 
+                    className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-56 origin-top-right bg-white dark:bg-slate-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+                <div className="absolute right-0 mt-2 w-56 origin-top-right bg-popover rounded-md shadow-lg ring-1 ring-border/10 z-10">
                     <div className="py-1">
                         {userTeams.map(team => (
                             <a
                                 key={team.id}
                                 href="#"
                                 onClick={(e) => { e.preventDefault(); switchTeam(team); }}
-                                className={`block px-4 py-2 text-sm ${activeTeam.id === team.id ? 'bg-blue-50 text-blue-700 font-semibold dark:bg-sky-500/20 dark:text-sky-300' : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+                                className={`block px-4 py-2 text-sm ${activeTeam.id === team.id ? 'bg-accent text-accent-foreground font-semibold' : 'text-foreground hover:bg-accent/50'}`}
                             >
                                 {team.name}
                             </a>
@@ -98,20 +104,16 @@ const Header: React.FC = () => {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex items-center h-16 px-4">
         <div className="flex items-center space-x-4">
-          <div className="font-semibold text-foreground">ZapFlow</div>
-        </div>
-        <div className="flex items-center justify-end flex-1 space-x-4">
           <TeamSwitcher />
+        </div>
+        <div className="flex-1" />
+        <div className="flex items-center space-x-2">
           <ThemeToggle />
-          <span className="text-sm font-medium text-foreground">{user?.email}</span>
-          <img
-            className="h-9 w-9 rounded-full object-cover"
-            src={`https://api.dicebear.com/8.x/initials/svg?seed=${user?.email}`}
-            alt="User avatar"
-          />
-          <Button variant="secondary" size="sm" onClick={handleLogout}>
-            Sair
-          </Button>
+          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+            <span className="text-sm font-medium text-foreground">
+              {user?.email?.charAt(0).toUpperCase()}
+            </span>
+          </div>
         </div>
       </div>
     </header>

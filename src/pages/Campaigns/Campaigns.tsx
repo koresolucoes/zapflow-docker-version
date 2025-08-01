@@ -13,11 +13,11 @@ const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () 
     const statusText = campaign.status === 'Scheduled' && !isScheduledForFuture ? 'Enviando' : campaign.status;
 
     const statusStyle: Record<string, string> = {
-        Sent: "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400",
-        Draft: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400",
-        Failed: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400",
-        Scheduled: "bg-blue-100 text-blue-700 dark:bg-sky-500/20 dark:text-sky-400",
-        Enviando: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400"
+        Sent: "bg-success/20 text-success-foreground",
+        Draft: "bg-warning/20 text-warning-foreground",
+        Failed: "bg-destructive/20 text-destructive-foreground",
+        Scheduled: "bg-info/20 text-info-foreground",
+        Enviando: "bg-accent/20 text-accent-foreground"
     };
     
     const displayDate = campaign.sent_at 
@@ -30,52 +30,52 @@ const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () 
 
 
     return (
-        <Card className="flex flex-col justify-between hover:border-gray-300 dark:hover:border-sky-500 border border-transparent transition-colors duration-200 group relative">
+        <Card className="flex flex-col justify-between hover:border-primary/50 border border-border transition-colors duration-200 group relative">
              <Button
                 variant="ghost"
                 size="sm"
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                className="absolute top-3 right-3 text-gray-500 hover:text-red-500 hover:bg-red-100/50 dark:hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                className="absolute top-3 right-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                 title="Excluir campanha"
             >
                 <TRASH_ICON className="w-4 h-4" />
             </Button>
             <div>
                 <div className="flex justify-between items-start gap-2">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white break-all">{campaign.name}</h3>
+                    <h3 className="text-lg font-semibold text-foreground break-all">{campaign.name}</h3>
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${statusStyle[statusText]}`}>
                         {statusText}
                     </span>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{displayDate}</p>
+                <p className="text-sm text-muted-foreground mt-1">{displayDate}</p>
 
                 <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-2">
-                        <SEND_ICON className="w-5 h-5 text-gray-500 dark:text-sky-400" />
+                        <SEND_ICON className="w-5 h-5 text-muted-foreground" />
                         <div>
-                            <p className="text-gray-500 dark:text-slate-400">Enviadas</p>
-                            <p className="font-bold text-gray-800 dark:text-white">{campaign.metrics.sent.toLocaleString('pt-BR')}</p>
+                            <p className="text-muted-foreground">Enviadas</p>
+                            <p className="font-bold text-foreground">{campaign.metrics.sent.toLocaleString('pt-BR')}</p>
                         </div>
                     </div>
                      <div className="flex items-center gap-2">
-                        <MAIL_CHECK_ICON className="w-5 h-5 text-green-500" />
+                        <MAIL_CHECK_ICON className="w-5 h-5 text-success" />
                         <div>
-                            <p className="text-gray-500 dark:text-slate-400">Entregues</p>
-                            <p className="font-bold text-gray-800 dark:text-white">{campaign.metrics.delivered.toLocaleString('pt-BR')}</p>
+                            <p className="text-muted-foreground">Entregues</p>
+                            <p className="font-bold text-foreground">{campaign.metrics.delivered.toLocaleString('pt-BR')}</p>
                         </div>
                     </div>
                      <div className="flex items-center gap-2">
-                        <MAIL_OPEN_ICON className="w-5 h-5 text-pink-500" />
+                        <MAIL_OPEN_ICON className="w-5 h-5 text-info" />
                         <div>
-                            <p className="text-gray-500 dark:text-slate-400">Lidas</p>
-                            <p className="font-bold text-gray-800 dark:text-white">{campaign.metrics.read.toLocaleString('pt-BR')}</p>
+                            <p className="text-muted-foreground">Lidas</p>
+                            <p className="font-bold text-foreground">{campaign.metrics.read.toLocaleString('pt-BR')}</p>
                         </div>
                     </div>
                      <div className="flex items-center gap-2">
-                        <span className="text-amber-500 font-bold text-lg">%</span>
+                        <span className="text-warning font-bold text-lg">%</span>
                         <div>
-                            <p className="text-gray-500 dark:text-slate-400">Taxa de Leitura</p>
-                            <p className="font-bold text-gray-800 dark:text-white">{readRate}</p>
+                            <p className="text-muted-foreground">Taxa de Leitura</p>
+                            <p className="font-bold text-foreground">{readRate}</p>
                         </div>
                     </div>
                 </div>
@@ -98,18 +98,19 @@ const Campaigns: React.FC = () => {
         if (!searchTerm) return campaigns;
         const lowercasedTerm = searchTerm.toLowerCase();
         return campaigns.filter(campaign =>
-            campaign.name.toLowerCase().includes(lowercasedTerm)
+            campaign.name.toLowerCase().includes(lowercasedTerm) ||
+            campaign.status.toLowerCase().includes(lowercasedTerm)
         );
     }, [campaigns, searchTerm]);
 
-    const handleDeleteCampaign = async (campaignId: string, campaignName: string) => {
+    const handleDeleteCampaign = async (campaignId: string) => {
         showConfirmation(
             'Excluir Campanha',
-            `Tem certeza de que deseja excluir a campanha "${campaignName}"? Esta ação não pode ser desfeita e excluirá todos os seus dados.`,
+            'Tem certeza de que deseja excluir esta campanha? Esta ação não pode ser desfeita.',
             async () => {
                 try {
                     await deleteCampaign(campaignId);
-                    addToast(`Campanha "${campaignName}" excluída.`, 'success');
+                    addToast('Campanha excluída com sucesso.', 'success');
                 } catch (err: any) {
                     addToast(`Erro ao excluir campanha: ${err.message}`, 'error');
                 }
@@ -117,50 +118,54 @@ const Campaigns: React.FC = () => {
         );
     };
 
-
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-center flex-wrap gap-4">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Histórico de Campanhas</h1>
-                <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <SEARCH_ICON className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                        <input
-                            type="text"
-                            placeholder="Buscar campanhas..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg py-2 pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                    <Button variant="default" onClick={() => setCurrentPage('templates')}>
-                        <TEMPLATE_ICON className="w-5 h-5 mr-2" />
-                        Criar Nova Campanha
-                    </Button>
+        <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground">Campanhas</h1>
+                    <p className="text-muted-foreground">Gerencie suas campanhas de mensagens</p>
                 </div>
+                <Button onClick={() => setCurrentPage('new-campaign')}>
+                    <SEND_ICON className="w-4 h-4 mr-2" />
+                    Nova Campanha
+                </Button>
             </div>
-      
-            {filteredCampaigns.length === 0 && campaigns.length > 0 ? (
-                 <Card className="text-center py-12">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Nenhuma campanha encontrada.</h2>
-                    <p className="text-gray-500 dark:text-slate-400 mt-2">{`Sua busca por "${searchTerm}" não retornou resultados.`}</p>
-                </Card>
-            ) : campaigns.length === 0 ? (
-                <Card className="text-center py-12">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Nenhuma campanha enviada.</h2>
-                    <p className="text-gray-500 dark:text-slate-400 mt-2 mb-6">Crie uma campanha a partir de um template para começar.</p>
-                    <Button variant="default" onClick={() => setCurrentPage('templates')}>
-                        Ir para Templates
-                    </Button>
-                </Card>
+
+            <div className="relative mb-6">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SEARCH_ICON className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <input
+                    type="text"
+                    className="block w-full pl-10 pr-3 py-2 border border-input rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    placeholder="Pesquisar campanhas..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+
+            {filteredCampaigns.length === 0 ? (
+                <div className="text-center py-12">
+                    <TEMPLATE_ICON className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h3 className="mt-2 text-sm font-medium text-foreground">Nenhuma campanha encontrada</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {searchTerm ? 'Tente alterar sua busca.' : 'Comece criando uma nova campanha.'}
+                    </p>
+                    <div className="mt-6">
+                        <Button onClick={() => setCurrentPage('new-campaign')}>
+                            <SEND_ICON className="w-4 h-4 mr-2" />
+                            Nova Campanha
+                        </Button>
+                    </div>
+                </div>
             ) : (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredCampaigns.map(campaign => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredCampaigns.map((campaign) => (
                         <CampaignCard
                             key={campaign.id}
                             campaign={campaign}
-                            onViewDetails={() => setCurrentPage('campaign-details', { campaignId: campaign.id })}
-                            onDelete={() => handleDeleteCampaign(campaign.id, campaign.name)}
+                            onViewDetails={() => setCurrentPage('campaigns', { campaignId: campaign.id })}
+                            onDelete={() => handleDeleteCampaign(campaign.id)}
                         />
                     ))}
                 </div>
