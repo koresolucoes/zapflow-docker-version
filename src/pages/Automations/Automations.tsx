@@ -34,37 +34,61 @@ const Automations: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            <div className="flex justify-between items-center flex-wrap gap-4">
-                <h1 className="text-3xl font-bold text-white">Automações</h1>
-                <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <SEARCH_ICON className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-foreground">Automações</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Gerencie seus fluxos de automação e automatize tarefas repetitivas
+                    </p>
+                </div>
+                <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
+                    <div className="relative w-full sm:w-64">
+                        <SEARCH_ICON className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                         <input
                             type="text"
                             placeholder="Buscar automações..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-slate-800 border border-slate-700 rounded-lg py-2 pl-10 pr-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                            className="w-full bg-background border border-input rounded-md py-2 pl-9 pr-4 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-sm"
                         />
                     </div>
-                    <Button variant="default" onClick={handleCreate} isLoading={isCreating}>
-                        <PLUS_ICON className="w-5 h-5 mr-2" />
-                        Criar Automação
+                    <Button 
+                        variant="default" 
+                        onClick={handleCreate} 
+                        isLoading={isCreating}
+                        className="whitespace-nowrap"
+                    >
+                        <PLUS_ICON className="w-4 h-4 mr-2" />
+                        Nova Automação
                     </Button>
                 </div>
             </div>
       
             {filteredAutomations.length === 0 ? (
-                <Card className="text-center py-12">
-                    <AUTOMATION_ICON className="w-12 h-12 mx-auto text-slate-500" />
-                    <h2 className="text-xl font-semibold text-white mt-4">{searchTerm ? 'Nenhuma automação encontrada.' : 'Nenhuma automação criada ainda.'}</h2>
-                    <p className="text-slate-400 mt-2 mb-6">{searchTerm ? `Sua busca por "${searchTerm}" não retornou resultados.` : 'Automatize suas tarefas repetitivas criando seu primeiro fluxo de trabalho.'}</p>
-                    <Button variant="default" onClick={handleCreate} isLoading={isCreating}>
+                <Card className="text-center p-8 border-dashed">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                        <AUTOMATION_ICON className="h-8 w-8 text-primary" />
+                    </div>
+                    <h2 className="mt-4 text-xl font-semibold text-foreground">
+                        {searchTerm ? 'Nenhuma automação encontrada' : 'Nenhuma automação criada'}
+                    </h2>
+                    <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
+                        {searchTerm 
+                            ? `Sua busca por "${searchTerm}" não retornou resultados.` 
+                            : 'Comece criando uma nova automação para automatizar seus fluxos de trabalho.'}
+                    </p>
+                    <Button 
+                        variant="default" 
+                        onClick={handleCreate} 
+                        isLoading={isCreating}
+                        size="lg"
+                    >
+                        <PLUS_ICON className="w-4 h-4 mr-2" />
                         Criar Primeira Automação
                     </Button>
                 </Card>
             ) : (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredAutomations.map(automation => (
                         <AutomationCard
                             key={automation.id}

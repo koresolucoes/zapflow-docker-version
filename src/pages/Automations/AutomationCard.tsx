@@ -3,7 +3,7 @@ import { Automation } from '../../types/index.js';
 import { Card } from '../../components/common/Card.js';
 import Switch from '../../components/common/Switch.js';
 import { Button } from '../../components/common/Button.js';
-import { TRASH_ICON } from '../../components/icons/index.js';
+import { TRASH_ICON, EDIT_ICON } from '../../components/icons/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { useUiStore } from '../../stores/uiStore.js';
 
@@ -45,26 +45,57 @@ const AutomationCard: React.FC<AutomationCardProps> = ({ automation }) => {
         if (!triggerNode) return "Automação sem gatilho.";
 
         return `Inicia com "${triggerNode.data.label}" e tem ${nodes.length} etapa(s).`;
-
     }, [automation]);
 
-
     return (
-        <Card className="flex flex-col justify-between hover:border-primary/50 border border-border/50 transition-colors duration-200">
-            <div>
-                <div className="flex justify-between items-start gap-2">
-                    <h3 className="text-lg font-semibold text-foreground break-words">{automation.name}</h3>
-                    <Switch checked={automation.status === 'active'} onChange={handleStatusChange} />
+        <Card className="h-full flex flex-col transition-all duration-200 hover:shadow-md dark:hover:shadow-sky-500/10 hover:-translate-y-0.5">
+            <div className="flex-1 flex flex-col p-6">
+                <div className="flex justify-between items-start gap-3 mb-4">
+                    <h3 className="text-lg font-medium text-foreground line-clamp-2">
+                        {automation.name}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                            {automation.status === 'active' ? 'Ativo' : 'Pausado'}
+                        </span>
+                        <Switch 
+                            checked={automation.status === 'active'} 
+                            onChange={handleStatusChange} 
+                        />
+                    </div>
                 </div>
-                 <p className="text-sm text-muted-foreground mt-2 h-10">{description}</p>
-            </div>
-             <div className="mt-6 flex justify-end items-center gap-2">
-                <Button variant="secondary" size="sm" onClick={handleEdit}>
-                    Editar
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:bg-destructive/10">
-                    <TRASH_ICON className="w-4 h-4" />
-                </Button>
+                
+                <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-4">{description}</p>
+                    
+                    <div className="bg-muted/30 dark:bg-slate-800/30 p-3 rounded-md text-sm">
+                        <p className="font-medium text-foreground">Detalhes da Automação</p>
+                        <div className="mt-2 space-y-1 text-muted-foreground">
+                            <p>• {new Date(automation.created_at).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-border flex justify-between items-center">
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={handleDelete} 
+                        className="text-destructive hover:bg-destructive/10"
+                    >
+                        <TRASH_ICON className="w-4 h-4 mr-2" />
+                        Excluir
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleEdit}
+                        className="ml-auto"
+                    >
+                        <EDIT_ICON className="w-4 h-4 mr-2" />
+                        Editar
+                    </Button>
+                </div>
             </div>
         </Card>
     );
