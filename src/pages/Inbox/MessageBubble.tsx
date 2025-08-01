@@ -38,7 +38,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         'max-w-md md:max-w-lg lg:max-w-xl rounded-xl p-3 shadow-sm',
         isOutbound 
             ? 'bg-primary text-primary-foreground rounded-tr-none ml-auto' 
-            : 'bg-muted text-foreground rounded-tl-none mr-auto border border-border/50'
+            : 'bg-secondary text-secondary-foreground rounded-tl-none mr-auto border border-border/50'
     );
 
     const formatTime = (dateString: string) => {
@@ -66,7 +66,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                     "text-xs mt-2 flex items-center",
                     isOutbound 
                         ? "justify-end text-primary-foreground/80" 
-                        : "justify-start text-muted-foreground"
+                        : "justify-start text-secondary-foreground/80"
                 )}>
                     <span>{formatTime(message.created_at)}</span>
                     {isOutbound && <ReadReceipt status={message.status} />}

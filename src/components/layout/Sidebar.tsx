@@ -23,8 +23,8 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick }) => 
       className={cn(
         'flex items-center p-3 my-1 rounded-lg transition-colors',
         isActive 
-          ? 'bg-accent text-accent-foreground font-semibold' 
-          : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
+          ? 'bg-primary text-primary-foreground font-semibold' 
+          : 'text-secondary-foreground hover:bg-primary/50 hover:text-primary-foreground'
       )}
     >
       {icon}

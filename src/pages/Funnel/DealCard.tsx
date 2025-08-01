@@ -3,6 +3,7 @@ import { DealWithContact } from '../../types/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { Button } from '../../components/common/Button.js';
 import { EDIT_ICON, TRASH_ICON } from '../../components/icons/index.js';
+import { cn } from '../../lib/utils.js';
 
 interface DealCardProps {
     deal: DealWithContact;
@@ -37,9 +38,9 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
     const isStagnant = stagnantDays > 7;
 
     const statusStyles = {
-        Aberto: 'border-sky-500',
-        Ganho: 'border-green-500',
-        Perdido: 'border-red-500',
+        Aberto: 'border-primary',
+        Ganho: 'border-success',
+        Perdido: 'border-destructive',
     };
     const borderWidth = deal.status !== 'Aberto' ? 'border-l-8' : 'border-l-4';
     
@@ -47,7 +48,16 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
         <div
             draggable
             onDragStart={handleDragStart}
-            className={`p-4 bg-slate-800 rounded-lg shadow-md ${borderWidth} ${statusStyles[deal.status]} cursor-grab active:cursor-grabbing transition-opacity duration-200 ${isGhost ? 'opacity-30' : 'opacity-100'} group relative`}
+            className={cn(
+                'p-4 bg-card rounded-lg shadow-md',
+                borderWidth,
+                statusStyles[deal.status],
+                'cursor-grab active:cursor-grabbing transition-opacity duration-200',
+                isGhost ? 'opacity-30' : 'opacity-100',
+                'group relative hover:border-primary/70',
+                'border-l-4',
+                deal.status !== 'Aberto' ? 'border-l-8' : ''
+            )}
         >
             <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="text-slate-400 hover:text-white" title="Editar negócio">

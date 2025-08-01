@@ -95,7 +95,9 @@ const FilterButton: React.FC<{ label: string; isActive: boolean; onClick: () => 
         onClick={onClick}
         className={cn(
             'px-3 py-1 text-xs font-semibold rounded-full transition-colors',
-            isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent/50'
+            isActive 
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                : 'bg-muted text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
         )}
     >
         {label}

@@ -78,10 +78,11 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
     return (
         <div
             className={cn(
-                'w-80 flex-shrink-0 h-full flex flex-col bg-card/50 rounded-xl transition-colors',
+                'w-80 flex-shrink-0 h-full flex flex-col bg-card rounded-xl transition-colors',
                 'border border-border/50',
-                isDragOver && 'bg-accent/30',
-                'shadow-sm'
+                'shadow-sm',
+                isDragOver && 'ring-2 ring-primary/50 bg-accent/30',
+                'hover:border-primary/50'
             )}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -90,7 +91,8 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
             <div className={cn(
                 'p-4 border-b-4 flex-shrink-0 group',
                 stageTypeStyles[stage.type],
-                'transition-colors duration-200'
+                'transition-colors duration-200',
+                'bg-card/80 backdrop-blur-sm'
             )}>
                 <div className="flex justify-between items-center">
                     {isEditing ? (

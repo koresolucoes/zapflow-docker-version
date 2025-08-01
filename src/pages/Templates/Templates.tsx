@@ -12,11 +12,11 @@ import { MetaTemplateComponent } from '../../services/meta/types.js';
 
 const StatusBadge: React.FC<{ status: MessageTemplate['status'] }> = ({ status }) => {
     const statusStyles: Record<TemplateStatus, string> = {
-        APPROVED: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30',
-        PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/30',
-        REJECTED: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30',
-        PAUSED: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-slate-500/20 dark:text-slate-400 dark:border-slate-500/30',
-        LOCAL: 'bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-400 dark:border-indigo-500/30',
+        APPROVED: 'bg-success/10 text-success-foreground border-success/20',
+        PENDING: 'bg-warning/10 text-warning-foreground border-warning/20',
+        REJECTED: 'bg-destructive/10 text-destructive-foreground border-destructive/20',
+        PAUSED: 'bg-muted text-muted-foreground border-border/20',
+        LOCAL: 'bg-primary/10 text-primary-foreground border-primary/20',
     };
     const style = status ? statusStyles[status] : statusStyles.LOCAL;
     const text = status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() : 'Local';
