@@ -38,9 +38,9 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
     const isStagnant = stagnantDays > 7;
 
     const statusStyles = {
-        Aberto: 'border-primary',
-        Ganho: 'border-success',
-        Perdido: 'border-destructive',
+        Aberto: 'border-primary hover:border-primary/70',
+        Ganho: 'border-success hover:border-success/70',
+        Perdido: 'border-destructive hover:border-destructive/70',
     };
     const borderWidth = deal.status !== 'Aberto' ? 'border-l-8' : 'border-l-4';
     
@@ -52,33 +52,33 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
                 'p-4 bg-card rounded-lg shadow-md',
                 borderWidth,
                 statusStyles[deal.status],
-                'cursor-grab active:cursor-grabbing transition-opacity duration-200',
+                'cursor-grab active:cursor-grabbing transition-all duration-200',
                 isGhost ? 'opacity-30' : 'opacity-100',
-                'group relative hover:border-primary/70',
+                'group relative',
                 'border-l-4',
                 deal.status !== 'Aberto' ? 'border-l-8' : ''
             )}
         >
             <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="text-slate-400 hover:text-white" title="Editar negócio">
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="text-muted-foreground hover:text-foreground" title="Editar negócio">
                     <EDIT_ICON className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(); }} className="text-slate-400 hover:text-red-400" title="Excluir negócio">
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(); }} className="text-muted-foreground hover:text-destructive" title="Excluir negócio">
                     <TRASH_ICON className="w-4 h-4" />
                 </Button>
             </div>
             <div className="flex justify-between items-start">
-                <h3 className="font-bold text-white break-words pr-12">{deal.name}</h3>
+                <h3 className="font-bold text-foreground break-words pr-12">{deal.name}</h3>
                 {isStagnant && (
                      <div className="flex-shrink-0 ml-2" title={`Negócio parado nesta etapa há ${stagnantDays} dias`}>
                         <span role="img" aria-label="Alerta de estagnação">⏰</span>
                     </div>
                 )}
             </div>
-            <p className="text-sm text-slate-400 mt-1 hover:text-sky-400 hover:underline cursor-pointer" onClick={navigateToContact}>
+            <p className="text-sm text-muted-foreground mt-1 hover:text-primary hover:underline cursor-pointer" onClick={navigateToContact}>
                 {deal.contacts?.name || 'Contato não encontrado'}
             </p>
-            <p className="text-sm font-mono text-green-400 mt-2">
+            <p className="text-sm font-mono text-success mt-2">
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.value || 0)}
             </p>
         </div>

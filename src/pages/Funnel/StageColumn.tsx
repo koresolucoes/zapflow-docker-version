@@ -70,19 +70,19 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
     const totalValue = deals.reduce((sum, deal) => sum + (deal.value || 0), 0);
     
     const stageTypeStyles = {
-        'Intermediária': 'border-border',
-        'Ganho': 'border-success',
-        'Perdido': 'border-destructive',
+        'Intermediária': 'border-border hover:border-border/80',
+        'Ganho': 'border-success hover:border-success/80',
+        'Perdido': 'border-destructive hover:border-destructive/80',
     };
 
     return (
         <div
             className={cn(
-                'w-80 flex-shrink-0 h-full flex flex-col bg-card rounded-xl transition-colors',
+                'w-80 flex-shrink-0 h-full flex flex-col bg-card rounded-xl transition-all',
                 'border border-border/50',
                 'shadow-sm',
-                isDragOver && 'ring-2 ring-primary/50 bg-accent/30',
-                'hover:border-primary/50'
+                isDragOver ? 'ring-2 ring-primary/50 bg-accent/30' : 'hover:border-primary/50',
+                'transition-colors duration-200'
             )}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -92,7 +92,8 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
                 'p-4 border-b-4 flex-shrink-0 group',
                 stageTypeStyles[stage.type],
                 'transition-colors duration-200',
-                'bg-card/80 backdrop-blur-sm'
+                'bg-card/80 backdrop-blur-sm',
+                'hover:bg-card/90'
             )}>
                 <div className="flex justify-between items-center">
                     {isEditing ? (
