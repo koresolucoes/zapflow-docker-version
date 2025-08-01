@@ -71,8 +71,8 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
     
     const stageTypeStyles = {
         'Intermediária': 'border-border hover:border-border/80',
-        'Ganho': 'border-success hover:border-success/80',
-        'Perdido': 'border-destructive hover:border-destructive/80',
+        'Ganho': 'border-[hsl(var(--success))] hover:border-[hsl(var(--success))/0.8]',
+        'Perdido': 'border-[hsl(var(--destructive))] hover:border-[hsl(var(--destructive))/0.8]',
     };
 
     return (

@@ -39,19 +39,19 @@ const StageRow: React.FC<{ stage: PipelineStage }> = ({ stage }) => {
     };
 
     return (
-        <div className="flex items-center gap-2 p-1.5 bg-slate-800 rounded">
+        <div className="flex items-center gap-2 p-1.5 bg-background/50 rounded">
             <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onBlur={handleNameBlur}
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                className="bg-transparent text-white text-sm p-1 rounded-md w-full focus:bg-slate-900 focus:outline-none"
+                className="bg-background/50 text-foreground text-sm p-1 rounded-md w-full focus:bg-accent/30 focus:outline-none"
             />
             <select
                 value={stage.type}
                 onChange={handleTypeChange}
-                className="bg-slate-700 text-white text-xs p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="bg-background/70 text-foreground text-xs p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
             >
                 <option value="Intermediária">Intermediária</option>
                 <option value="Ganho">Ganho</option>
@@ -107,10 +107,10 @@ const PipelineManagerModal: React.FC<{ isOpen: boolean; onClose: () => void; }> 
         <Modal isOpen={isOpen} onClose={onClose} title="Gerenciar Funis & Etapas">
             <div className="space-y-4">
                 <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Funis Atuais</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Funis Atuais</h3>
                     <div className="space-y-4 max-h-80 overflow-y-auto p-1">
                         {pipelines.map(p => (
-                            <div key={p.id} className="p-3 bg-slate-700/50 rounded-md">
+                            <div key={p.id} className="p-3 bg-card/50 rounded-md border border-border/30">
                                 <div className="flex items-center justify-between mb-2">
                                     {editingPipelineId === p.id ? (
                                         <input
@@ -119,10 +119,10 @@ const PipelineManagerModal: React.FC<{ isOpen: boolean; onClose: () => void; }> 
                                             onBlur={() => handleUpdateName(p)}
                                             onKeyDown={(e) => e.key === 'Enter' && handleUpdateName(p)}
                                             autoFocus
-                                            className="bg-slate-800 text-white p-1 rounded-md w-full font-semibold"
+                                            className="bg-background/70 text-foreground p-1 rounded-md w-full font-semibold"
                                         />
                                     ) : (
-                                        <h4 onClick={() => { setEditingPipelineId(p.id); setEditingName(p.name); }} className="cursor-pointer text-white font-semibold">
+                                        <h4 onClick={() => { setEditingPipelineId(p.id); setEditingName(p.name); }} className="cursor-pointer text-foreground font-semibold">
                                             {p.name}
                                         </h4>
                                     )}
@@ -144,15 +144,15 @@ const PipelineManagerModal: React.FC<{ isOpen: boolean; onClose: () => void; }> 
                         ))}
                     </div>
                 </div>
-                <form onSubmit={handleAddPipeline} className="border-t border-slate-700 pt-4">
-                    <h3 className="text-lg font-semibold text-white mb-2">Criar Novo Funil</h3>
+                <form onSubmit={handleAddPipeline} className="border-t border-border/30 pt-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Criar Novo Funil</h3>
                     <div className="flex gap-2">
                         <input
                             type="text"
                             value={newPipelineName}
                             onChange={(e) => setNewPipelineName(e.target.value)}
                             placeholder="Nome do novo funil"
-                            className="w-full bg-slate-700 p-2 rounded-md text-white"
+                            className="w-full bg-background/70 p-2 rounded-md text-foreground border border-border/30"
                         />
                         <Button type="submit" variant="default">Criar</Button>
                     </div>

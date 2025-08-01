@@ -30,23 +30,42 @@ const TemplateCard: React.FC<{ template: MessageTemplate; onUse: () => void }> =
     const body = useMemo(() => template.components.find(c => c.type === 'BODY'), [template.components]);
 
     return (
-        <Card className="flex flex-col justify-between hover:border-gray-300 dark:hover:border-sky-500 border border-transparent transition-colors duration-200">
-            <div>
-                <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-mono text-lg text-gray-900 dark:text-white break-all">{template.template_name}</h3>
+        <Card className="h-full flex flex-col transition-all duration-200 hover:shadow-md dark:hover:shadow-sky-500/10 hover:-translate-y-0.5">
+            <div className="flex-1 flex flex-col p-6">
+                <div className="flex justify-between items-start gap-3 mb-4">
+                    <h3 className="text-lg font-medium text-foreground line-clamp-2">
+                        {template.template_name}
+                    </h3>
                     <div className="flex-shrink-0">
-                         <StatusBadge status={template.status} />
+                        <StatusBadge status={template.status} />
                     </div>
                 </div>
-                 <div className="mt-4 text-sm text-gray-600 dark:text-slate-400 font-mono bg-gray-100 dark:bg-slate-900/50 p-3 rounded-md whitespace-pre-wrap space-y-2">
-                    {header?.text && <p className="font-bold text-gray-800 dark:text-slate-200">{header.text}</p>}
-                    {body?.text && <p>{body.text}</p>}
+                
+                <div className="flex-1 space-y-3 text-sm text-muted-foreground">
+                    {header?.text && (
+                        <div className="bg-muted/50 dark:bg-slate-800/50 p-3 rounded-md">
+                            <p className="font-medium text-foreground line-clamp-2">{header.text}</p>
+                        </div>
+                    )}
+                    {body?.text && (
+                        <div className="bg-muted/30 dark:bg-slate-800/30 p-3 rounded-md">
+                            <p className="line-clamp-4">{body.text}</p>
+                        </div>
+                    )}
                 </div>
-            </div>
-            <div className="mt-6 flex justify-end gap-2">
-                <Button variant="default" size="sm" onClick={onUse} disabled={!isUsable} title={!isUsable ? "Apenas templates APROVADOS podem ser usados" : "Usar este template"}>
-                  Usar Template
-                </Button>
+
+                <div className="mt-6 pt-4 border-t border-border">
+                    <Button 
+                        variant={isUsable ? "default" : "outline"}
+                        size="sm" 
+                        onClick={onUse} 
+                        disabled={!isUsable} 
+                        className="w-full"
+                        title={!isUsable ? "Apenas templates APROVADOS podem ser usados" : "Usar este template"}
+                    >
+                        {isUsable ? 'Usar Template' : 'Indisponível'}
+                    </Button>
+                </div>
             </div>
         </Card>
     );
@@ -205,7 +224,11 @@ const Templates: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTemplates.map((template) => (
-                <TemplateCard key={template.id} template={template} onUse={() => handleUseTemplate(template.id)} />
+                <TemplateCard 
+                    key={template.id} 
+                    template={template} 
+                    onUse={() => handleUseTemplate(template.id)} 
+                />
             ))}
         </div>
       )}
