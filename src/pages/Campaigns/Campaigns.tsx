@@ -13,11 +13,11 @@ const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () 
     const statusText = campaign.status === 'Scheduled' && !isScheduledForFuture ? 'Enviando' : campaign.status;
 
     const statusStyle: Record<string, string> = {
-        Sent: "bg-success/20 text-success-foreground",
-        Draft: "bg-warning/20 text-warning-foreground",
-        Failed: "bg-destructive/20 text-destructive-foreground",
-        Scheduled: "bg-info/20 text-info-foreground",
-        Enviando: "bg-accent/20 text-accent-foreground"
+        Sent: "bg-success/10 text-success border border-success/20",
+        Draft: "bg-warning/10 text-warning border border-warning/20",
+        Failed: "bg-destructive/10 text-destructive border border-destructive/20",
+        Scheduled: "bg-info/10 text-info border border-info/20",
+        Enviando: "bg-accent/10 text-accent-foreground border border-accent/20"
     };
     
     const displayDate = campaign.sent_at 
@@ -43,7 +43,7 @@ const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () 
             <div>
                 <div className="flex justify-between items-start gap-2">
                     <h3 className="text-lg font-semibold text-foreground break-all">{campaign.name}</h3>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${statusStyle[statusText]}`}>
+                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${statusStyle[statusText]}`}>
                         {statusText}
                     </span>
                 </div>

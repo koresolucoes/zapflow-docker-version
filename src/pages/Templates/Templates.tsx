@@ -12,15 +12,15 @@ import { MetaTemplateComponent } from '../../services/meta/types.js';
 
 const StatusBadge: React.FC<{ status: MessageTemplate['status'] }> = ({ status }) => {
     const statusStyles: Record<TemplateStatus, string> = {
-        APPROVED: 'bg-success/10 text-success-foreground border-success/20',
-        PENDING: 'bg-warning/10 text-warning-foreground border-warning/20',
-        REJECTED: 'bg-destructive/10 text-destructive-foreground border-destructive/20',
-        PAUSED: 'bg-muted text-muted-foreground border-border/20',
-        LOCAL: 'bg-primary/10 text-primary-foreground border-primary/20',
+        APPROVED: 'bg-success/10 text-success border-success/50',
+        PENDING: 'bg-warning/10 text-warning border-warning/50',
+        REJECTED: 'bg-destructive/10 text-destructive border-destructive/50',
+        PAUSED: 'bg-muted/10 text-muted-foreground border-muted/50',
+        LOCAL: 'bg-primary/10 text-primary border-primary/50',
     };
     const style = status ? statusStyles[status] : statusStyles.LOCAL;
     const text = status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() : 'Local';
-    return <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${style}`}>{text}</span>;
+    return <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${style}`}>{text}</span>;
 };
 
 const TemplateCard: React.FC<{ template: MessageTemplate; onUse: () => void }> = ({ template, onUse }) => {

@@ -1,10 +1,8 @@
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { NodeSettingsProps } from './common.js';
 import { InputWithVariables } from './common.js';
 
-const baseInputClass = "w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500";
+const baseInputClass = "w-full bg-card border border-input rounded-md p-2 text-foreground placeholder-muted-foreground/60 focus:ring-2 focus:ring-ring focus:border-ring";
 
 const MetaTriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange, availableVariables, allTags, pipelines, stages }) => {
     const { data } = node;
@@ -41,7 +39,7 @@ const MetaTriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange
         case 'message_received_with_keyword':
             return (
                 <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Palavra-chave</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">Palavra-chave</label>
                     <input
                         type="text"
                         value={config.keyword || ''}
@@ -49,14 +47,14 @@ const MetaTriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange
                         placeholder="Ex: promoção"
                         className={baseInputClass}
                     />
-                    <p className="text-xs text-slate-400 mt-1">A automação iniciará se a mensagem do contato contiver este texto (não diferencia maiúsculas/minúsculas).</p>
+                    <p className="text-xs text-muted-foreground/80 mt-1">A automação iniciará se a mensagem do contato contiver este texto (não diferencia maiúsculas/minúsculas).</p>
                 </div>
             );
 
         case 'button_clicked':
             return (
                 <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">ID (Payload) do Botão</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">ID (Payload) do Botão</label>
                     <input
                         type="text"
                         value={config.button_payload || ''}
@@ -64,7 +62,7 @@ const MetaTriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange
                         placeholder="Ex: comprar_agora_payload"
                         className={baseInputClass}
                     />
-                    <p className="text-xs text-slate-400 mt-1">O ID exato (payload) do botão de resposta rápida que acionará a automação.</p>
+                    <p className="text-xs text-muted-foreground/80 mt-1">O ID exato (payload) do botão de resposta rápida que acionará a automação.</p>
                 </div>
             );
         
@@ -72,7 +70,7 @@ const MetaTriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange
             const selectedValue = isManualEntry ? '__manual__' : config.tag || '';
             return (
                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Nome da Tag</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">Nome da Tag</label>
                     <select
                         value={selectedValue}
                         onChange={handleSelectChange}
@@ -96,22 +94,22 @@ const MetaTriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange
                             />
                         </div>
                     )}
-                     <p className="text-xs text-slate-400 mt-1">A automação iniciará quando esta tag for adicionada a um contato.</p>
+                     <p className="text-xs text-muted-foreground/80 mt-1">A automação iniciará quando esta tag for adicionada a um contato.</p>
                 </div>
             );
 
         case 'new_contact':
-             return <p className="text-slate-400">Este gatilho é acionado sempre que um novo contato é criado no sistema (seja via webhook ou importação, quando aplicável).</p>;
+             return <p className="text-muted-foreground/80">Este gatilho é acionado sempre que um novo contato é criado no sistema (seja via webhook ou importação, quando aplicável).</p>;
         
         case 'deal_created':
-             return <p className="text-slate-400">Este gatilho é acionado sempre que um novo negócio é criado para qualquer contato.</p>;
+             return <p className="text-muted-foreground/80">Este gatilho é acionado sempre que um novo negócio é criado para qualquer contato.</p>;
 
         case 'deal_stage_changed': {
             const stagesForPipeline = stages.filter(s => s.pipeline_id === config.pipeline_id);
             return (
                 <div className="space-y-3">
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Funil</label>
+                        <label className="block text-sm font-medium text-muted-foreground mb-1">Funil</label>
                         <select value={config.pipeline_id || ''} onChange={(e) => onConfigChange({ ...config, pipeline_id: e.target.value, stage_id: '' })} className={baseInputClass}>
                             <option value="">Selecione um Funil</option>
                             {pipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -119,20 +117,20 @@ const MetaTriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange
                     </div>
                     {config.pipeline_id && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">Quando o negócio entrar na etapa</label>
+                            <label className="block text-sm font-medium text-muted-foreground mb-1">Quando o negócio entrar na etapa</label>
                             <select value={config.stage_id || ''} onChange={(e) => handleConfigChange('stage_id', e.target.value)} className={baseInputClass}>
                                 <option value="">Qualquer Etapa</option>
                                 {stagesForPipeline.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
                         </div>
                     )}
-                    <p className="text-xs text-slate-400 mt-1">A automação iniciará quando um negócio for movido para a etapa especificada.</p>
+                    <p className="text-xs text-muted-foreground/80 mt-1">A automação iniciará quando um negócio for movido para a etapa especificada.</p>
                 </div>
             )
         }
 
         default:
-             return <p className="text-slate-400">Nenhuma configuração necessária para este gatilho.</p>;
+             return <p className="text-muted-foreground/80">Nenhuma configuração necessária para este gatilho.</p>;
     }
 };
 

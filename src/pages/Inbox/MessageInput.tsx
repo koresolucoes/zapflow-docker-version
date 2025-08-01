@@ -132,22 +132,22 @@ const MessageInput: React.FC<MessageInputProps> = ({ contactId }) => {
     return (
         <form
             onSubmit={handleSend}
-            className="flex-shrink-0 p-3 bg-slate-800 flex items-start gap-3"
+            className="flex-shrink-0 p-3 bg-card border-t border-border flex items-start gap-3"
         >
             <div className="relative flex-1">
                 {showPicker && filteredResponses.length > 0 && (
-                    <div className="absolute bottom-full left-0 w-full mb-2 bg-slate-700 rounded-xl shadow-lg max-h-48 overflow-y-auto z-10 p-2 border border-slate-600">
+                    <div className="absolute bottom-full left-0 w-full mb-2 bg-popover rounded-xl shadow-lg max-h-48 overflow-y-auto z-10 p-2 border border-border">
                         <ul>
                             {filteredResponses.map((res, index) => (
                                 <li key={res.id}>
                                     <button
                                         type="button"
-                                        className={`w-full text-left p-2 rounded-lg flex justify-between items-center ${activeIndex === index ? 'bg-sky-500/30' : 'hover:bg-slate-600/50'}`}
+                                        className={`w-full text-left p-2 rounded-lg flex justify-between items-center ${activeIndex === index ? 'bg-primary/10' : 'hover:bg-accent/50'}`}
                                         onMouseDown={(e) => { e.preventDefault(); handleSelectResponse(res); }}
                                     >
                                         <div className="overflow-hidden">
-                                            <p className="font-semibold text-sky-300 text-sm">{res.shortcut}</p>
-                                            <p className="text-xs text-slate-300 truncate">{res.content}</p>
+                                            <p className="font-semibold text-primary text-sm">{res.shortcut}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{res.content}</p>
                                         </div>
                                     </button>
                                 </li>
@@ -161,7 +161,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ contactId }) => {
                     onChange={handleTextChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Escreva uma instrução para a IA ou sua mensagem... Pressione '/' para respostas rápidas"
-                    className="flex-1 bg-slate-700 border-slate-600 rounded-xl p-2.5 text-white placeholder-slate-400 resize-none focus:ring-2 focus:ring-sky-500 focus:outline-none w-full"
+                    className="flex-1 bg-background border border-input rounded-xl p-2.5 text-foreground placeholder-muted-foreground/60 resize-none focus:ring-2 focus:ring-ring focus:outline-none w-full"
                     rows={1}
                     style={{ maxHeight: '120px' }}
                 />

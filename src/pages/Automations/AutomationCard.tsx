@@ -50,19 +50,19 @@ const AutomationCard: React.FC<AutomationCardProps> = ({ automation }) => {
 
 
     return (
-        <Card className="flex flex-col justify-between hover:border-sky-500 border border-transparent transition-colors duration-200">
+        <Card className="flex flex-col justify-between hover:border-primary/50 border border-border/50 transition-colors duration-200">
             <div>
                 <div className="flex justify-between items-start gap-2">
-                    <h3 className="text-lg font-semibold text-white break-words">{automation.name}</h3>
+                    <h3 className="text-lg font-semibold text-foreground break-words">{automation.name}</h3>
                     <Switch checked={automation.status === 'active'} onChange={handleStatusChange} />
                 </div>
-                 <p className="text-sm text-slate-400 mt-2 h-10">{description}</p>
+                 <p className="text-sm text-muted-foreground mt-2 h-10">{description}</p>
             </div>
              <div className="mt-6 flex justify-end items-center gap-2">
                 <Button variant="secondary" size="sm" onClick={handleEdit}>
                     Editar
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleDelete} className="text-red-400 hover:bg-red-500/10 hover:text-red-300">
+                <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:bg-destructive/10">
                     <TRASH_ICON className="w-4 h-4" />
                 </Button>
             </div>
