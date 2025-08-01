@@ -28,6 +28,7 @@ const TemplateCard: React.FC<{ template: MessageTemplate; onUse: () => void }> =
 
     const header = useMemo(() => template.components.find(c => c.type === 'HEADER'), [template.components]);
     const body = useMemo(() => template.components.find(c => c.type === 'BODY'), [template.components]);
+    const footer = useMemo(() => template.components.find(c => c.type === 'FOOTER'), [template.components]);
 
     return (
         <Card className="h-full flex flex-col transition-all duration-200 hover:shadow-md dark:hover:shadow-sky-500/10 hover:-translate-y-0.5">
@@ -41,15 +42,22 @@ const TemplateCard: React.FC<{ template: MessageTemplate; onUse: () => void }> =
                     </div>
                 </div>
                 
-                <div className="flex-1 space-y-3 text-sm text-muted-foreground">
+                <div className="flex-1 space-y-3">
                     {header?.text && (
                         <div className="bg-muted/50 dark:bg-slate-800/50 p-3 rounded-md">
                             <p className="font-medium text-foreground line-clamp-2">{header.text}</p>
                         </div>
                     )}
+                    
                     {body?.text && (
                         <div className="bg-muted/30 dark:bg-slate-800/30 p-3 rounded-md">
-                            <p className="line-clamp-4">{body.text}</p>
+                            <p className="line-clamp-4 text-sm">{body.text}</p>
+                        </div>
+                    )}
+                    
+                    {footer?.text && (
+                        <div className="text-xs text-muted-foreground mt-2">
+                            <p className="line-clamp-1">{footer.text}</p>
                         </div>
                     )}
                 </div>
@@ -83,7 +91,8 @@ const Templates: React.FC = () => {
     if (!searchTerm) return templates;
     const lowercasedTerm = searchTerm.toLowerCase();
     return templates.filter(template =>
-        template.template_name.toLowerCase().includes(lowercasedTerm)
+        template.template_name.toLowerCase().includes(lowercasedTerm) ||
+        (template.components?.some(c => c.text?.toLowerCase().includes(lowercasedTerm)) ?? false)
     );
   }, [templates, searchTerm]);
   
@@ -190,46 +199,102 @@ const Templates: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center flex-wrap gap-4">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Templates de Mensagem</h1>
-        <div className="flex items-center gap-4">
-             <div className="relative">
-                <SEARCH_ICON className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                <input
-                    type="text"
-                    placeholder="Buscar templates..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg py-2 pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 dark:focus:ring-sky-500 focus:outline-none"
-                />
-            </div>
-            <div className="flex gap-2">
-                <Button variant="secondary" onClick={handleSync} isLoading={isLoading}>Sincronizar com Meta</Button>
-                <Button variant="default" onClick={() => setCurrentPage('template-editor')}>
-                    <SPARKLES_ICON className="w-5 h-5 mr-2" />
-                    Criar com IA
-                </Button>
-            </div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Templates de Mensagem</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Gerencie seus modelos de mensagem para campanhas e automações
+          </p>
+        </div>
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
+          <div className="relative w-full sm:w-64">
+            <SEARCH_ICON className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Buscar templates..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-background border border-input rounded-md py-2 pl-9 pr-4 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-sm"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleSync} 
+              isLoading={isLoading}
+              className="whitespace-nowrap"
+            >
+              Sincronizar com Meta
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={() => setCurrentPage('template-editor')}
+              className="whitespace-nowrap"
+            >
+              <SPARKLES_ICON className="w-4 h-4 mr-2" />
+              Criar com IA
+            </Button>
+          </div>
         </div>
       </div>
 
-      {error && <Card className="border-l-4 border-red-500"><p className="text-red-500 dark:text-red-400">{error}</p></Card>}
-      {syncMessage && <Card className="border-l-4 border-green-500"><p className="text-green-500 dark:text-green-400">{syncMessage}</p></Card>}
+      {error && (
+        <Card className="border-l-4 border-destructive">
+          <div className="p-4">
+            <p className="text-destructive">{error}</p>
+          </div>
+        </Card>
+      )}
+      
+      {syncMessage && (
+        <Card className="border-l-4 border-success">
+          <div className="p-4">
+            <p className="text-success">{syncMessage}</p>
+          </div>
+        </Card>
+      )}
       
       {filteredTemplates.length === 0 ? (
-        <Card className="text-center py-12">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{searchTerm ? 'Nenhum template encontrado.' : 'Nenhum template encontrado.'}</h2>
-            <p className="text-gray-500 dark:text-slate-400 mt-2 mb-6">{searchTerm ? `Sua busca por "${searchTerm}" não retornou resultados.` : 'Sincronize com sua conta da Meta para ver seus templates ou crie um novo com IA.'}</p>
+        <Card className="text-center p-8 border-dashed">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <SPARKLES_ICON className="h-8 w-8 text-primary" />
+          </div>
+          <h2 className="mt-4 text-xl font-semibold text-foreground">
+            {searchTerm ? 'Nenhum template encontrado' : 'Nenhum template criado'}
+          </h2>
+          <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
+            {searchTerm 
+              ? `Sua busca por "${searchTerm}" não retornou resultados.` 
+              : 'Crie seu primeiro template para começar a usá-lo em suas campanhas e automações.'}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              variant="outline" 
+              onClick={handleSync} 
+              isLoading={isLoading}
+              className="whitespace-nowrap"
+            >
+              Sincronizar com Meta
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={() => setCurrentPage('template-editor')}
+              size="lg"
+            >
+              <SPARKLES_ICON className="w-4 h-4 mr-2" />
+              Criar Primeiro Template
+            </Button>
+          </div>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTemplates.map((template) => (
-                <TemplateCard 
-                    key={template.id} 
-                    template={template} 
-                    onUse={() => handleUseTemplate(template.id)} 
-                />
-            ))}
+          {filteredTemplates.map((template) => (
+            <TemplateCard 
+              key={template.id} 
+              template={template} 
+              onUse={() => handleUseTemplate(template.id)} 
+            />
+          ))}
         </div>
       )}
     </div>

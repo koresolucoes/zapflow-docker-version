@@ -9,15 +9,14 @@ import { useUiStore } from '../../stores/uiStore.js';
 const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () => void; onDelete: () => void; }> = ({ campaign, onViewDetails, onDelete }) => {
     const readRate = campaign.metrics.sent > 0 ? ((campaign.metrics.read / campaign.metrics.sent) * 100).toFixed(1) + '%' : '0.0%';
     const isScheduledForFuture = campaign.sent_at && new Date(campaign.sent_at) > new Date();
-
     const statusText = campaign.status === 'Scheduled' && !isScheduledForFuture ? 'Enviando' : campaign.status;
 
     const statusStyle: Record<string, string> = {
-        Sent: "bg-success/10 text-success border border-success/20",
-        Draft: "bg-warning/10 text-warning border border-warning/20",
-        Failed: "bg-destructive/10 text-destructive border border-destructive/20",
-        Scheduled: "bg-info/10 text-info border border-info/20",
-        Enviando: "bg-accent/10 text-accent-foreground border border-accent/20"
+        Sent: "bg-success/10 text-success border-success/50",
+        Draft: "bg-warning/10 text-warning border-warning/50",
+        Failed: "bg-destructive/10 text-destructive border-destructive/50",
+        Scheduled: "bg-info/10 text-info border-info/50",
+        Enviando: "bg-accent/10 text-accent-foreground border-accent/50"
     };
     
     const displayDate = campaign.sent_at 
@@ -28,70 +27,81 @@ const CampaignCard: React.FC<{ campaign: CampaignWithMetrics; onViewDetails: () 
             : `Enviada em ${new Date(campaign.sent_at).toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' })}`
         : 'Não enviada';
 
-
     return (
-        <Card className="h-full flex flex-col justify-between hover:border-primary/50 border-2 border-border/50 hover:border-primary/70 transition-colors duration-200 group relative overflow-hidden">
-             <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                className="absolute top-3 right-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                title="Excluir campanha"
-            >
-                <TRASH_ICON className="w-4 h-4" />
-            </Button>
-            <div className="p-5">
-                <div className="flex justify-between items-start gap-2">
-                    <h3 className="text-lg font-semibold text-foreground break-all">{campaign.name}</h3>
-                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${statusStyle[statusText]}`}>
+        <Card className="h-full flex flex-col transition-all duration-200 hover:shadow-md dark:hover:shadow-sky-500/10 hover:-translate-y-0.5">
+            <div className="flex-1 flex flex-col p-6">
+                <div className="flex justify-between items-start gap-3 mb-4">
+                    <h3 className="text-lg font-medium text-foreground line-clamp-2">
+                        {campaign.name}
+                    </h3>
+                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${statusStyle[statusText]}`}>
                         {statusText}
                     </span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">{displayDate}</p>
+                
+                <p className="text-sm text-muted-foreground mb-4">{displayDate}</p>
 
-                <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                        <SEND_ICON className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                            <p className="text-muted-foreground">Enviadas</p>
-                            <p className="font-bold text-foreground">{campaign.metrics.sent.toLocaleString('pt-BR')}</p>
+                <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+                    <div className="bg-muted/30 dark:bg-slate-800/30 p-3 rounded-md">
+                        <div className="flex items-center gap-2">
+                            <SEND_ICON className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Enviadas</span>
                         </div>
+                        <p className="text-lg font-semibold mt-1">{campaign.metrics.sent.toLocaleString('pt-BR')}</p>
                     </div>
-                     <div className="flex items-center gap-2">
-                        <MAIL_CHECK_ICON className="w-5 h-5 text-success" />
-                        <div>
-                            <p className="text-muted-foreground">Entregues</p>
-                            <p className="font-bold text-foreground">{campaign.metrics.delivered.toLocaleString('pt-BR')}</p>
+                    
+                    <div className="bg-muted/30 dark:bg-slate-800/30 p-3 rounded-md">
+                        <div className="flex items-center gap-2">
+                            <MAIL_CHECK_ICON className="w-4 h-4 text-success" />
+                            <span className="text-muted-foreground">Entregues</span>
                         </div>
+                        <p className="text-lg font-semibold mt-1">{campaign.metrics.delivered.toLocaleString('pt-BR')}</p>
                     </div>
-                     <div className="flex items-center gap-2">
-                        <MAIL_OPEN_ICON className="w-5 h-5 text-info" />
-                        <div>
-                            <p className="text-muted-foreground">Lidas</p>
-                            <p className="font-bold text-foreground">{campaign.metrics.read.toLocaleString('pt-BR')}</p>
+                    
+                    <div className="bg-muted/30 dark:bg-slate-800/30 p-3 rounded-md">
+                        <div className="flex items-center gap-2">
+                            <MAIL_OPEN_ICON className="w-4 h-4 text-info" />
+                            <span className="text-muted-foreground">Lidas</span>
                         </div>
+                        <p className="text-lg font-semibold mt-1">{campaign.metrics.read.toLocaleString('pt-BR')}</p>
                     </div>
-                     <div className="flex items-center gap-2">
-                        <span className="text-warning font-bold text-lg">%</span>
-                        <div>
-                            <p className="text-muted-foreground">Taxa de Leitura</p>
-                            <p className="font-bold text-foreground">{readRate}</p>
+                    
+                    <div className="bg-muted/30 dark:bg-slate-800/30 p-3 rounded-md">
+                        <div className="flex items-center gap-2">
+                            <span className="text-warning font-bold">%</span>
+                            <span className="text-muted-foreground">Taxa de Leitura</span>
                         </div>
+                        <p className="text-lg font-semibold mt-1">{readRate}</p>
                     </div>
                 </div>
-            </div>
-             <div className="p-5 pt-0">
-                <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onViewDetails();
-                    }} 
-                    className="w-full"
-                >
-                    Ver Relatório Detalhado
-                </Button>
+
+                <div className="mt-auto pt-4 border-t border-border">
+                    <div className="flex justify-between items-center gap-2">
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete();
+                            }}
+                            className="text-destructive hover:bg-destructive/10"
+                        >
+                            <TRASH_ICON className="w-4 h-4 mr-2" />
+                            Excluir
+                        </Button>
+                        <Button 
+                            variant="default" 
+                            size="sm" 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onViewDetails();
+                            }}
+                            className="ml-auto"
+                        >
+                            Ver Detalhes
+                        </Button>
+                    </div>
+                </div>
             </div>
         </Card>
     );
@@ -127,45 +137,58 @@ const Campaigns: React.FC = () => {
     };
 
     return (
-        <div className="container mx-auto px-4 py-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div className="space-y-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Campanhas</h1>
-                    <p className="text-muted-foreground">Gerencie suas campanhas de mensagens</p>
+                    <h1 className="text-2xl md:text-3xl font-bold text-foreground">Campanhas</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Gerencie suas campanhas de mensagens
+                    </p>
                 </div>
-                <Button onClick={() => setCurrentPage('new-campaign')}>
-                    <SEND_ICON className="w-4 h-4 mr-2" />
-                    Nova Campanha
-                </Button>
-            </div>
-
-            <div className="relative mb-6">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <SEARCH_ICON className="h-5 w-5 text-muted-foreground" />
+                <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
+                    <div className="relative w-full sm:w-64">
+                        <SEARCH_ICON className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                        <input
+                            type="text"
+                            placeholder="Buscar campanhas..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-background border border-input rounded-md py-2 pl-9 pr-4 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-sm"
+                        />
+                    </div>
+                    <Button 
+                        variant="default" 
+                        onClick={() => setCurrentPage('new-campaign')}
+                        className="whitespace-nowrap"
+                    >
+                        <SEND_ICON className="w-4 h-4 mr-2" />
+                        Nova Campanha
+                    </Button>
                 </div>
-                <input
-                    type="text"
-                    className="block w-full pl-10 pr-3 py-2 border border-input rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    placeholder="Pesquisar campanhas..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
             </div>
 
             {filteredCampaigns.length === 0 ? (
-                <div className="text-center py-12">
-                    <TEMPLATE_ICON className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-2 text-sm font-medium text-foreground">Nenhuma campanha encontrada</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        {searchTerm ? 'Tente alterar sua busca.' : 'Comece criando uma nova campanha.'}
-                    </p>
-                    <div className="mt-6">
-                        <Button onClick={() => setCurrentPage('new-campaign')}>
-                            <SEND_ICON className="w-4 h-4 mr-2" />
-                            Nova Campanha
-                        </Button>
+                <Card className="text-center p-8 border-dashed">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                        <SEND_ICON className="h-8 w-8 text-primary" />
                     </div>
-                </div>
+                    <h2 className="mt-4 text-xl font-semibold text-foreground">
+                        {searchTerm ? 'Nenhuma campanha encontrada' : 'Nenhuma campanha criada'}
+                    </h2>
+                    <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
+                        {searchTerm 
+                            ? `Sua busca por "${searchTerm}" não retornou resultados.` 
+                            : 'Crie sua primeira campanha para começar a enviar mensagens.'}
+                    </p>
+                    <Button 
+                        variant="default" 
+                        onClick={() => setCurrentPage('new-campaign')}
+                        size="lg"
+                    >
+                        <SEND_ICON className="w-4 h-4 mr-2" />
+                        Criar Primeira Campanha
+                    </Button>
+                </Card>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCampaigns.map((campaign) => (
