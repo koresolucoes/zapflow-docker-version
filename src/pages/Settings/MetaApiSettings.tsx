@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { EditableProfile } from '../../types/index.js';
-import { Card } from '../../components/common/Card.js';
 import { Button } from '../../components/common/Button.js';
-import InfoCard from '../../components/common/InfoCard.js';
 import { COPY_ICON } from '../../components/icons/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { cn } from '../../lib/utils.js';
+import { 
+    SettingsPage, 
+    SettingsSection 
+} from '../../components/settings/SettingsPage.js';
 
 const MetaApiSettings: React.FC = () => {
     const profile = useAuthStore(state => state.profile);
@@ -105,7 +107,12 @@ const MetaApiSettings: React.FC = () => {
             setIsSaving(false);
         }
     };
-    
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await handleSave(e);
+    };
+
     const copyToClipboard = (text: string, type: 'url' | 'token') => {
         if (text) {
            navigator.clipboard.writeText(text);
@@ -130,132 +137,144 @@ const MetaApiSettings: React.FC = () => {
     const linkClass = "text-primary hover:underline";
 
     return (
-        <>
-            <Card>
-                <form onSubmit={handleSave} className="space-y-6">
-                    <h2 className={sectionTitleClass}>API da Meta (WhatsApp)</h2>
-                    <p className={infoTextClass}>
-                        Insira suas credenciais da API do WhatsApp Business para conectar sua conta.
-                        Você pode encontrá-las no seu <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer" className={linkClass}>painel de aplicativos da Meta</a>.
-                    </p>
-
-                    <div>
-                        <label htmlFor="meta_access_token" className={labelClass}>Token de Acesso</label>
-                        <input
-                            type="password"
-                            id="meta_access_token"
-                            name="meta_access_token"
-                            value={localConfig.meta_access_token || ''}
-                            onChange={handleChange}
-                            className={baseInputClass}
-                            placeholder="Cole seu token aqui"
-                        />
-                    </div>
-
-                    <div>
-                        <label htmlFor="meta_waba_id" className={labelClass}>ID da conta do WhatsApp Business (WABA ID)</label>
-                        <input
-                            type="text"
-                            id="meta_waba_id"
-                            name="meta_waba_id"
-                            value={localConfig.meta_waba_id || ''}
-                            onChange={handleChange}
-                            className={baseInputClass}
-                            placeholder="ID da sua conta business"
-                        />
-                    </div>
-                    
-                    <div>
-                        <label htmlFor="meta_phone_number_id" className={labelClass}>ID do número de telefone</label>
-                        <input
-                            type="text"
-                            id="meta_phone_number_id"
-                            name="meta_phone_number_id"
-                            value={localConfig.meta_phone_number_id || ''}
-                            onChange={handleChange}
-                            className={baseInputClass}
-                            placeholder="ID do seu número de telefone"
-                        />
-                    </div>
-
-                    <h2 className={`${sectionTitleClass} pt-4 ${dividerClass}`}>Webhook de Automação</h2>
-                    <div>
-                        <label htmlFor="webhook_path_prefix" className={labelClass}>Prefixo do Caminho do Webhook (para Automações)</label>
-                        <input
-                            type="text"
-                            id="webhook_path_prefix"
-                            name="webhook_path_prefix"
-                            value={localConfig.webhook_path_prefix || ''}
-                            onChange={handleChange}
-                            className={baseInputClass}
-                            placeholder="Ex: minha-empresa-123"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Um prefixo único para suas URLs de gatilho de automação. **Não afeta o Webhook principal da Meta.** 
-                            Use letras, números e hífens. **Evite underscores (_)**.
-                        </p>
-                    </div>
-                    
-                    <div className={`flex justify-end items-center gap-4 pt-4 ${dividerClass}`}>
-                        {error && <p className={`${errorTextClass} text-sm text-right flex-1`}>{error}</p>}
-                        {isSaved && <p className={`${successTextClass} text-sm`}>Configurações salvas com sucesso!</p>}
-                        <Button type="submit" variant="default" isLoading={isSaving}>
-                            Salvar Configurações
-                        </Button>
-                    </div>
-                </form>
-            </Card>
-
-            <InfoCard>
-                <h3 className="text-base font-semibold text-foreground mb-2">Configure o Webhook na Meta</h3>
-                <p className={`${infoTextClass} mb-3`}>
-                    Para receber o status das mensagens e as respostas dos clientes, configure um Webhook no seu aplicativo da Meta com os seguintes valores:
-                </p>
-                <div className="space-y-3 font-mono text-sm bg-muted/50 p-3 rounded-md">
-                    <div className="flex justify-between items-center">
+        <SettingsPage
+            title="API da Meta (WhatsApp)"
+            description="Configure suas credenciais da API do WhatsApp Business para conectar sua conta."
+        >
+            <form onSubmit={handleSubmit}>
+                <SettingsSection 
+                    title="Credenciais da API"
+                    description="Insira suas credenciais da API do WhatsApp Business. Você pode encontrá-las no seu painel de aplicativos da Meta."
+                >
+                    <div className="space-y-6">
                         <div>
-                            <span className="font-bold text-muted-foreground">Sua URL de Callback Única:</span>
-                            <br/> {webhookUrl || "Gerando URL..."}
+                            <label htmlFor="meta_access_token" className={labelClass}>Token de Acesso</label>
+                            <input
+                                type="password"
+                                id="meta_access_token"
+                                name="meta_access_token"
+                                value={localConfig.meta_access_token || ''}
+                                onChange={handleChange}
+                                className={baseInputClass}
+                                placeholder="Cole seu token aqui"
+                            />
                         </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                copyToClipboard(webhookUrl, 'url');
-                            }}
-                            className="ml-2"
-                        >
-                            <COPY_ICON className="w-4 h-4 mr-1" />
-                            {copyStatus.url ? 'Copiado!' : 'Copiar'}
-                        </Button>
-                    </div>
-                    <div className="flex justify-between items-center">
+
                         <div>
-                            <span className="font-bold text-muted-foreground">Token de Verificação:</span>
-                            <br/> {verifyToken || "Gerando token..."}
+                            <label htmlFor="meta_waba_id" className={labelClass}>ID da conta do WhatsApp Business (WABA ID)</label>
+                            <input
+                                type="text"
+                                id="meta_waba_id"
+                                name="meta_waba_id"
+                                value={localConfig.meta_waba_id || ''}
+                                onChange={handleChange}
+                                className={baseInputClass}
+                                placeholder="ID da sua conta business"
+                            />
                         </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                copyToClipboard(verifyToken, 'token');
-                            }}
-                            className="ml-2"
+                        
+                        <div>
+                            <label htmlFor="meta_phone_number_id" className={labelClass}>ID do número de telefone</label>
+                            <input
+                                type="text"
+                                id="meta_phone_number_id"
+                                name="meta_phone_number_id"
+                                value={localConfig.meta_phone_number_id || ''}
+                                onChange={handleChange}
+                                className={baseInputClass}
+                                placeholder="ID do seu número de telefone"
+                            />
+                        </div>
+                    </div>
+                </SettingsSection>
+
+                <SettingsSection 
+                    title="Webhook de Automação"
+                    description="Configure o webhook para automações do WhatsApp"
+                    className="mt-8"
+                >
+                    <div className="space-y-4">
+                        <div>
+                            <label htmlFor="webhook_path_prefix" className={labelClass}>Prefixo do Caminho do Webhook</label>
+                            <input
+                                type="text"
+                                id="webhook_path_prefix"
+                                name="webhook_path_prefix"
+                                value={localConfig.webhook_path_prefix || ''}
+                                onChange={handleChange}
+                                className={baseInputClass}
+                                placeholder="Ex: minha-empresa-123"
+                            />
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Um prefixo único para suas URLs de gatilho de automação. <strong>Não afeta o Webhook principal da Meta.</strong> 
+                                Use letras, números e hífens. <strong>Evite underscores (_)</strong>.
+                            </p>
+                        </div>
+
+                        <div className="pt-2">
+                            <h3 className="text-sm font-medium text-foreground mb-2">URL do Webhook</h3>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={webhookUrl}
+                                    className="flex-1 bg-muted/50 border border-input rounded-md px-3 py-2 text-sm text-foreground/80"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => copyToClipboard(webhookUrl, 'url')}
+                                    className="shrink-0"
+                                >
+                                    <COPY_ICON className="w-4 h-4 mr-1" />
+                                    {copyStatus.url ? 'Copiado!' : 'Copiar'}
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="pt-2">
+                            <h3 className="text-sm font-medium text-foreground mb-2">Token de Verificação</h3>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={verifyToken}
+                                    className="flex-1 bg-muted/50 border border-input rounded-md px-3 py-2 text-sm font-mono text-foreground/80"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => copyToClipboard(verifyToken, 'token')}
+                                    className="shrink-0"
+                                >
+                                    <COPY_ICON className="w-4 h-4 mr-1" />
+                                    {copyStatus.token ? 'Copiado!' : 'Copiar'}
+                                </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Use este token para validar o webhook no painel do Meta for Developers.
+                            </p>
+                        </div>
+                    </div>
+                </SettingsSection>
+
+                <div className="flex justify-end pt-4 border-t border-border/50 mt-8">
+                    <div className="flex items-center gap-4">
+                        {error && <p className="text-destructive text-sm">{error}</p>}
+                        {isSaved && <p className="text-green-600 dark:text-green-400 text-sm">Configurações salvas com sucesso!</p>}
+                        <Button 
+                            type="submit" 
+                            disabled={isSaving}
+                            className="w-full sm:w-auto"
                         >
-                            <COPY_ICON className="w-4 h-4 mr-1" />
-                            {copyStatus.token ? 'Copiado!' : 'Copiar'}
+                            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                         </Button>
                     </div>
                 </div>
-                <p className={`${infoTextClass} mt-3`}>
-                    No campo "Campos a assinar" selecione: <code className="bg-muted/50 px-1.5 py-0.5 rounded">messages</code>, 
-                    <code className="bg-muted/50 px-1.5 py-0.5 rounded mx-1">message_template_status_update</code> e 
-                    <code className="bg-muted/50 px-1.5 py-0.5 rounded mx-1">message_template_status_update</code>.
-                </p>
-            </InfoCard>
-        </>
+            </form>
+        </SettingsPage>
     );
 };
 

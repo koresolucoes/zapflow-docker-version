@@ -1,10 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import { useAuthStore } from '../../stores/authStore.js';
 import * as teamService from '../../services/teamService.js';
-import { Card } from '../../components/common/Card.js';
 import { Button } from '../../components/common/Button.js';
-import { USER_PLUS_ICON, TRASH_ICON } from '../../components/icons/index.js';
+import { USER_PLUS_ICON, TRASH_ICON, USERS_ICON } from '../../components/icons/index.js';
 import { useUiStore } from '../../stores/uiStore.js';
+import { 
+    SettingsPage, 
+    SettingsSection,
+    SettingsTable, 
+    SettingsTableRow, 
+    SettingsTableCell, 
+    SettingsActionCell
+} from '../../components/settings/SettingsPage.js';
+import { TeamMemberWithEmail } from '@/src/types/index.js';
+
+// Extendendo o tipo para incluir as propriedades adicionais necessárias
+interface ExtendedTeamMember extends TeamMemberWithEmail {
+    user_name?: string;
+    user_email: string;
+    status?: 'active' | 'pending';
+}
 
 const TeamSettings: React.FC = () => {
     const { activeTeam, user, allTeamMembers, teamLoading } = useAuthStore();
@@ -14,9 +29,18 @@ const TeamSettings: React.FC = () => {
     const [isInviting, setIsInviting] = useState(false);
     const [inviteMessage, setInviteMessage] = useState<string | null>(null);
 
-    const members = useMemo(() => {
+    const members = useMemo<ExtendedTeamMember[]>(() => {
         if (!activeTeam) return [];
-        return allTeamMembers.filter(m => m.team_id === activeTeam.id);
+        return allTeamMembers
+            .filter((m): m is TeamMemberWithEmail & { user_name?: string; status?: string } => 
+                m.team_id === activeTeam.id
+            )
+            .map(member => ({
+                ...member,
+                user_name: member.user_name || member.email.split('@')[0], // Usa o nome do usuário ou parte do email
+                user_email: member.email,
+                status: member.status as 'active' | 'pending' || 'pending' // Assume 'pending' se não houver status
+            }));
     }, [allTeamMembers, activeTeam]);
 
     const handleInvite = async (e: React.FormEvent) => {
@@ -27,10 +51,9 @@ const TeamSettings: React.FC = () => {
         setError(null);
         setInviteMessage(null);
         try {
-            const result = await teamService.inviteUserToTeam(activeTeam.id, inviteEmail, 'agent'); // O papel padrão é 'agent'
+            const result = await teamService.inviteUserToTeam(activeTeam.id, inviteEmail, 'agent');
             setInviteMessage(result.message);
             setInviteEmail('');
-            // A lista de membros não é atualizada aqui, pois o usuário precisa aceitar o convite primeiro.
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -42,8 +65,6 @@ const TeamSettings: React.FC = () => {
         if (!activeTeam) return;
         try {
             await teamService.updateTeamMemberRole(activeTeam.id, userId, newRole);
-            // The authStore listener should ideally handle this update via realtime
-            // For now, an optimistic update would be too complex, let's rely on a page refresh or realtime.
             addToast("Função atualizada. A alteração pode levar alguns instantes para ser refletida.", 'info');
         } catch (err: any) {
             addToast(`Erro ao atualizar função: ${err.message}`, 'error');
@@ -54,7 +75,7 @@ const TeamSettings: React.FC = () => {
         if (!activeTeam) return;
         showConfirmation(
             'Remover Membro',
-            "Tem certeza de que deseja remover este membro da equipe?",
+            'Tem certeza de que deseja remover este membro da equipe?',
             async () => {
                 try {
                     await teamService.removeTeamMember(activeTeam.id, userId);
@@ -67,84 +88,122 @@ const TeamSettings: React.FC = () => {
     };
 
     if (!activeTeam) {
-        return <Card><p className="text-center text-muted-foreground">Nenhuma equipe ativa selecionada.</p></Card>;
+        return (
+            <SettingsPage
+                title="Gerenciar Equipe"
+                description="Visualize e gerencie os membros da sua equipe"
+            >
+                <SettingsSection>
+                    <p className="text-center text-muted-foreground">Nenhuma equipe ativa selecionada.</p>
+                </SettingsSection>
+            </SettingsPage>
+        );
     }
     
     const isOwner = (memberUserId: string) => activeTeam.owner_id === memberUserId;
 
     const canManageTeam = useMemo(() => {
         if (!user || !activeTeam) return false;
-        // The team owner always has admin rights
         if (activeTeam.owner_id === user.id) return true;
-        // Also check if the user is an admin in the team_members table
         const memberInfo = members.find(m => m.user_id === user.id);
         return memberInfo?.role === 'admin';
     }, [user, activeTeam, members]);
 
-
     return (
-        <div className="space-y-6">
-            <Card>
-                <h2 className="text-lg font-semibold text-foreground">Convidar Novo Membro</h2>
-                <p className="text-sm text-muted-foreground mb-4">Os usuários convidados receberão um e-mail para se juntarem à sua equipe.</p>
+        <SettingsPage
+            title="Gerenciar Equipe"
+            description="Visualize e gerencie os membros da sua equipe"
+        >
+            <SettingsSection 
+                title="Convidar Novo Membro"
+                description="Os usuários convidados receberão um e-mail para se juntarem à sua equipe."
+            >
                 {error && <p className="text-destructive text-sm mb-4">{error}</p>}
-                {inviteMessage && <p className="text-success text-sm mb-4">{inviteMessage}</p>}
-                <form onSubmit={handleInvite} className="flex gap-2">
+                {inviteMessage && <p className="text-green-600 dark:text-green-400 text-sm mb-4">{inviteMessage}</p>}
+                <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-2">
                     <input
                         type="email"
                         value={inviteEmail}
                         onChange={(e) => setInviteEmail(e.target.value)}
                         placeholder="email@exemplo.com"
-                        className="w-full bg-background p-2 rounded-md text-foreground border border-input"
+                        className="flex-1 bg-background p-2 rounded-md text-foreground border border-input"
                         required
                         disabled={!canManageTeam}
                     />
-                    <Button type="submit" variant="default" isLoading={isInviting} disabled={!canManageTeam}>
-                        <USER_PLUS_ICON className="w-5 h-5 mr-2" />
-                        Convidar
+                    <Button 
+                        type="submit" 
+                        disabled={isInviting || !canManageTeam}
+                        className="w-full sm:w-auto"
+                    >
+                        <USER_PLUS_ICON className="w-4 h-4 mr-2" />
+                        {isInviting ? 'Enviando convite...' : 'Convidar'}
                     </Button>
                 </form>
-                {!canManageTeam && <p className="text-xs text-warning-foreground/80 mt-2">Apenas proprietários ou administradores podem convidar novos membros.</p>}
-            </Card>
+            </SettingsSection>
 
-            <Card>
-                <h2 className="text-lg font-semibold text-foreground mb-4">Membros da Equipe ({members.length})</h2>
-                {teamLoading ? <p>Carregando membros...</p> : (
-                    <div className="bg-accent/10 rounded-lg">
-                         <ul className="divide-y divide-border">
-                            {members.map(member => (
-                                <li key={member.user_id} className="p-3 flex justify-between items-center">
-                                    <div>
-                                        <p className="font-semibold text-foreground">{member.email}</p>
-                                        <p className="text-xs text-muted-foreground">{isOwner(member.user_id) ? 'Proprietário' : member.role === 'admin' ? 'Admin' : 'Agente'}</p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <select
-                                            value={member.role}
-                                            onChange={(e) => handleRoleChange(member.user_id, e.target.value as 'admin' | 'agent')}
-                                            disabled={isOwner(member.user_id) || !canManageTeam}
-                                            className="bg-background text-foreground text-xs p-1 rounded-md disabled:opacity-50 border border-input"
-                                        >
-                                            <option value="admin">Admin</option>
-                                            <option value="agent">Agente</option>
-                                        </select>
-                                        <Button
-                                            variant="ghost" size="sm"
-                                            onClick={() => handleRemoveMember(member.user_id)}
-                                            disabled={isOwner(member.user_id) || !canManageTeam}
-                                            className="text-destructive hover:bg-destructive/10"
-                                            title={isOwner(member.user_id) ? "O proprietário não pode ser removido." : "Remover membro"}
-                                        >
-                                            <TRASH_ICON className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </Card>
-        </div>
+            <SettingsSection 
+                title="Membros da Equipe"
+                description={`${members.length} membro(s) na equipe`}
+            >
+                <SettingsTable 
+                    headers={['Nome', 'E-mail', 'Função', 'Status']}
+                    className="mt-4"
+                >
+                    {members.map((member) => (
+                        <SettingsTableRow key={member.user_id}>
+                            <SettingsTableCell className="font-medium">
+                                {member.user_name || member.user_email?.split('@')[0] || 'Usuário sem nome'}
+                                {isOwner(member.user_id) && (
+                                    <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                        Proprietário
+                                    </span>
+                                )}
+                            </SettingsTableCell>
+                            <SettingsTableCell>
+                                {member.user_email}
+                            </SettingsTableCell>
+                            <SettingsTableCell>
+                                {isOwner(member.user_id) ? (
+                                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                                        Administrador
+                                    </span>
+                                ) : (
+                                    <select
+                                        value={member.role}
+                                        onChange={(e) => handleRoleChange(member.user_id, e.target.value as 'admin' | 'agent')}
+                                        disabled={!canManageTeam || isOwner(member.user_id)}
+                                        className="bg-background border border-input rounded px-2 py-1 text-sm"
+                                    >
+                                        <option value="admin">Administrador</option>
+                                        <option value="agent">Agente</option>
+                                    </select>
+                                )}
+                            </SettingsTableCell>
+                            <SettingsTableCell>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    member.status === 'active' 
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                }`}>
+                                    {member.status === 'active' ? 'Ativo' : 'Pendente'}
+                                </span>
+                            </SettingsTableCell>
+                            <SettingsActionCell>
+                                {!isOwner(member.user_id) && canManageTeam && (
+                                    <button
+                                        onClick={() => handleRemoveMember(member.user_id)}
+                                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                        title="Remover membro"
+                                    >
+                                        <TRASH_ICON className="w-5 h-5" />
+                                    </button>
+                                )}
+                            </SettingsActionCell>
+                        </SettingsTableRow>
+                    ))}
+                </SettingsTable>
+            </SettingsSection>
+        </SettingsPage>
     );
 };
 

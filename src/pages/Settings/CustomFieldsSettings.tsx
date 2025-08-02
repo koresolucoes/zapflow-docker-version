@@ -1,20 +1,37 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../stores/authStore.js';
-import { Card } from '../../components/common/Card.js';
 import { Button } from '../../components/common/Button.js';
-import AddCustomFieldModal from '../../components/common/AddCustomFieldModal.js';
-import { PLUS_ICON, TRASH_ICON } from '../../components/icons/index.js';
+import AddCustomFieldModal, { CustomFieldDefinition } from '../../components/common/AddCustomFieldModal.js';
+import { 
+    SettingsPage, 
+    SettingsSection,
+    SettingsTable, 
+    SettingsTableRow, 
+    SettingsTableCell, 
+    SettingsActionCell,
+    SettingsEmptyState,
+    SettingsForm,
+    SettingsFormField,
+    SettingsFormActions
+} from '../../components/settings/SettingsPage.js';
+import { 
+    PLUS_ICON, 
+    TRASH_ICON, 
+    LAYOUT_GRID_ICON,
+    EDIT_ICON as PENCIL_ICON
+} from '../../components/icons/index.js';
 import { useUiStore } from '../../stores/uiStore.js';
 
 const CustomFieldsSettings: React.FC = () => {
     const { definitions, deleteDefinition } = useAuthStore();
     const { showConfirmation, addToast } = useUiStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingField, setEditingField] = useState<CustomFieldDefinition | null>(null);
     
-    const handleDelete = async (id: string) => {
+    const handleDelete = async (id: string, name: string) => {
         showConfirmation(
-            'Excluir Campo',
-            "Tem certeza que deseja excluir este campo? Esta ação não pode ser desfeita.",
+            'Excluir Campo Personalizado',
+            `Tem certeza que deseja excluir o campo "${name}"? Esta ação não pode ser desfeita.`,
             async () => {
                 try {
                     await deleteDefinition(id);
@@ -26,46 +43,113 @@ const CustomFieldsSettings: React.FC = () => {
         );
     };
 
-    return (
-        <>
-            <Card>
-                <div className="flex justify-between items-center mb-4">
-                    <div>
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Gerenciar Campos Personalizados</h2>
-                        <p className="text-sm text-gray-500 dark:text-slate-400">Crie e gerencie campos de dados para seus contatos.</p>
-                    </div>
-                    <Button variant="default" onClick={() => setIsModalOpen(true)}>
-                        <PLUS_ICON className="w-5 h-5 mr-2" />
-                        Adicionar Campo
-                    </Button>
-                </div>
-                
-                <div className="bg-gray-50 dark:bg-slate-900/50 rounded-lg">
-                    {definitions.length > 0 ? (
-                        <ul className="divide-y divide-gray-200 dark:divide-slate-700/50">
-                            {definitions.map(def => (
-                                <li key={def.id} className="p-3 flex justify-between items-center">
-                                    <div>
-                                        <p className="font-semibold text-gray-900 dark:text-white">{def.name}</p>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400 font-mono">{def.key} - <span className="uppercase">{def.type}</span></p>
-                                    </div>
-                                    <Button variant="ghost" size="sm" onClick={() => handleDelete(def.id)} className="text-red-500 hover:bg-red-100/50 dark:text-red-400 dark:hover:bg-red-500/10">
-                                        <TRASH_ICON className="w-4 h-4" />
-                                    </Button>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-center text-gray-500 dark:text-slate-400 p-6">Nenhum campo personalizado foi criado ainda.</p>
-                    )}
-                </div>
-            </Card>
+    const handleEdit = (field: CustomFieldDefinition) => {
+        setEditingField(field);
+        setIsModalOpen(true);
+    };
 
-            <AddCustomFieldModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
-        </>
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setEditingField(null);
+    };
+
+    const handleSaveField = () => {
+        // Implementação do handleSaveField
+    };
+
+    return (
+        <SettingsPage
+            title="Campos Personalizados"
+            description="Gerencie os campos personalizados disponíveis para contatos e negócios"
+            headerAction={
+                <Button 
+                    variant="default" 
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center gap-2"
+                >
+                    <PLUS_ICON className="w-5 h-5" />
+                    Adicionar Campo
+                </Button>
+            }
+        >
+            {definitions.length > 0 ? (
+                <SettingsSection>
+                    <div className="overflow-hidden rounded-lg border border-border shadow-sm">
+                        <SettingsTable 
+                            headers={['Nome', 'Chave', 'Tipo', 'Obrigatório', 'Ações']}
+                        >
+                            {definitions.map((def) => (
+                                <SettingsTableRow key={def.id}>
+                                    <SettingsTableCell className="font-medium text-foreground">
+                                        {def.name}
+                                    </SettingsTableCell>
+                                    <SettingsTableCell className="font-mono text-sm text-muted-foreground">
+                                        {def.key}
+                                    </SettingsTableCell>
+                                    <SettingsTableCell>
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                            {def.type}
+                                        </span>
+                                    </SettingsTableCell>
+                                    <SettingsTableCell>
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                                            Opcional
+                                        </span>
+                                    </SettingsTableCell>
+                                    <SettingsActionCell>
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => handleEdit(def)}
+                                                className="text-primary hover:text-primary/80 transition-colors"
+                                                title="Editar"
+                                            >
+                                                <PENCIL_ICON className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(def.id, def.name)}
+                                                className="text-destructive hover:text-destructive/80 transition-colors"
+                                                title="Excluir"
+                                            >
+                                                <TRASH_ICON className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </SettingsActionCell>
+                                </SettingsTableRow>
+                            ))}
+                        </SettingsTable>
+                    </div>
+                </SettingsSection>
+            ) : (
+                <SettingsEmptyState
+                    icon={<LAYOUT_GRID_ICON className="mx-auto h-12 w-12 text-muted-foreground" />}
+                    title="Nenhum campo personalizado"
+                    description="Comece criando seu primeiro campo personalizado para adicionar informações adicionais aos seus contatos e negócios."
+                    action={
+                        <Button
+                            type="button"
+                            variant="default"
+                            onClick={() => setIsModalOpen(true)}
+                            className="mt-4"
+                        >
+                            <PLUS_ICON className="w-5 h-5 mr-2" />
+                            Criar Campo Personalizado
+                        </Button>
+                    }
+                />
+            )}
+
+            {isModalOpen && (
+                <AddCustomFieldModal
+                    isOpen={isModalOpen}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        setEditingField(null);
+                    }}
+                    initialData={editingField || undefined}
+                    onSave={handleSaveField}
+                />
+            )}
+        </SettingsPage>
     );
 };
 

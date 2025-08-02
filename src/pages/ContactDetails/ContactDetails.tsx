@@ -70,8 +70,6 @@ const ContactDetails: React.FC = () => {
     const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
     const [isTimelineLoading, setIsTimelineLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
-    const [isEditingTags, setIsEditingTags] = useState(false);
-    const [activeTab, setActiveTab] = useState<'activities' | 'deals'>('activities');
     const [error, setError] = useState<string | null>(null);
 
     // Reset loading state when contactId changes
@@ -225,7 +223,6 @@ const ContactDetails: React.FC = () => {
             await updateContact(localContact);
             addToast('Contato atualizado com sucesso!', 'success');
             setIsEditing(false);
-            setIsEditingTags(false);
         } catch (error) {
             console.error('Erro ao salvar contato:', error);
             addToast('Erro ao salvar contato', 'error');
@@ -234,23 +231,38 @@ const ContactDetails: React.FC = () => {
         }
     };
 
+    // Função para lidar com a adição de tags
+    const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+            e.preventDefault();
+            const newTag = tagInput.trim().toLowerCase();
+            if (!localContact.tags?.includes(newTag)) {
+                const updatedTags = [...(localContact.tags || []), newTag];
+                setLocalContact({...localContact, tags: updatedTags});
+            }
+            setTagInput('');
+        }
+    };
+
+    // Função para lidar com a remoção de tags
+    const handleRemoveTag = (tagToRemove: string) => {
+        const newTags = localContact.tags?.filter(tag => tag !== tagToRemove) || [];
+        setLocalContact({...localContact, tags: newTags});
+    };
+
     // Renderização dos campos personalizados
-    const renderCustomFields = () => {
+    const renderCustomFieldsSection = () => {
         if (!customFieldDefs || customFieldDefs.length === 0) {
             return (
-                <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
-                    <TAG_ICON className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
-                    <p className="text-sm">Nenhum campo personalizado criado</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">
-                        Adicione campos personalizados nas configurações
-                    </p>
+                <div className="text-center py-4 text-muted-foreground">
+                    <p>Nenhum campo personalizado configurado.</p>
                     <Button 
-                        variant="outline" 
+                        variant="link" 
                         size="sm" 
-                        className="mt-4"
+                        className="mt-2"
                         onClick={() => setCurrentPage('settings', { tab: 'custom-fields' })}
                     >
-                        Ir para Configurações
+                        Configurar campos personalizados
                     </Button>
                 </div>
             );
@@ -258,35 +270,25 @@ const ContactDetails: React.FC = () => {
 
         return (
             <div className="space-y-4">
-                {customFieldDefs.map((def: CustomFieldDefinition) => {
-                    const customFields = (localContact?.custom_fields || {}) as { [key: string]: any };
-                    const value = customFields[def.key] ?? '';
-                    
-                    return (
-                        <div key={def.id} className="space-y-1">
-                            <label className="block text-sm font-medium text-muted-foreground">
-                                {def.name}
-                            </label>
-                            {isEditing ? (
-                                <input
-                                    type={def.type === 'NUMERO' ? 'number' : 'text'}
-                                    value={value}
-                                    onChange={(e) => {
-                                        const newValue = def.type === 'NUMERO' 
-                                            ? parseFloat(e.target.value) || 0 
-                                            : e.target.value;
-                                        handleCustomFieldChange(def.key, newValue);
-                                    }}
-                                    className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-sm"
-                                />
-                            ) : (
-                                <div className="text-sm text-foreground p-2 bg-muted/30 rounded-md min-h-[40px]">
-                                    {value || <span className="text-muted-foreground/70">Não informado</span>}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
+                {customFieldDefs.map((field) => (
+                    <div key={field.id} className="space-y-1.5">
+                        <label className="block text-sm font-medium text-muted-foreground">
+                            {field.name}
+                        </label>
+                        <input
+                            type={field.type === 'number' ? 'number' : 'text'}
+                            value={localContact.custom_fields?.[field.key]?.toString() || ''}
+                            onChange={(e) => {
+                                const value = field.type === 'number' 
+                                    ? parseFloat(e.target.value) || 0
+                                    : e.target.value;
+                                handleCustomFieldChange(field.key, value);
+                            }}
+                            className="w-full bg-background p-2 rounded-md text-foreground border border-input focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                            placeholder={`Digite ${field.name.toLowerCase()}`}
+                        />
+                    </div>
+                ))}
             </div>
         );
     };
@@ -487,99 +489,29 @@ const ContactDetails: React.FC = () => {
                                 
                                 {/* Tags */}
                                 <div className="space-y-1.5">
-                                    <div className="flex justify-between items-center">
-                                        <label className="block text-sm font-medium text-muted-foreground">Tags</label>
-                                        {!isEditingTags ? (
-                                            <Button 
-                                                type="button" 
-                                                variant="ghost" 
-                                                size="sm" 
-                                                onClick={() => setIsEditingTags(true)}
-                                                className="h-7 text-xs"
-                                            >
-                                                <EDIT_ICON className="w-3 h-3 mr-1" /> Editar
-                                            </Button>
-                                        ) : null}
+                                    <label className="block text-sm font-medium text-muted-foreground">Tags</label>
+                                    <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-[42px]">
+                                        {localContact.tags?.map((tag, index) => (
+                                            <div key={index} className="inline-flex items-center bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full">
+                                                {tag}
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => handleRemoveTag(tag)}
+                                                    className="ml-1.5 text-primary/70 hover:text-primary"
+                                                >
+                                                    &times;
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <input
+                                            type="text"
+                                            value={tagInput}
+                                            onChange={(e) => setTagInput(e.target.value)}
+                                            onKeyDown={handleAddTag}
+                                            placeholder="Digite uma tag e pressione Enter"
+                                            className="flex-1 min-w-[150px] bg-transparent text-foreground placeholder:text-muted-foreground/50 focus:outline-none text-sm"
+                                        />
                                     </div>
-                                    
-                                    {isEditingTags ? (
-                                        <div className="space-y-2">
-                                            <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-[42px]">
-                                                {localContact.tags?.map((tag) => (
-                                                    <div key={tag} className="inline-flex items-center bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full">
-                                                        {tag}
-                                                        <button 
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newTags = localContact.tags?.filter(t => t !== tag) || [];
-                                                                setLocalContact({...localContact, tags: newTags});
-                                                            }}
-                                                            className="ml-1.5 text-primary/70 hover:text-primary"
-                                                        >
-                                                            &times;
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                <input
-                                                    type="text"
-                                                    value={tagInput}
-                                                    onChange={(e) => setTagInput(e.target.value)}
-                                                    onKeyDown={(e) => {
-                                                        if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
-                                                            e.preventDefault();
-                                                            const newTag = tagInput.trim().toLowerCase();
-                                                            if (!localContact.tags?.includes(newTag)) {
-                                                                const updatedTags = [...(localContact.tags || []), newTag];
-                                                                setLocalContact({...localContact, tags: updatedTags});
-                                                            }
-                                                            setTagInput('');
-                                                        }
-                                                    }}
-                                                    placeholder="Digite uma tag e pressione Enter"
-                                                    className="flex-1 min-w-[100px] bg-transparent text-foreground placeholder:text-muted-foreground/50 focus:outline-none text-sm"
-                                                />
-                                            </div>
-                                            <div className="flex justify-end gap-2">
-                                                <Button 
-                                                    type="button" 
-                                                    variant="outline" 
-                                                    size="sm" 
-                                                    onClick={() => {
-                                                        setIsEditingTags(false);
-                                                        // Reverter para os valores originais se cancelar
-                                                        if (storeContactDetails) {
-                                                            setLocalContact(storeContactDetails);
-                                                        }
-                                                    }}
-                                                >
-                                                    Cancelar
-                                                </Button>
-                                                <Button 
-                                                    type="button" 
-                                                    size="sm" 
-                                                    onClick={handleSaveContact}
-                                                    disabled={isSaving}
-                                                >
-                                                    {isSaving ? 'Salvando...' : 'Salvar'}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-wrap gap-1.5 p-2 min-h-[42px] border rounded-md">
-                                            {localContact.tags?.length ? (
-                                                localContact.tags.map(tag => (
-                                                    <span 
-                                                        key={tag} 
-                                                        className="inline-flex items-center bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full"
-                                                    >
-                                                        {tag}
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span className="text-sm text-muted-foreground/70">Nenhuma tag adicionada</span>
-                                            )}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                             
@@ -588,7 +520,6 @@ const ContactDetails: React.FC = () => {
                                     variant="outline" 
                                     onClick={() => {
                                         setIsEditing(false);
-                                        setIsEditingTags(false);
                                         if (storeContactDetails) {
                                             setLocalContact(storeContactDetails);
                                         }
@@ -628,7 +559,7 @@ const ContactDetails: React.FC = () => {
                             </Button>
                         </div>
                         <div className="p-4">
-                            {renderCustomFields()}
+                            {renderCustomFieldsSection()}
                         </div>
                     </Card>
                 </div>

@@ -102,13 +102,21 @@ export const addContactToDb = async (teamId: string, contact: EditableContact): 
 };
 
 export const updateContactInDb = async (teamId: string, updatedContact: Contact): Promise<Contact> => {
+    // Ensure tags is always an array, even if empty
+    const tags = Array.isArray(updatedContact.tags) ? updatedContact.tags : [];
+    
+    // Ensure custom_fields is always an object, even if empty
+    const customFields = updatedContact.custom_fields && typeof updatedContact.custom_fields === 'object' 
+        ? updatedContact.custom_fields 
+        : {};
+
     const updatePayload: TablesUpdate<'contacts'> = {
         name: updatedContact.name,
         phone: normalizePhoneNumber(updatedContact.phone),
         email: updatedContact.email,
         company: updatedContact.company,
-        tags: updatedContact.tags,
-        custom_fields: updatedContact.custom_fields,
+        tags: tags, // Ensure tags is always an array
+        custom_fields: customFields, // Ensure custom_fields is always an object
     };
 
     const { data, error } = await supabase
@@ -119,7 +127,11 @@ export const updateContactInDb = async (teamId: string, updatedContact: Contact)
         .select('*')
         .single();
 
-    if (error) throw error;
+    if (error) {
+        console.error('Error updating contact:', error);
+        throw error;
+    }
+    
     return data as unknown as Contact;
 };
 

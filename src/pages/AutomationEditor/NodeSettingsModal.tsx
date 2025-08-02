@@ -64,20 +64,22 @@ const NodeSettingsModal: React.FC<NodeSettingsModalProps> = ({
             className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             onClick={onClose}
         >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm dark:bg-black/70"></div>
             
             <div 
-                className={`bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 w-full ${modalWidthClass} max-h-[90vh] flex flex-col transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+                className={`bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full ${modalWidthClass} max-h-[90vh] flex flex-col transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
                 onClick={(e) => e.stopPropagation()}
             >
-                <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-slate-700">
-                    <h3 className="text-xl font-bold text-white">{data.label}</h3>
+                <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{data.label}</h3>
                     <Button variant="ghost" size="sm" onClick={onClose}>
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        <svg className="w-6 h-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </Button>
                 </header>
                 
-                <main className={`flex-grow overflow-y-auto ${mainPaddingClass}`}>
+                <main className={`flex-grow overflow-y-auto ${mainPaddingClass} bg-white dark:bg-slate-800`}>
                     <SettingsComponent 
                        node={node}
                        onConfigChange={handleConfigChange}
@@ -91,8 +93,10 @@ const NodeSettingsModal: React.FC<NodeSettingsModalProps> = ({
                     />
                 </main>
 
-                <footer className="flex-shrink-0 p-4 border-t border-slate-700 flex justify-end">
-                    <Button variant="ghost" onClick={onClose}>Fechar</Button>
+                <footer className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-slate-700 flex justify-end bg-gray-50 dark:bg-slate-800/50">
+                    <Button variant="ghost" onClick={onClose} className="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
+                        Fechar
+                    </Button>
                 </footer>
             </div>
         </div>

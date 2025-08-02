@@ -85,18 +85,30 @@ const CustomDeletableEdge: FC<XyEdgeProps> = ({
 // ====================================================================================
 
 const nodeStyles = {
-    base: "relative bg-card border-t-4 rounded-xl shadow-sm text-foreground w-72 group cursor-pointer",
+    base: "relative rounded-xl shadow-sm w-72 group cursor-pointer transition-all duration-200 hover:shadow-md",
     body: "p-4 space-y-2",
     header: "flex items-center gap-3",
     iconContainer: "flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg",
-    trigger: "border-border",
-    action: "border-primary",
-    logic: "border-secondary",
-    triggerIconBg: "bg-muted/50",
-    actionIconBg: "bg-primary/10",
-    logicIconBg: "bg-secondary/10",
-    label: "text-base font-semibold",
-    description: "text-xs text-muted-foreground min-h-[16px]",
+    
+    // Node type specific styles - Light mode first, dark mode with dark: prefix
+    trigger: "bg-white dark:bg-card border-2 border-blue-200 dark:border-blue-700",
+    action: "bg-white dark:bg-card border-2 border-purple-200 dark:border-purple-700",
+    logic: "bg-white dark:bg-card border-2 border-emerald-200 dark:border-emerald-700",
+    
+    // Icon background colors - Light mode first, dark mode with dark: prefix
+    triggerIconBg: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+    actionIconBg: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
+    logicIconBg: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
+    
+    // Text styles
+    label: "text-base font-semibold text-gray-900 dark:text-foreground",
+    description: "text-sm text-gray-600 dark:text-muted-foreground min-h-[16px]",
+    
+    // Hover effects - Light mode first, dark mode with dark: prefix
+    hover: "hover:ring-2 hover:ring-offset-2 hover:ring-opacity-50",
+    triggerHover: "hover:ring-blue-200 dark:hover:ring-blue-900/50",
+    actionHover: "hover:ring-purple-200 dark:hover:ring-purple-900/50",
+    logicHover: "hover:ring-emerald-200 dark:hover:ring-emerald-900/50",
 };
 
 const CustomNode: FC<NodeProps<AutomationNode>> = memo(({ data, id, isConnectable }) => {
@@ -120,7 +132,12 @@ const CustomNode: FC<NodeProps<AutomationNode>> = memo(({ data, id, isConnectabl
 
 
     return (
-        <div className={`${nodeStyles.base} ${nodeStyles[nodeType]}`}>
+        <div 
+            className={`${nodeStyles.base} ${nodeStyles[nodeType]} ${nodeStyles[`${nodeType}Hover`]}`}
+            style={{
+                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+            }}
+        >
              <button
                 onClick={handleDeleteNode}
                 className="absolute top-2 right-2 p-1 rounded-full text-muted-foreground hover:bg-muted/50 dark:hover:bg-muted/50 hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity z-10"

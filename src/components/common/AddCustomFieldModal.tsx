@@ -1,18 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore.js';
 import { CustomFieldDefinitionInsert } from '../../types/index.js';
 import Modal from './Modal.js';
 import { Button } from './Button.js';
 import { cn } from '../../lib/utils.js';
 
+export type CustomFieldDefinition = Omit<CustomFieldDefinitionInsert, 'team_id' | 'created_at'> & {
+    id?: string;
+};
+
 interface AddCustomFieldModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialData?: CustomFieldDefinition;
+    onSave: (field: CustomFieldDefinition) => Promise<void> | void;
 }
 
-type EditableDefinition = Omit<CustomFieldDefinitionInsert, 'id' | 'team_id' | 'created_at'>;
+type EditableDefinition = Omit<CustomFieldDefinition, 'id' | 'team_id' | 'created_at'>;
 
-const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({ isOpen, onClose }) => {
+const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({ 
+    isOpen, 
+    onClose, 
+    initialData,
+    onSave 
+}) => {
     const { addDefinition } = useAuthStore();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -22,6 +33,19 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({ isOpen, onClo
         type: 'TEXTO',
         options: null,
     });
+
+    // Reset form when modal opens or initialData changes
+    useEffect(() => {
+        if (isOpen) {
+            setError(null);
+            if (initialData) {
+                const { id, ...rest } = initialData;
+                setFormData(rest);
+            } else {
+                setFormData({ name: '', key: '', type: 'TEXTO', options: null });
+            }
+        }
+    }, [isOpen, initialData]);
 
     const slugify = (text: string) =>
         text.toString().toLowerCase()
@@ -37,108 +61,93 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({ isOpen, onClo
         
         if (name === 'name') {
             setFormData(prev => ({ ...prev, name: value, key: slugify(value) }));
+        } else if (name === 'options' && value) {
+            const options = value.split(',').map(opt => opt.trim()).filter(opt => opt);
+            setFormData(prev => ({ ...prev, options: options.length ? options : null }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
 
-    const handleOpen = () => {
-        setError(null);
-        setFormData({ name: '', key: '', type: 'TEXTO', options: null });
-    };
-
-    // Effect to reset form when modal opens
-    React.useEffect(() => {
-        if (isOpen) {
-            handleOpen();
-        }
-    }, [isOpen]);
-
-    const handleSave = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.name || !formData.key) {
-            setError("Nome e Chave do campo são obrigatórios.");
+        
+        if (!formData.name.trim()) {
+            setError('O nome do campo é obrigatório');
             return;
         }
-        
+
         setIsLoading(true);
         setError(null);
-        
+
         try {
-            const definitionToSave: Omit<CustomFieldDefinitionInsert, 'team_id' | 'id' | 'created_at'> = {
-                name: formData.name,
-                key: formData.key,
-                type: formData.type,
-                options: formData.type === 'LISTA' ? formData.options?.toString().split(',').map((o: string) => o.trim()).filter(Boolean) || [] : null
+            const fieldData: CustomFieldDefinition = {
+                ...formData,
+                ...(initialData?.id && { id: initialData.id })
             };
-            await addDefinition(definitionToSave);
+            
+            await onSave(fieldData);
             onClose();
         } catch (err: any) {
-            setError(err.message);
+            console.error('Erro ao salvar campo personalizado:', err);
+            setError(err.message || 'Ocorreu um erro ao salvar o campo');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const inputClass = cn(
-        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
-        "file:border-0 file:bg-transparent file:text-sm file:font-medium",
-        "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2",
-        "focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-    );
-
-    const textareaClass = cn(
-        "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
-        "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2",
-        "focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-    );
-
-    const labelClass = "block text-sm font-medium text-foreground mb-1";
-    const helperTextClass = "text-xs text-muted-foreground mt-1";
-
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Adicionar Campo Personalizado">
-            <form onSubmit={handleSave} className="space-y-4">
-                {error && (
-                    <div className="p-3 text-sm rounded-md bg-destructive/10 text-destructive-foreground border border-destructive/20">
-                        {error}
-                    </div>
-                )}
-                
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={initialData ? 'Editar Campo Personalizado' : 'Adicionar Campo Personalizado'}
+        >
+            <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className={labelClass}>Nome do Campo</label>
-                    <input 
-                        name="name" 
-                        value={formData.name} 
-                        onChange={handleFormChange} 
-                        placeholder="Ex: Data de Nascimento" 
-                        className={inputClass} 
-                        required 
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Nome do Campo *
+                    </label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        placeholder="Ex: Tamanho da Camiseta"
+                        required
                     />
                 </div>
-                
+
                 <div>
-                    <label className={labelClass}>Chave do Campo</label>
-                    <input 
-                        name="key" 
-                        value={formData.key} 
-                        onChange={handleFormChange} 
-                        placeholder="Ex: data_nascimento" 
-                        className={cn(inputClass, "font-mono")} 
-                        required 
+                    <label htmlFor="key" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Chave (identificador único)
+                    </label>
+                    <input
+                        type="text"
+                        id="key"
+                        name="key"
+                        value={formData.key}
+                        onChange={handleFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
+                        readOnly
                     />
-                    <p className={helperTextClass}>
-                        Identificador único para o campo (sem espaços ou caracteres especiais).
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Este valor será usado para identificar o campo no sistema.
                     </p>
                 </div>
-                
+
                 <div>
-                    <label className={labelClass}>Tipo de Campo</label>
-                    <select 
-                        name="type" 
-                        value={formData.type} 
-                        onChange={handleFormChange} 
-                        className={inputClass}
+                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Tipo de Campo *
+                    </label>
+                    <select
+                        id="type"
+                        name="type"
+                        value={formData.type}
+                        onChange={handleFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        required
                     >
                         <option value="TEXTO">Texto</option>
                         <option value="NUMERO">Número</option>
@@ -146,39 +155,45 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({ isOpen, onClo
                         <option value="LISTA">Lista de Opções</option>
                     </select>
                 </div>
-                
+
                 {formData.type === 'LISTA' && (
                     <div>
-                        <label className={labelClass}>Opções da Lista</label>
-                        <textarea 
-                            name="options" 
-                            value={Array.isArray(formData.options) ? formData.options.join(', ') : formData.options || ''} 
-                            onChange={handleFormChange} 
-                            rows={3} 
-                            placeholder="Opção 1, Opção 2, Opção 3" 
-                            className={textareaClass} 
+                        <label htmlFor="options" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Opções (separadas por vírgula) *
+                        </label>
+                        <input
+                            type="text"
+                            id="options"
+                            name="options"
+                            value={formData.options?.join(', ') || ''}
+                            onChange={handleFormChange}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                            placeholder="Ex: P, M, G, GG"
+                            required={formData.type === 'LISTA'}
                         />
-                        <p className={helperTextClass}>
-                            Separe as opções por vírgula.
-                        </p>
                     </div>
                 )}
-                
-                <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                    <Button 
-                        type="button" 
-                        variant="outline" 
+
+                {error && (
+                    <div className="p-3 text-sm text-red-700 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded-md">
+                        {error}
+                    </div>
+                )}
+
+                <div className="flex justify-end space-x-3 pt-4">
+                    <Button
+                        type="button"
+                        variant="outline"
                         onClick={onClose}
                         disabled={isLoading}
                     >
                         Cancelar
                     </Button>
-                    <Button 
-                        type="submit" 
-                        variant="default" 
-                        isLoading={isLoading}
+                    <Button
+                        type="submit"
+                        disabled={isLoading}
                     >
-                        Salvar
+                        {isLoading ? 'Salvando...' : 'Salvar Campo'}
                     </Button>
                 </div>
             </form>
