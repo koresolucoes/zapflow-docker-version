@@ -228,65 +228,77 @@ export const useAuthStore = create<AuthState>((set, get) => {
                 set({ teamLoading: true });
             }
             
-            const { data, error } = await supabase.rpc('get_user_teams_and_profile');
-
-            if (error) {
-                console.error("Erro crítico ao buscar perfil e equipes via RPC.", error);
-                set({ loading: false, teamLoading: false });
-                return;
-            }
-
-            const { profile: profileData, teams: teamsData } = data as unknown as { profile: Profile | null, teams: Team[] | null };
-            let teams = (teamsData || []).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-            
-            let allTeamMembers: TeamMemberWithEmail[] = [];
-
-            if (teams.length === 0) {
-                console.warn(`O usuário ${user.id} não possui equipes. Acionando a criação da equipe padrão via API.`);
-                try {
-                    const setupResponse = await fetch('/api/setup-new-user', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: user.id, email: user.email })
+            try {
+                console.log('Initializing user session for:', user.email);
+                
+                // First, try to get user teams and profile
+                console.log('Fetching user teams and profile...');
+                let { data: userData, error: userError } = await supabase.rpc('get_user_teams_and_profile');
+                
+                // If user data is not found, it's a new user - run setup
+                if (userError || !userData) {
+                    console.log('No user data found, setting up new user...');
+                    const { data: setupData, error: setupError } = await supabase.rpc('setup_new_user', {
+                        user_id: user.id,
+                        user_email: user.email
                     });
 
-                    if (!setupResponse.ok) throw new Error(await setupResponse.text());
+                    if (setupError) {
+                        console.error('Error setting up new user:', setupError);
+                        throw setupError;
+                    }
+                    console.log('New user setup complete:', setupData);
 
+                    // After setup, fetch the user data again
                     const { data: refetchData, error: refetchError } = await supabase.rpc('get_user_teams_and_profile');
-                    if (refetchError) throw refetchError;
-
-                    const { teams: newTeamsData } = refetchData as unknown as { teams: Team[] | null };
-                    teams = (newTeamsData || []).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-
-                } catch (creationError) {
-                    console.error("Falha na lógica de fallback para criar equipe padrão:", creationError);
+                    
+                    if (refetchError) {
+                        console.error('Error fetching user data after setup:', refetchError);
+                        throw refetchError;
+                    }
+                    
+                    userData = refetchData;
                 }
-            }
 
-            if (teams.length > 0) {
-                const teamIds = teams.map(t => t.id);
-                try {
-                    allTeamMembers = await teamService.getTeamMembersForTeams(teamIds);
-                } catch(err) {
-                    console.error("Não foi possível buscar os membros da equipe.", err);
+                // Parse the response
+                const { profile: profileData, teams: teamsData } = userData as { 
+                    profile: Profile | null, 
+                    teams: Team[] | null 
+                };
+                
+                if (!profileData) {
+                    throw new Error('Failed to load user profile');
                 }
-            }
-            
-            const currentActiveTeam = get().activeTeam;
-            const newActiveTeamIsValid = teams.some(t => t.id === currentActiveTeam?.id);
-            const activeTeam = isRefresh && newActiveTeamIsValid ? currentActiveTeam : teams[0] || null;
-            
-            set({ 
-                profile: profileData,
-                userTeams: teams,
-                allTeamMembers,
-                activeTeam,
-                teamLoading: false,
-                loading: isRefresh ? get().loading : false
-            });
 
-            if (activeTeam) {
-                _setupSubscriptionsForTeam(activeTeam.id);
+                // Sort teams by creation date
+                const teams = (teamsData || []).sort((a, b) => 
+                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                );
+
+                // Set active team (first team by default)
+                const activeTeam = teams.length > 0 ? teams[0] : null;
+
+                // Update state
+                set({
+                    profile: profileData,
+                    userTeams: teams,
+                    activeTeam,
+                    loading: false,
+                    teamLoading: false
+                });
+
+                console.log('User session initialized successfully');
+                
+                // Load initial data if we have an active team
+                if (activeTeam) {
+                    console.log('Loading initial data for team:', activeTeam.id);
+                    get().fetchInitialData(activeTeam.id);
+                }
+
+            } catch (error) {
+                console.error("Error initializing user session:", error);
+                set({ loading: false, teamLoading: false });
+                return;
             }
 
         } else {
@@ -295,8 +307,6 @@ export const useAuthStore = create<AuthState>((set, get) => {
             get().clearSubscriptions();
         }
     };
-
-    supabase.auth.getSession().then(({ data: { session } }) => handleSession(session));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: Session | null) => {
       if (event === 'SIGNED_OUT') {
@@ -416,15 +426,12 @@ export const useAuthStore = create<AuthState>((set, get) => {
     }));
 
     // Fire and forget automation trigger
-    fetch('/api/run-trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            eventType: 'contact_created',
-            userId: user.id,
-            contactId: newContact.id,
-        })
-    }).catch(e => console.error("Failed to run 'contact_created' trigger:", e));
+    const { error } = await supabase.rpc('run-trigger', {
+        event_type: 'contact_created',
+        user_id: user.id,
+        contact_id: newContact.id
+    });
+    if (error) console.error("Failed to run 'contact_created' trigger:", error);
   },
   updateContact: async (contact: Contact) => {
     const { activeTeam, user, contacts } = get();
@@ -454,16 +461,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
     // Fire automation trigger for added tags
     if (addedTags.length > 0) {
-        fetch('/api/run-trigger', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                eventType: 'tags_added',
-                userId: user.id,
-                contactId: updatedContact.id,
-                data: { addedTags }
-            })
-        }).catch(e => console.error("Failed to run 'tags_added' trigger:", e));
+        const { error } = await supabase.rpc('run-trigger', {
+            event_type: 'tags_added',
+            user_id: user.id,
+            contact_id: updatedContact.id,
+            payload: { added_tags: addedTags }
+        });
+        if (error) console.error("Failed to run 'tags_added' trigger:", error);
     }
   },
   deleteContact: async (contactId: string) => {
@@ -589,16 +593,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
     set(state => ({ deals: [newDeal, ...state.deals] }));
 
     // Fire and forget automation trigger
-    fetch('/api/run-trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            eventType: 'deal_created',
-            userId: user.id,
-            contactId: newDeal.contact_id,
-            data: { deal: newDeal }
-        })
-    }).catch(e => console.error("Failed to run 'deal_created' trigger:", e));
+    const { error } = await supabase.rpc('run-trigger', {
+        event_type: 'deal_created',
+        user_id: user.id,
+        contact_id: newDeal.contact_id,
+        payload: { deal: newDeal }
+    });
+    if (error) console.error("Failed to run 'deal_created' trigger:", error);
   },
   updateDeal: async (dealId: string, updates: TablesUpdate<'deals'>) => {
     const { activeTeam, user, deals } = get();
@@ -615,16 +616,16 @@ export const useAuthStore = create<AuthState>((set, get) => {
     
     // Fire automation trigger if stage changed
     if (updates.stage_id && originalDeal && originalDeal.stage_id !== updates.stage_id) {
-        fetch('/api/run-trigger', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                eventType: 'deal_stage_changed',
-                userId: user.id,
-                contactId: updatedDeal.contact_id,
-                data: { deal: updatedDeal, new_stage_id: updates.stage_id }
-            })
-        }).catch(e => console.error("Failed to run 'deal_stage_changed' trigger:", e));
+        const { error } = await supabase.rpc('run-trigger', {
+            event_type: 'deal_stage_changed',
+            user_id: user.id,
+            contact_id: updatedDeal.contact_id,
+            payload: { 
+                deal: updatedDeal, 
+                new_stage_id: updates.stage_id 
+            }
+        });
+        if (error) console.error("Failed to run 'deal_stage_changed' trigger:", error);
     }
   },
   deleteDeal: async (dealId: string) => {

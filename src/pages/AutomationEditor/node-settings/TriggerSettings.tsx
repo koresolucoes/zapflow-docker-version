@@ -40,7 +40,7 @@ const TriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange, pr
     };
 
     const webhookPath = useMemo(() => `${profile?.webhook_path_prefix || profile?.id}__${node.id}`, [profile, node.id]);
-    const webhookUrl = `/api/trigger/${webhookPath}`;
+    const webhookUrl = `${import.meta.env.VITE_APP_URL || window.location.origin}/api/trigger/${webhookPath}`;
 
     const updateMapping = (updater: (draft: any[]) => any[]) => {
         const currentMapping = config.data_mapping || [];

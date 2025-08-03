@@ -39,10 +39,27 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
     const isStagnant = stagnantDays > 7;
 
     const statusStyles = {
-        Aberto: 'bg-primary/10 text-primary border-primary/20',
-        Ganho: 'bg-success/10 text-success border-success/20',
-        Perdido: 'bg-destructive/10 text-destructive border-destructive/20',
+        Aberto: {
+            bg: 'bg-primary/10',
+            text: 'text-primary',
+            border: 'border-primary/20',
+            glow: 'glow-primary',
+        },
+        Ganho: {
+            bg: 'bg-success/10',
+            text: 'text-success',
+            border: 'border-success/20',
+            glow: 'glow-success',
+        },
+        Perdido: {
+            bg: 'bg-destructive/10',
+            text: 'text-destructive',
+            border: 'border-destructive/20',
+            glow: 'glow-destructive',
+        },
     };
+
+    const currentStatus = statusStyles[deal.status] || statusStyles['Aberto'];
 
     const valueColor = {
         Aberto: 'text-foreground',
@@ -56,22 +73,28 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
             onDragStart={handleDragStart}
             className={cn(
                 'p-4 bg-card rounded-lg transition-all duration-200',
-                'border border-border/50 hover:border-primary/50',
+                'border border-border/50',
                 'cursor-grab active:cursor-grabbing',
                 'shadow-sm hover:shadow-md',
                 isGhost ? 'opacity-30' : 'opacity-100',
                 'group relative overflow-hidden',
                 'flex flex-col gap-2',
                 'hover:-translate-y-0.5',
-                'dark:hover:shadow-sky-500/10'
+                'dark:hover:shadow-sky-500/10',
+                'glow-effect', 
+                currentStatus.glow, 
+                'hover:glow-active', 
+                currentStatus.border
             )}
         >
             {/* Header with title and status */}
-            <div className="flex justify-between items-start gap-2">
+            <div className="flex justify-between items-start gap-2 relative z-10">
                 <h3 className="font-medium text-foreground line-clamp-2 pr-8">{deal.name}</h3>
                 <span className={cn(
                     'px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap',
-                    statusStyles[deal.status]
+                    currentStatus.bg,
+                    currentStatus.text,
+                    currentStatus.border
                 )}>
                     {deal.status}
                 </span>
@@ -79,7 +102,7 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
 
             {/* Contact info */}
             <div 
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:underline cursor-pointer" 
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary hover:underline cursor-pointer relative z-10" 
                 onClick={navigateToContact}
             >
                 <USERS_ICON className="w-3.5 h-3.5 flex-shrink-0" />
@@ -88,7 +111,7 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
 
             {/* Value */}
             <p className={cn(
-                "text-xl font-semibold mt-1",
+                "text-xl font-semibold mt-1 relative z-10",
                 valueColor[deal.status]
             )}>
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deal.value || 0)}
@@ -96,14 +119,14 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
 
             {/* Stagnant warning */}
             {isStagnant && (
-                <div className="flex items-center gap-1.5 text-xs text-warning mt-1">
+                <div className="flex items-center gap-1.5 text-xs text-warning mt-1 relative z-10">
                     <CALENDAR_ICON className="w-3.5 h-3.5 flex-shrink-0" />
                     <span>Parado há {stagnantDays} dias</span>
                 </div>
             )}
 
             {/* Action buttons */}
-            <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/50">
+            <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/50 relative z-10">
                 <Button 
                     variant="ghost" 
                     size="sm" 

@@ -22,6 +22,7 @@ const Automations = lazy(() => import('./pages/Automations/Automations.js'));
 const AutomationEditor = lazy(() => import('./pages/AutomationEditor/AutomationEditor.js'));
 const Inbox = lazy(() => import('./pages/Inbox/Inbox.js'));
 const WebhookInspector = lazy(() => import('./pages/WebhookInspector/WebhookInspector.js'));
+const Metrics = lazy(() => import('./pages/Metrics/Metrics.js'));
 
 const PageSuspenseFallback = () => (
     <div className="flex items-center justify-center w-full h-full p-10">
@@ -108,6 +109,8 @@ const App: React.FC = () => {
         return <Settings />;
       case 'webhook-inspector':
         return <WebhookInspector />;
+      case 'metrics':
+        return <Metrics />;
       default:
         return <Dashboard />;
     }

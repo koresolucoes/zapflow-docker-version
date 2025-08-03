@@ -49,6 +49,12 @@
     /* Cards */
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
+
+    /* Cores de brilho */
+    --glow-primary: 240 5.9% 10%;
+    --glow-success: 142 76% 36%;
+    --glow-warning: 38 92% 50%;
+    --glow-destructive: 0 84.2% 60.2%;
   }
 
   .dark {
@@ -88,5 +94,72 @@
     
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
+
+    /* Ajustes de brilho para o tema escuro */
+    --glow-primary: 0 0% 98%;
+    --glow-success: 142 76% 46%;
+    --glow-warning: 38 92% 60%;
+    --glow-destructive: 0 84.2% 70.2%;
+  }
+}
+
+@layer utilities {
+  /* Efeito de brilho base */
+  .glow-effect {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .glow-effect::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: transparent;
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Estado ativo (sempre visível) */
+  .glow-active::before {
+    opacity: 1 !important;
+  }
+
+  /* Cores de brilho */
+  .glow-primary::before {
+    background: linear-gradient(135deg, hsl(var(--glow-primary) / 0.8), hsl(var(--glow-primary) / 0.4));
+    box-shadow: 0 0 15px 2px hsl(var(--glow-primary) / 0.3);
+  }
+
+  .glow-success::before {
+    background: linear-gradient(135deg, hsl(var(--glow-success) / 0.8), hsl(var(--glow-success) / 0.4));
+    box-shadow: 0 0 15px 2px hsl(var(--glow-success) / 0.3);
+  }
+
+  .glow-warning::before {
+    background: linear-gradient(135deg, hsl(var(--glow-warning) / 0.8), hsl(var(--glow-warning) / 0.4));
+    box-shadow: 0 0 15px 2px hsl(var(--glow-warning) / 0.3);
+  }
+
+  .glow-destructive::before {
+    background: linear-gradient(135deg, hsl(var(--glow-destructive) / 0.8), hsl(var(--glow-destructive) / 0.4));
+    box-shadow: 0 0 15px 2px hsl(var(--glow-destructive) / 0.3);
+  }
+
+  /* Efeito hover */
+  .glow-effect:not(.glow-active):hover::before {
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .glow-effect::before {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
   }
 }

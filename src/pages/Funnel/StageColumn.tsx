@@ -70,27 +70,41 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
     const totalValue = deals.reduce((sum, deal) => sum + (deal.value || 0), 0);
     
     const stageTypeStyles = {
-        'Intermediária': 'border-border/50 bg-card/80',
-        'Ganho': 'border-success/50 bg-success/5',
-        'Perdido': 'border-destructive/50 bg-destructive/5',
+        'Intermediária': {
+            border: 'border-border/50 bg-card/80',
+            glow: 'glow-primary',
+            header: 'border-b-border/30',
+        },
+        'Ganho': {
+            border: 'border-success/50 bg-success/5',
+            glow: 'glow-success',
+            header: 'border-b-success/20',
+        },
+        'Perdido': {
+            border: 'border-destructive/50 bg-destructive/5',
+            glow: 'glow-destructive',
+            header: 'border-b-destructive/20',
+        },
     };
 
-    const stageHeaderStyles = {
-        'Intermediária': 'border-b-border/30',
-        'Ganho': 'border-b-success/20',
-        'Perdido': 'border-b-destructive/20',
-    };
+    const currentStageStyle = stageTypeStyles[stage.type] || stageTypeStyles['Intermediária'];
 
     return (
         <div
             className={cn(
                 'w-80 flex-shrink-0 h-full flex flex-col rounded-lg transition-all',
-                'shadow-sm',
+                'shadow-sm overflow-hidden',
                 'border border-border/50',
-                isDragOver ? 'ring-2 ring-primary/50 bg-accent/30' : 'hover:border-primary/50',
-                stageTypeStyles[stage.type],
                 'transition-all duration-200',
-                'overflow-hidden'
+                'relative', // Para posicionamento do efeito de brilho
+                {
+                    'ring-2 ring-primary/50 bg-accent/30': isDragOver,
+                    'hover:border-primary/50': !isDragOver,
+                    'glow-effect': true, // Ativa o efeito de brilho
+                    [currentStageStyle.glow]: true, // Aplica a cor do efeito baseado no tipo
+                    'glow-active': isDragOver, // Ativa o brilho quando estiver arrastando sobre
+                },
+                currentStageStyle.border
             )}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -99,10 +113,10 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
             {/* Header */}
             <div className={cn(
                 'p-4 border-b',
-                stageHeaderStyles[stage.type],
+                currentStageStyle.header,
                 'bg-card/50 backdrop-blur-sm',
                 'flex justify-between items-center',
-                'group'
+                'group relative z-10' // Garante que o conteúdo fique acima do efeito de brilho
             )}>
                 <div className="flex-1 min-w-0">
                     {isEditing ? (
@@ -142,7 +156,7 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
             </div>
 
             {/* Deal List */}
-            <div className="flex-1 p-2 overflow-y-auto">
+            <div className="flex-1 p-2 overflow-y-auto relative z-10">
                 <div className="space-y-2">
                     {deals.map((deal) => (
                         <DealCard
@@ -163,7 +177,7 @@ const StageColumn: React.FC<StageColumnProps> = ({ stage, deals, onDragStart, on
                 )}
 
                 {isDragOver && (
-                    <div className="border-2 border-dashed border-primary/50 rounded-lg p-4 bg-primary/5 my-2">
+                    <div className="glow-effect glow-active border-2 border-dashed border-primary/50 rounded-lg p-4 bg-primary/5 my-2">
                         <p className="text-xs text-center text-primary">Solte para mover para esta etapa</p>
                     </div>
                 )}

@@ -71,6 +71,7 @@ const ContactDetails: React.FC = () => {
     const [isTimelineLoading, setIsTimelineLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'activities' | 'deals'>('activities');
 
     // Reset loading state when contactId changes
     useEffect(() => {
@@ -233,12 +234,16 @@ const ContactDetails: React.FC = () => {
 
     // Função para lidar com a adição de tags
     const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+        if ((e.key === 'Enter' || e.key === ',') && tagInput.trim() && localContact) {
             e.preventDefault();
             const newTag = tagInput.trim().toLowerCase();
-            if (!localContact.tags?.includes(newTag)) {
-                const updatedTags = [...(localContact.tags || []), newTag];
-                setLocalContact({...localContact, tags: updatedTags});
+            const currentTags = localContact.tags || [];
+            if (!currentTags.includes(newTag)) {
+                const updatedTags = [...currentTags, newTag];
+                setLocalContact({
+                    ...localContact,
+                    tags: updatedTags
+                });
             }
             setTagInput('');
         }
@@ -246,20 +251,26 @@ const ContactDetails: React.FC = () => {
 
     // Função para lidar com a remoção de tags
     const handleRemoveTag = (tagToRemove: string) => {
-        const newTags = localContact.tags?.filter(tag => tag !== tagToRemove) || [];
-        setLocalContact({...localContact, tags: newTags});
+        if (!localContact) return;
+        
+        const currentTags = localContact.tags || [];
+        const newTags = currentTags.filter(tag => tag !== tagToRemove);
+        
+        setLocalContact({
+            ...localContact,
+            tags: newTags
+        });
     };
 
     // Renderização dos campos personalizados
     const renderCustomFieldsSection = () => {
-        if (!customFieldDefs || customFieldDefs.length === 0) {
+        if (!customFieldDefs || customFieldDefs.length === 0 || !localContact) {
             return (
                 <div className="text-center py-4 text-muted-foreground">
                     <p>Nenhum campo personalizado configurado.</p>
                     <Button 
                         variant="link" 
                         size="sm" 
-                        className="mt-2"
                         onClick={() => setCurrentPage('settings', { tab: 'custom-fields' })}
                     >
                         Configurar campos personalizados
@@ -270,25 +281,38 @@ const ContactDetails: React.FC = () => {
 
         return (
             <div className="space-y-4">
-                {customFieldDefs.map((field) => (
-                    <div key={field.id} className="space-y-1.5">
-                        <label className="block text-sm font-medium text-muted-foreground">
-                            {field.name}
-                        </label>
-                        <input
-                            type={field.type === 'number' ? 'number' : 'text'}
-                            value={localContact.custom_fields?.[field.key]?.toString() || ''}
-                            onChange={(e) => {
-                                const value = field.type === 'number' 
-                                    ? parseFloat(e.target.value) || 0
-                                    : e.target.value;
-                                handleCustomFieldChange(field.key, value);
-                            }}
-                            className="w-full bg-background p-2 rounded-md text-foreground border border-input focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                            placeholder={`Digite ${field.name.toLowerCase()}`}
-                        />
-                    </div>
-                ))}
+                {customFieldDefs.map((field) => {
+                    const fieldValue = localContact.custom_fields?.[field.key];
+                    const isNumberField = field.type === 'NUMERO';
+                    
+                    return (
+                        <div key={field.id} className="space-y-1.5">
+                            <label className="block text-sm font-medium text-muted-foreground">
+                                {field.name}
+                            </label>
+                            {isNumberField ? (
+                                <input
+                                    type="number"
+                                    value={typeof fieldValue === 'number' ? fieldValue : ''}
+                                    onChange={(e) => {
+                                        const value = parseFloat(e.target.value) || 0;
+                                        handleCustomFieldChange(field.key, value);
+                                    }}
+                                    className="w-full bg-background p-2 rounded-md text-foreground border border-input focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                    placeholder={`Digite ${field.name.toLowerCase()}`}
+                                />
+                            ) : (
+                                <input
+                                    type="text"
+                                    value={fieldValue?.toString() || ''}
+                                    onChange={(e) => handleCustomFieldChange(field.key, e.target.value)}
+                                    className="w-full bg-background p-2 rounded-md text-foreground border border-input focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                    placeholder={`Digite ${field.name.toLowerCase()}`}
+                                />
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         );
     };
