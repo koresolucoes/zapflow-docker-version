@@ -23,6 +23,7 @@ import * as activityService from '../services/activityService.js';
 import { fetchAllInitialData } from '../services/dataService.js';
 import type { TablesUpdate } from '../types/database.types.js';
 import { useUiStore } from './uiStore.js';
+import { triggerAutomation } from '../services/api.js';
 
 interface AuthState {
   // Auth
@@ -426,12 +427,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     }));
 
     // Fire and forget automation trigger
-    const { error } = await supabase.rpc('run-trigger', {
-        event_type: 'contact_created',
-        user_id: user.id,
-        contact_id: newContact.id
-    });
-    if (error) console.error("Failed to run 'contact_created' trigger:", error);
+    triggerAutomation('contact_created', user.id, newContact.id);
   },
   updateContact: async (contact: Contact) => {
     const { activeTeam, user, contacts } = get();
@@ -461,13 +457,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
     // Fire automation trigger for added tags
     if (addedTags.length > 0) {
-        const { error } = await supabase.rpc('run-trigger', {
-            event_type: 'tags_added',
-            user_id: user.id,
-            contact_id: updatedContact.id,
-            payload: { added_tags: addedTags }
-        });
-        if (error) console.error("Failed to run 'tags_added' trigger:", error);
+        triggerAutomation('tags_added', user.id, updatedContact.id, { added_tags: addedTags });
     }
   },
   deleteContact: async (contactId: string) => {
@@ -593,13 +583,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     set(state => ({ deals: [newDeal, ...state.deals] }));
 
     // Fire and forget automation trigger
-    const { error } = await supabase.rpc('run-trigger', {
-        event_type: 'deal_created',
-        user_id: user.id,
-        contact_id: newDeal.contact_id,
-        payload: { deal: newDeal }
-    });
-    if (error) console.error("Failed to run 'deal_created' trigger:", error);
+    triggerAutomation('deal_created', user.id, newDeal.contact_id, { deal: newDeal });
   },
   updateDeal: async (dealId: string, updates: TablesUpdate<'deals'>) => {
     const { activeTeam, user, deals } = get();
@@ -616,16 +600,15 @@ export const useAuthStore = create<AuthState>((set, get) => {
     
     // Fire automation trigger if stage changed
     if (updates.stage_id && originalDeal && originalDeal.stage_id !== updates.stage_id) {
-        const { error } = await supabase.rpc('run-trigger', {
-            event_type: 'deal_stage_changed',
-            user_id: user.id,
-            contact_id: updatedDeal.contact_id,
-            payload: { 
-                deal: updatedDeal, 
-                new_stage_id: updates.stage_id 
-            }
-        });
-        if (error) console.error("Failed to run 'deal_stage_changed' trigger:", error);
+      triggerAutomation(
+        'deal_stage_changed', 
+        user.id, 
+        updatedDeal.contact_id,
+        { 
+          deal: updatedDeal, 
+          new_stage_id: updates.stage_id 
+        }
+      );
     }
   },
   deleteDeal: async (dealId: string) => {

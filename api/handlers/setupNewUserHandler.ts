@@ -1,77 +1,94 @@
 import { Request, Response } from 'express';
-import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
+import { userService } from '../_lib';
 
+/**
+ * @swagger
+ * /api/setup-new-user:
+ *   post:
+ *     summary: Configura um novo usuário no sistema
+ *     description: Cria uma nova equipe para o usuário e configura seu perfil inicial
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [userId, email]
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID do usuário no Supabase Auth
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email do usuário
+ *     responses:
+ *       200:
+ *         description: Usuário configurado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     team_id:
+ *                       type: string
+ *                       description: ID da equipe criada para o usuário
+ *       400:
+ *         description: Dados de entrada inválidos
+ *       500:
+ *         description: Erro ao configurar o usuário
+ */
 export async function setupNewUserHandler(req: Request, res: Response) {
+  // Verificar método HTTP
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return res.status(405).json({ message: 'Only POST requests are allowed.' });
+    return res.status(405).json({ 
+      error: 'Método não permitido',
+      allowed: ['POST']
+    });
   }
 
   try {
     const { userId, email } = req.body;
+    
+    // Validar entrada
     if (!userId || !email) {
-      return res.status(400).json({ message: 'Missing userId or email in request body.' });
+      return res.status(400).json({ 
+        error: 'Dados de entrada inválidos',
+        details: 'userId e email são obrigatórios'
+      });
     }
-    console.log(`[Setup] Iniciando a configuração para o usuário: ${userId} (${email})`);
-    // Etapa 0: Verificar se o usuário já possui uma equipe para tornar a função idempotente.
-    const { data: existingTeam, error: checkError } = await supabaseAdmin
-      .from('teams')
-      .select('id')
-      .eq('owner_id', userId)
-      .limit(1)
-      .maybeSingle();
-    if (checkError) {
-      console.error(`[Setup] Erro ao verificar a equipe existente para o usuário ${userId}:`, checkError);
-      throw checkError;
+
+    // Usar o UserService para configurar o novo usuário
+    const result = await userService.setupNewUser(userId, email);
+    
+    // Se chegou até aqui, a operação foi bem-sucedida
+    return res.status(200).json({
+      success: true,
+      data: result.data
+    });
+    
+  } catch (error) {
+    console.error('Erro ao configurar novo usuário:', error);
+    
+    // Verificar o tipo de erro para retornar o status apropriado
+    if (error instanceof Error) {
+      return res.status(500).json({
+        error: 'Erro ao configurar usuário',
+        message: error.message
+      });
     }
-    if (existingTeam) {
-      console.log(`[Setup] O usuário ${userId} já tem uma equipe (ID: ${existingTeam.id}). Garantindo a adesão.`);
-      // Garante que o usuário é membro da sua própria equipe (idempotência)
-      const { error: upsertError } = await supabaseAdmin
-        .from('team_members')
-        .upsert({ team_id: existingTeam.id, user_id: userId, role: 'admin' } as any, { onConflict: 'team_id, user_id' });
-      if (upsertError) {
-        console.error(`[Setup] Erro ao fazer upsert da adesão à equipe para a equipe existente:`, upsertError);
-        throw upsertError;
-      }
-      return res.status(200).json({ message: 'Configuração do usuário confirmada: a equipe já existe.' });
-    }
-    // Etapa 1: Criar a equipe
-    console.log(`[Setup] Nenhuma equipe encontrada para o usuário ${userId}. Criando uma nova equipe.`);
-    const teamName = `Equipe de ${email.split('@')[0]}`;
-    const { data: teamData, error: teamError } = await supabaseAdmin
-      .from('teams')
-      .insert({
-        name: teamName,
-        owner_id: userId,
-      } as any)
-      .select('id')
-      .single();
-    if (teamError) {
-      console.error(`[Setup] Erro ao criar a equipe para o usuário ${userId}:`, teamError);
-      throw teamError;
-    }
-    const teamId = teamData.id;
-    console.log(`[Setup] Equipe criada com sucesso (ID: ${teamId})`);
-    // Etapa 2: Adicionar o usuário como membro administrador da equipe
-    const { error: memberError } = await supabaseAdmin
-      .from('team_members')
-      .insert({
-        team_id: teamId,
-        user_id: userId,
-        role: 'admin',
-      } as any);
-    if (memberError) {
-      console.error(`[Setup] Erro ao adicionar o usuário ${userId} à equipe ${teamId}:`, memberError);
-      // Tenta reverter a criação da equipe para manter a consistência
-      await supabaseAdmin.from('teams').delete().eq('id', teamId);
-      throw memberError;
-    }
-    console.log(`[Setup] Usuário ${userId} adicionado como administrador da equipe ${teamId}.`);
-    console.log(`[Setup] Configuração para o novo usuário concluída com sucesso.`);
-    return res.status(200).json({ message: 'User setup complete: team and membership created.' });
-  } catch (error: any) {
-    console.error("[Setup] Erro na função setup-new-user:", error);
-    return res.status(500).json({ message: "Failed to setup new user.", error: error.message });
+    
+    // Erro genérico
+    return res.status(500).json({
+      error: 'Erro interno do servidor',
+      message: 'Ocorreu um erro inesperado ao configurar o usuário'
+    });
   }
 }

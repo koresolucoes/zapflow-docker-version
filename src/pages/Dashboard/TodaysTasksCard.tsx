@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../../components/common/Card.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { CALENDAR_ICON } from '../../components/icons/index.js';
 import { Button } from '../../components/common/Button.js';
 
 const TodaysTasksCard: React.FC = () => {
+    const navigate = useNavigate();
     const { todaysTasks, setCurrentPage } = useAuthStore();
 
     const formatDate = (dateString: string) => {
@@ -84,7 +86,10 @@ const TodaysTasksCard: React.FC = () => {
                                     
                                     <button 
                                         className="ml-2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
-                                        onClick={() => {}}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Handle task menu click
+                                        }}
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
@@ -99,31 +104,23 @@ const TodaysTasksCard: React.FC = () => {
                         <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
                             <CALENDAR_ICON className="w-6 h-6 text-slate-400" />
                         </div>
-                        <h3 className="text-slate-700 dark:text-slate-300 font-medium mb-1">Nenhuma tarefa para hoje</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                            Você não tem tarefas agendadas para hoje.
+                        <h3 className="text-sm font-medium text-slate-900 dark:text-white mb-1">
+                            Nenhuma tarefa para hoje
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            Suas tarefas para hoje aparecerão aqui.
                         </p>
-                        <Button 
-                            variant="outline"
-                            onClick={() => setCurrentPage('dashboard')}
-                            className="text-sm"
-                        >
-                            Ver todas as tarefas
-                        </Button>
                     </div>
                 )}
                 
-                {todaysTasks.length > 0 && (
-                    <div className="pt-3 mt-auto border-t border-slate-100 dark:border-slate-700">
-                        <Button 
-                            variant="ghost"
-                            onClick={() => setCurrentPage('dashboard')}
-                            className="w-full text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                            Ver todas as tarefas
-                        </Button>
-                    </div>
-                )}
+                <div className="pt-3 mt-auto border-t border-slate-200 dark:border-slate-700">
+                    <button 
+                        onClick={() => navigate('/tasks')}
+                        className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                        Ver todas as tarefas
+                    </button>
+                </div>
             </div>
         </Card>
     );

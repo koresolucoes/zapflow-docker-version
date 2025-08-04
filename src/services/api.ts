@@ -81,3 +81,35 @@ export const del = async <T = any>(endpoint: string): Promise<T> => {
     method: 'DELETE',
   });
 };
+
+/**
+ * Dispara um evento de automação
+ * @param eventType Tipo do evento (ex: 'contact_created', 'deal_created')
+ * @param userId ID do usuário que disparou o evento
+ * @param contactId ID do contato relacionado (opcional)
+ * @param data Dados adicionais para o evento (opcional)
+ */
+export const triggerAutomation = async (
+  eventType: string, 
+  userId: string, 
+  contactId?: string, 
+  data: Record<string, any> = {}
+) => {
+  try {
+    await fetch('/api/triggers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        eventType,
+        userId,
+        contactId,
+        data
+      })
+    });
+  } catch (error) {
+    console.error(`Failed to run '${eventType}' trigger:`, error);
+    // Não lançamos o erro para não quebrar o fluxo principal
+  }
+};

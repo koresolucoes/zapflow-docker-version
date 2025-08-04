@@ -12,6 +12,7 @@ import { ptBR } from 'date-fns/locale';
 // Import components
 import { MetricsSummary } from './components/MetricsSummary.js';
 import { GoalsMetrics } from './components/GoalsMetrics.js';
+import WhatsAppAnalytics  from './components/WhatsAppAnalytics.js';
 
 interface MetricComponentProps {
   startDate?: string;
@@ -52,12 +53,20 @@ interface ApiResponse<T> {
 }
 
 const Metrics = () => {
-  const { session } = useAuthStore();
+  const { session, activeTeam } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -30),
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
     to: new Date(),
   });
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const formatDateForApi = (date: Date | undefined): string | undefined => {
+    return date ? format(date, 'yyyy-MM-dd') : undefined;
+  };
+
+  const formattedStartDate = dateRange?.from ? formatDateForApi(dateRange.from) : undefined;
+  const formattedEndDate = dateRange?.to ? formatDateForApi(dateRange.to) : undefined;
 
   useEffect(() => {
     if (session) {
@@ -78,25 +87,19 @@ const Metrics = () => {
     }
   };
 
-  const formatDate = (date: Date | undefined) => {
-    if (!date) return '';
-    return format(date, 'yyyy-MM-dd');
+  const handleDateChange = (range: DateRange | undefined) => {
+    setDateRange(range);
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Métricas e Relatórios</h1>
-          <p className="text-muted-foreground">
-            Visualize as métricas de desempenho das suas mensagens e metas
-          </p>
-        </div>
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Métricas e Relatórios</h1>
         <div className="flex items-center space-x-2">
           <DateRangePicker
             dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-            className="w-[250px]"
+            onDateRangeChange={handleDateChange}
+            className="[&>button]:w-[260px]"
           />
           <Button 
             variant="outline" 
@@ -109,51 +112,90 @@ const Metrics = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="goals" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2">
-          <TabsTrigger value="goals" className="flex items-center gap-2">
-            <span className="hidden sm:inline">Metas</span>
-            <span className="inline sm:hidden">🎯</span>
-          </TabsTrigger>
-          <TabsTrigger value="summary">Visão Geral</TabsTrigger>
-          <TabsTrigger value="response-time">Tempo de Resposta</TabsTrigger>
-          <TabsTrigger value="status">Status</TabsTrigger>
+      <Tabs 
+        defaultValue="overview" 
+        className="space-y-4"
+        onValueChange={setActiveTab}
+      >
+        <TabsList>
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
+          <TabsTrigger value="performance">Desempenho</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="goals" className="space-y-4">
-          <GoalsMetrics 
-            startDate={dateRange?.from ? formatDate(dateRange.from) : undefined}
-            endDate={dateRange?.to ? formatDate(dateRange.to) : undefined}
-          />
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <MetricsSummary startDate={formattedStartDate} endDate={formattedEndDate} />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <Card className="col-span-4">
+              <CardHeader>
+                <CardTitle>Visão Geral</CardTitle>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <GoalsMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
+              </CardContent>
+            </Card>
+            <Card className="col-span-3">
+              <CardHeader>
+                <CardTitle>Status Recentes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <StatusMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="summary" className="space-y-4">
-          <MetricsSummary 
-            startDate={dateRange?.from ? formatDate(dateRange.from) : undefined}
-            endDate={dateRange?.to ? formatDate(dateRange.to) : undefined}
+        <TabsContent value="whatsapp" className="space-y-4">
+          <WhatsAppAnalytics 
+            startDate={dateRange?.from} 
+            endDate={dateRange?.to} 
           />
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tempo de Resposta</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px]">
+                <ResponseTimeMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Status das Mensagens</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px]">
+                <StatusMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="response-time" className="space-y-4">
-          <ResponseTimeMetrics 
-            startDate={dateRange?.from ? formatDate(dateRange.from) : undefined}
-            endDate={dateRange?.to ? formatDate(dateRange.to) : undefined}
-          />
+        <TabsContent value="campaigns">
+          <CampaignMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
         </TabsContent>
 
-        <TabsContent value="status" className="space-y-4">
-          <StatusMetrics 
-            startDate={dateRange?.from ? formatDate(dateRange.from) : undefined}
-            endDate={dateRange?.to ? formatDate(dateRange.to) : undefined}
-          />
-        </TabsContent>
-
-        <TabsContent value="campaigns" className="space-y-4">
-          <CampaignMetrics 
-            startDate={dateRange?.from ? formatDate(dateRange.from) : undefined}
-            endDate={dateRange?.to ? formatDate(dateRange.to) : undefined}
-          />
+        <TabsContent value="performance">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <Card className="col-span-4">
+              <CardHeader>
+                <CardTitle>Desempenho</CardTitle>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <GoalsMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
+              </CardContent>
+            </Card>
+            <Card className="col-span-3">
+              <CardHeader>
+                <CardTitle>Métricas de Resposta</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponseTimeMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

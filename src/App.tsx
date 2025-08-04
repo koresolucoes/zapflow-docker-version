@@ -23,6 +23,8 @@ const AutomationEditor = lazy(() => import('./pages/AutomationEditor/AutomationE
 const Inbox = lazy(() => import('./pages/Inbox/Inbox.js'));
 const WebhookInspector = lazy(() => import('./pages/WebhookInspector/WebhookInspector.js'));
 const Metrics = lazy(() => import('./pages/Metrics/Metrics.js'));
+const ActivitiesPage = lazy(() => import('./pages/Activities/ActivitiesPage.js'));
+const TasksPage = lazy(() => import('./pages/Tasks/TasksPage.js'));
 
 const PageSuspenseFallback = () => (
     <div className="flex items-center justify-center w-full h-full p-10">
@@ -103,7 +105,7 @@ const App: React.FC = () => {
         return <AutomationEditor />;
       case 'new-campaign':
         return <NewCampaign />;
-      case 'profile':
+      case 'company-profile':
         return <CompanyProfile />;
       case 'settings':
         return <Settings />;
@@ -111,35 +113,33 @@ const App: React.FC = () => {
         return <WebhookInspector />;
       case 'metrics':
         return <Metrics />;
+      case 'activities':
+        return <ActivitiesPage />;
+      case 'tasks':
+        return <TasksPage />;
       default:
         return <Dashboard />;
     }
   };
 
   if (loading) {
-      return (
-        <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-slate-900">
-            <div className="text-gray-800 dark:text-white text-xl">Carregando...</div>
-        </div>
-      )
+    return <FullPageSuspenseFallback />;
   }
 
   return (
-    <>
-      {!session ? (
-        <Suspense fallback={<FullPageSuspenseFallback />}>
-          <Auth />
-        </Suspense>
-      ) : (
+    <Suspense fallback={<FullPageSuspenseFallback />}>
+      {session ? (
         <MainLayout>
           <Suspense fallback={<PageSuspenseFallback />}>
             {renderPage()}
           </Suspense>
         </MainLayout>
+      ) : (
+        <Auth />
       )}
       <ToastContainer />
       <ConfirmationModal />
-    </>
+    </Suspense>
   );
 };
 

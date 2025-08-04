@@ -1,6 +1,21 @@
 import React from 'react';
 import { Page } from '../../types/index.js';
-import { ZAPFLOW_AI_LOGO, DASHBOARD_ICON, CAMPAIGN_ICON, TEMPLATE_ICON, CONTACTS_ICON, PROFILE_ICON, SETTINGS_ICON, AUTOMATION_ICON, FUNNEL_ICON, INBOX_ICON, WEBHOOK_INSPECTOR_ICON, METRICS_ICON } from '../icons/index.js';
+import { 
+  ZAPFLOW_AI_LOGO, 
+  DASHBOARD_ICON, 
+  CAMPAIGN_ICON, 
+  TEMPLATE_ICON, 
+  CONTACTS_ICON, 
+  PROFILE_ICON, 
+  SETTINGS_ICON, 
+  AUTOMATION_ICON, 
+  FUNNEL_ICON, 
+  INBOX_ICON, 
+  WEBHOOK_INSPECTOR_ICON, 
+  METRICS_ICON,
+  ACTIVITY_ICON,
+  TASKS_ICON
+} from '../icons/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { cn } from '../../lib/utils.js';
 
@@ -44,13 +59,15 @@ const Sidebar: React.FC = () => {
     { icon: <CAMPAIGN_ICON className="w-5 h-5" />, label: 'Campanhas', page: 'campaigns' as Page },
     { icon: <TEMPLATE_ICON className="w-5 h-5" />, label: 'Templates', page: 'templates' as Page },
     { icon: <AUTOMATION_ICON className="w-5 h-5" />, label: 'Automações', page: 'automations' as Page },
+    { icon: <ACTIVITY_ICON className="w-5 h-5" />, label: 'Atividades', page: 'activities' as Page },
+    { icon: <TASKS_ICON className="w-5 h-5" />, label: 'Tarefas', page: 'tasks' as Page },
     { icon: <METRICS_ICON className="w-5 h-5" />, label: 'Métricas', page: 'metrics' as Page },
-    { icon: <PROFILE_ICON className="w-5 h-5" />, label: 'Perfil da Empresa', page: 'profile' as Page },
   ];
   
   const bottomNavItems = [
-      { icon: <WEBHOOK_INSPECTOR_ICON className="w-5 h-5" />, label: 'Webhook Inspector', page: 'webhook-inspector' as Page },
-      { icon: <SETTINGS_ICON className="w-5 h-5" />, label: 'Configurações', page: 'settings' as Page },
+    { icon: <WEBHOOK_INSPECTOR_ICON className="w-5 h-5" />, label: 'Webhook Inspector', page: 'webhook-inspector' as Page },
+    { icon: <PROFILE_ICON className="w-5 h-5" />, label: 'Perfil da Empresa', page: 'company-profile' as Page },
+    { icon: <SETTINGS_ICON className="w-5 h-5" />, label: 'Configurações', page: 'settings' as Page },
   ];
 
   return (

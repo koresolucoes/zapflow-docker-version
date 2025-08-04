@@ -1,68 +1,127 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import * as dotenv from 'dotenv';
-import { conversationHandler } from './handlers/conversationHandler.js';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
+import { setupTeamRoutes } from './handlers/teamHandler';
+import { setupNewUserHandler } from './handlers/setupNewUserHandler';
+import { conversationHandler } from './handlers/conversationHandler';
+import { metricsHandler } from './handlers/metricsHandler';
+import { runTriggerHandler } from './handlers/runTriggerHandler';
+import { webhookIdHandler } from './handlers/webhookIdHandler';
+import { triggerIdHandler } from './handlers/triggerIdHandler';
+import { membersHandler } from './handlers/membersHandler';
 import { analyzeSentimentHandler } from './handlers/analyzeSentimentHandler.js';
 import { generateReplyHandler } from './handlers/generateReplyHandler.js';
 import { enqueueCampaignSendHandler } from './handlers/enqueueCampaignSendHandler.js';
 import { generateTemplateHandler } from './handlers/generateTemplateHandler.js';
-import { membersHandler } from './handlers/membersHandler.js';
 import { processCampaignMessageHandler } from './handlers/processCampaignMessageHandler.js';
-import { runTriggerHandler } from './handlers/runTriggerHandler.js';
-import { setupNewUserHandler } from './handlers/setupNewUserHandler.js';
-import { webhookIdHandler } from './handlers/webhookIdHandler.js';
-import { triggerIdHandler } from './handlers/triggerIdHandler.js';
 import { testWebhookHandler } from './handlers/testWebhookHandler.js';
 import { healthCheckHandler } from './handlers/healthCheckHandler.js';
-import { metricsHandler } from './handlers/metricsHandler.js';
 
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3001;
 
-// Configuração do CORS para permitir credenciais e cabeçalhos necessários
-app.use(cors({
-  origin: true, // Permite qualquer origem (em produção, defina a origem correta)
-  credentials: true, // Permite o envio de credenciais (cookies, headers de autenticação)
-  allowedHeaders: ['Content-Type', 'Authorization'], // Cabeçalhos permitidos
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] // Métodos HTTP permitidos
-}));
-
+// Middleware
+app.use(helmet());
+app.use(cors());
 app.use(express.json());
+app.use(morgan('dev'));
 
-// Middleware para log de requisições (apenas para debug)
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  console.log('Headers:', JSON.stringify(req.headers, null, 2));
-  next();
+// Configuração do Swagger
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'ZapFlow API',
+      version: '1.0.0',
+      description: 'API para o sistema ZapFlow',
+    },
+    servers: [
+      {
+        url: `http://localhost:${PORT}`,
+        description: 'Servidor de desenvolvimento',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
+  },
+  apis: ['./api/handlers/*.ts'],
+};
+
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// Rota de saúde
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.all('/api/conversation', conversationHandler);
+// Configuração das rotas principais
+app.use('/api/setup-new-user', setupNewUserHandler);
+app.use('/api/conversations', conversationHandler);
+app.use('/api/metrics', metricsHandler);
+app.use('/api/triggers', runTriggerHandler);
+app.use('/api/webhooks', webhookIdHandler);
+
+// Rotas de campanhas
 app.post('/api/analyze-sentiment', analyzeSentimentHandler);
 app.post('/api/generate-reply', generateReplyHandler);
 app.post('/api/enqueue-campaign-send', enqueueCampaignSendHandler);
 app.post('/api/generate-template', generateTemplateHandler);
-app.all('/api/members', membersHandler);
 app.post('/api/process-campaign-message', processCampaignMessageHandler);
-app.post('/api/run-trigger', runTriggerHandler);
-app.post('/api/setup-new-user', setupNewUserHandler);
-app.all('/api/webhook/:id', webhookIdHandler);
-app.all('/api/trigger/:id', triggerIdHandler);
 app.post('/api/test-webhook', testWebhookHandler);
+
+// Rota de saúde da API (mantida para compatibilidade)
 app.get('/api/health', healthCheckHandler);
 
-app.get('/health', (req, res) => res.send('OK'));
+// Rota legada de membros (será descontinuada em versões futuras)
+// TODO: Migrar para as novas rotas de equipe (/api/teams/:teamId/members)
+app.all('/api/members', (req: Request, res: Response, next: NextFunction) => {
+  console.warn('A rota /api/members está obsoleta e será removida em versões futuras. Use as rotas de equipe (/api/teams/:teamId/members) em vez disso.');
+  next();
+}, membersHandler);
 
-app.all('/api/metrics/summary', metricsHandler);
-app.all('/api/metrics/average-response-time', metricsHandler);
-app.all('/api/metrics/status', metricsHandler);
-app.all('/api/metrics/campaigns', metricsHandler);
+// Configuração das rotas de equipe (nova implementação)
+setupTeamRoutes(app);
 
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not Found' });
+// Middleware de tratamento de erros
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: 'Erro interno do servidor',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Ocorreu um erro',
+  });
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+// Rota não encontrada
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: 'Rota não encontrada' });
 });
+
+// Iniciar o servidor
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Documentação da API disponível em http://localhost:${PORT}/api-docs`);
+    console.warn('AVISO: A rota /api/members está obsoleta e será removida em versões futuras. Migre para as rotas de equipe (/api/teams/:teamId/members)');
+  });
+}
+
+export default app;

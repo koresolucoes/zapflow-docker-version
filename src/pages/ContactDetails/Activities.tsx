@@ -31,57 +31,95 @@ const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }: Acti
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        fetchActivitiesForContact(contactId);
+        const loadActivities = async () => {
+            try {
+                await fetchActivitiesForContact(contactId);
+            } catch (error) {
+                console.error('Erro ao carregar atividades:', error);
+            }
+        };
+        
+        loadActivities();
     }, [contactId, fetchActivitiesForContact]);
 
     const handleAddNote = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!noteContent.trim() || !user) return;
-        setIsSaving(true);
-        const payload: Omit<ContactActivityInsert, 'team_id'> = {
-            contact_id: contactId,
-            type: 'NOTA',
-            content: noteContent.trim(),
-            is_completed: false,
-        };
-        await addActivity(payload);
-        setIsSaving(false);
-        setNoteContent('');
-        setActiveTab('list');
-        onDataChange();
+        
+        try {
+            setIsSaving(true);
+            const payload: Omit<ContactActivityInsert, 'team_id'> = {
+                contact_id: contactId,
+                type: 'NOTA',
+                content: noteContent.trim(),
+                is_completed: false,
+            };
+            await addActivity(payload);
+            setNoteContent('');
+            setActiveTab('list');
+            onDataChange();
+        } catch (error) {
+            console.error('Erro ao adicionar nota:', error);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleAddTask = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!taskContent.trim() || !taskDueDate || !user) return;
-        setIsSaving(true);
-        const payload: Omit<ContactActivityInsert, 'team_id'> = {
-            contact_id: contactId,
-            type: 'TAREFA',
-            content: taskContent.trim(),
-            due_date: taskDueDate,
-            is_completed: false,
-        };
-        await addActivity(payload);
-        setIsSaving(false);
-        setTaskContent('');
-        setTaskDueDate('');
-        setActiveTab('list');
-        onDataChange();
+        
+        try {
+            setIsSaving(true);
+            const payload: Omit<ContactActivityInsert, 'team_id'> = {
+                contact_id: contactId,
+                type: 'TAREFA',
+                content: taskContent.trim(),
+                due_date: taskDueDate,
+                is_completed: false,
+            };
+            await addActivity(payload);
+            setTaskContent('');
+            setTaskDueDate('');
+            setActiveTab('list');
+            onDataChange();
+        } catch (error) {
+            console.error('Erro ao adicionar tarefa:', error);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
-        <Card>
-            <div className="flex justify-between items-center mb-4">
+        <Card className="p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 className="text-lg font-semibold text-foreground">Atividades</h2>
-                <div className="flex items-center gap-2 p-1 bg-accent/10 rounded-lg">
-                    <TabButton label="Todas" active={activeTab === 'list'} onClick={() => setActiveTab('list')} />
-                    <TabButton label="Adicionar Nota" active={activeTab === 'note'} onClick={() => setActiveTab('note')} />
-                    <TabButton label="Adicionar Tarefa" active={activeTab === 'task'} onClick={() => setActiveTab('task')} />
+                <div className="flex flex-wrap items-center gap-2 p-1 bg-accent/10 rounded-lg w-full sm:w-auto">
+                    <TabButton 
+                        label="Todas" 
+                        active={activeTab === 'list'} 
+                        onClick={() => setActiveTab('list')} 
+                    />
+                    <TabButton 
+                        label="Adicionar Nota" 
+                        active={activeTab === 'note'} 
+                        onClick={() => {
+                            setActiveTab('note');
+                            setNoteContent('');
+                        }} 
+                    />
+                    <TabButton 
+                        label="Adicionar Tarefa" 
+                        active={activeTab === 'task'} 
+                        onClick={() => {
+                            setActiveTab('task');
+                            setTaskContent('');
+                        }} 
+                    />
                 </div>
             </div>
 
-            <div>
+            <div className="space-y-6">
                 {activeTab === 'list' && (
                     <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                         {activityLoading ? (
@@ -95,47 +133,94 @@ const Activities: React.FC<ActivitiesProps> = ({ contactId, onDataChange }: Acti
                         )}
                     </div>
                 )}
+                
                 {activeTab === 'note' && (
-                    <form onSubmit={handleAddNote} className="space-y-3">
-                        <textarea
-                            value={noteContent}
-                            onChange={e => setNoteContent(e.target.value)}
-                            placeholder="Escreva sua nota aqui..."
-                            rows={4}
-                            className="w-full bg-background p-2 rounded-md border border-input text-foreground"
-                        />
-                        <div className="flex justify-end">
-                            <Button type="submit" variant="default" isLoading={isSaving} disabled={!noteContent.trim()}>
+                    <form onSubmit={handleAddNote} className="space-y-4">
+                        <div>
+                            <label htmlFor="note-content" className="block text-sm font-medium text-muted-foreground mb-2">
+                                Nova Nota
+                            </label>
+                            <textarea
+                                id="note-content"
+                                value={noteContent}
+                                onChange={e => setNoteContent(e.target.value)}
+                                placeholder="Escreva sua nota aqui..."
+                                rows={4}
+                                className="w-full bg-background p-3 rounded-md border border-input text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                autoFocus
+                            />
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => setActiveTab('list')}
+                                disabled={isSaving}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                variant="default" 
+                                isLoading={isSaving} 
+                                disabled={!noteContent.trim()}
+                            >
                                 Salvar Nota
                             </Button>
                         </div>
                     </form>
                 )}
+                
                 {activeTab === 'task' && (
-                    <form onSubmit={handleAddTask} className="space-y-3">
-                        <textarea
-                            value={taskContent}
-                            onChange={e => setTaskContent(e.target.value)}
-                            placeholder="Descreva a tarefa..."
-                            rows={3}
-                            className="w-full bg-background p-2 rounded-md border border-input text-foreground"
-                        />
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-muted-foreground mb-1">Data de Vencimento</label>
+                    <form onSubmit={handleAddTask} className="space-y-4">
+                        <div>
+                            <label htmlFor="task-content" className="block text-sm font-medium text-muted-foreground mb-2">
+                                Descrição da Tarefa
+                            </label>
+                            <textarea
+                                id="task-content"
+                                value={taskContent}
+                                onChange={e => setTaskContent(e.target.value)}
+                                placeholder="Descreva a tarefa..."
+                                rows={3}
+                                className="w-full bg-background p-3 rounded-md border border-input text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                                autoFocus
+                            />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="task-due-date" className="block text-sm font-medium text-muted-foreground mb-2">
+                                    Data de Vencimento
+                                </label>
                                 <input
+                                    id="task-due-date"
                                     type="date"
                                     value={taskDueDate}
                                     onChange={e => setTaskDueDate(e.target.value)}
-                                    className="w-full bg-background p-2 rounded-md border border-input text-foreground"
+                                    className="w-full bg-background p-2 rounded-md border border-input text-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                                     min={new Date().toISOString().split('T')[0]}
                                 />
                             </div>
-                            <div className="flex items-end">
-                                <Button type="submit" variant="default" isLoading={isSaving} disabled={!taskContent.trim() || !taskDueDate}>
-                                    Adicionar Tarefa
-                                </Button>
-                            </div>
+                        </div>
+                        
+                        <div className="flex justify-end gap-3 pt-2">
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => setActiveTab('list')}
+                                disabled={isSaving}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                variant="default" 
+                                isLoading={isSaving} 
+                                disabled={!taskContent.trim() || !taskDueDate}
+                            >
+                                Adicionar Tarefa
+                            </Button>
                         </div>
                     </form>
                 )}

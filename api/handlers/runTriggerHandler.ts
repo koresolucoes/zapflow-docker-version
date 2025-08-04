@@ -40,11 +40,13 @@ export async function runTriggerHandler(req: Request, res: Response) {
         break;
       case 'tags_added':
         if (!contact) return res.status(400).json({ error: 'contactId is required for this event' });
-        if (!data || !Array.isArray(data.addedTags)) {
-          return res.status(400).json({ error: 'Missing data.addedTags for this event type' });
+        // Handle both added_tags (snake_case) and addedTags (camelCase) for backward compatibility
+        const tagsToAdd = data?.added_tags || data?.addedTags;
+        if (!tagsToAdd || !Array.isArray(tagsToAdd)) {
+          return res.status(400).json({ error: 'Missing data.added_tags or data.addedTags array for this event type' });
         }
         await Promise.all(
-          data.addedTags.map((tag: string) => publishEvent('tag_added', userId, { contact, tag }))
+          tagsToAdd.map((tag: string) => publishEvent('tag_added', userId, { contact, tag }))
         );
         break;
       case 'deal_created':

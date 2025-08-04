@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../../components/common/Card.js';
 import { DashboardData, GlobalActivityEvent } from '../../services/dataService.js';
 import { CONTACTS_ICON, CAMPAIGN_ICON, FUNNEL_ICON } from '../../components/icons/index.js';
@@ -23,6 +24,8 @@ const ActivityIcon: React.FC<{ type: GlobalActivityEvent['type'] }> = ({ type })
 };
 
 const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({ data, isLoading }) => {
+    const navigate = useNavigate();
+    
     const formatTimeAgo = (dateString: string) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -88,7 +91,7 @@ const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({ data, isLoading
                 
                 <div className="pt-3 mt-auto border-t border-border">
                     <button 
-                        onClick={() => {}}
+                        onClick={() => navigate('/activities')}
                         className="w-full text-center text-sm font-medium text-primary hover:text-primary/80"
                     >
                         Ver todas as atividades

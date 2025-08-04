@@ -73,6 +73,14 @@ const ContactDetails: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'activities' | 'deals'>('activities');
 
+    // Referência para a seção de atividades
+    const activitiesSectionRef = React.useRef<HTMLDivElement>(null);
+    
+    // Função para rolar até a seção de atividades
+    const scrollToActivities = () => {
+        activitiesSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     // Reset loading state when contactId changes
     useEffect(() => {
         if (contactId && activeTeam) {
@@ -233,33 +241,64 @@ const ContactDetails: React.FC = () => {
     };
 
     // Função para lidar com a adição de tags
-    const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleAddTag = async (e: React.KeyboardEvent<HTMLInputElement>) => {
         if ((e.key === 'Enter' || e.key === ',') && tagInput.trim() && localContact) {
             e.preventDefault();
             const newTag = tagInput.trim().toLowerCase();
             const currentTags = localContact.tags || [];
+            
             if (!currentTags.includes(newTag)) {
                 const updatedTags = [...currentTags, newTag];
-                setLocalContact({
+                const updatedContact = {
                     ...localContact,
                     tags: updatedTags
-                });
+                };
+                
+                setLocalContact(updatedContact);
+                
+                // Se não estiver no modo de edição, salva automaticamente
+                if (!isEditing) {
+                    try {
+                        await updateContact(updatedContact);
+                        addToast('Tag adicionada com sucesso!', 'success');
+                    } catch (error) {
+                        console.error('Erro ao adicionar tag:', error);
+                        addToast('Erro ao adicionar tag', 'error');
+                        // Reverte a alteração em caso de erro
+                        setLocalContact(localContact);
+                    }
+                }
             }
+            
             setTagInput('');
         }
     };
 
     // Função para lidar com a remoção de tags
-    const handleRemoveTag = (tagToRemove: string) => {
+    const handleRemoveTag = async (tagToRemove: string) => {
         if (!localContact) return;
         
         const currentTags = localContact.tags || [];
         const newTags = currentTags.filter(tag => tag !== tagToRemove);
-        
-        setLocalContact({
+        const updatedContact = {
             ...localContact,
             tags: newTags
-        });
+        };
+        
+        setLocalContact(updatedContact);
+        
+        // Se não estiver no modo de edição, salva automaticamente
+        if (!isEditing) {
+            try {
+                await updateContact(updatedContact);
+                addToast('Tag removida com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao remover tag:', error);
+                addToast('Erro ao remover tag', 'error');
+                // Reverte a alteração em caso de erro
+                setLocalContact(localContact);
+            }
+        }
     };
 
     // Renderização dos campos personalizados
@@ -322,23 +361,42 @@ const ContactDetails: React.FC = () => {
         if (!contactId || !activeTeam) return null;
         
         return (
-            <Card>
-                <div className="p-4">
-                    <Activities 
-                        contactId={contactId} 
-                        onDataChange={async () => {
-                            // Recarregar a timeline quando uma nova atividade for adicionada
-                            try {
-                                const updatedTimeline = await fetchContactTimeline(activeTeam.id, contactId);
-                                setTimelineEvents(updatedTimeline);
-                            } catch (error) {
-                                console.error('Erro ao atualizar timeline:', error);
-                                addToast('Erro ao atualizar atividades', 'error');
-                            }
-                        }} 
-                    />
+            <div className="space-y-4" ref={activitiesSectionRef}>
+                <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-semibold text-foreground">Atividades</h2>
+                    <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                            // Rola para a seção de atividades e destaca o formulário
+                            scrollToActivities();
+                            // Se estiver em uma visualização móvel, pode ser necessário um pequeno atraso
+                            setTimeout(() => {
+                                const noteInput = document.getElementById('note-content');
+                                if (noteInput) {
+                                    noteInput.focus();
+                                }
+                            }, 500);
+                        }}
+                    >
+                        <PLUS_ICON className="w-4 h-4 mr-2" />
+                        Nova Interação
+                    </Button>
                 </div>
-            </Card>
+                
+                <Activities 
+                    contactId={contactId} 
+                    onDataChange={async () => {
+                        try {
+                            const updatedTimeline = await fetchContactTimeline(activeTeam.id, contactId);
+                            setTimelineEvents(updatedTimeline);
+                        } catch (error) {
+                            console.error('Erro ao atualizar timeline:', error);
+                            addToast('Erro ao atualizar atividades', 'error');
+                        }
+                    }} 
+                />
+            </div>
         );
     };
 
@@ -347,7 +405,7 @@ const ContactDetails: React.FC = () => {
         if (!deals || deals.length === 0) {
             return (
                 <Card className="p-8 text-center">
-                    <p className="text-muted-foreground">Nenhum negócio encontrado para este contato</p>
+                    <p className="text-muted-foreground mb-4">Nenhum negócio encontrado para este contato</p>
                     <Button 
                         variant="outline" 
                         className="mt-4 mx-auto gap-1.5"
@@ -448,105 +506,33 @@ const ContactDetails: React.FC = () => {
     }
 
     return (
-        <div className="container mx-auto p-4 md:p-6 max-w-7xl">
-            {/* Cabeçalho */}
-            <div className="mb-6 flex items-center gap-4">
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setCurrentPage('contacts')}
-                    className="h-9 w-9"
-                >
-                    <ARROW_LEFT_ICON className="h-5 w-5" />
-                </Button>
-                <h1 className="text-2xl font-bold tracking-tight">Detalhes do Contato</h1>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Coluna da esquerda - Informações do contato */}
-                <div className="lg:col-span-1 space-y-6">
-                    {isEditing ? (
-                        <Card className="space-y-4 p-4">
-                            <h2 className="text-lg font-semibold text-foreground">Editar Contato</h2>
-                            <div className="space-y-4">
-                                <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">Nome</label>
-                                    <input 
-                                        id="name" 
-                                        name="name" 
-                                        value={localContact.name || ''} 
-                                        onChange={(e) => setLocalContact({...localContact, name: e.target.value})} 
-                                        className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-1">E-mail</label>
-                                    <input 
-                                        id="email" 
-                                        name="email" 
-                                        type="email"
-                                        value={localContact.email || ''} 
-                                        onChange={(e) => setLocalContact({...localContact, email: e.target.value})} 
-                                        className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="phone" className="block text-sm font-medium text-muted-foreground mb-1">Telefone</label>
-                                    <input 
-                                        id="phone" 
-                                        name="phone" 
-                                        value={localContact.phone || ''} 
-                                        onChange={(e) => setLocalContact({...localContact, phone: e.target.value})} 
-                                        className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="company" className="block text-sm font-medium text-muted-foreground mb-1">Empresa</label>
-                                    <input 
-                                        id="company" 
-                                        name="company" 
-                                        value={localContact.company || ''} 
-                                        onChange={(e) => setLocalContact({...localContact, company: e.target.value})} 
-                                        className="w-full bg-background p-2 rounded-md text-foreground border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    />
-                                </div>
-                                
-                                {/* Tags */}
-                                <div className="space-y-1.5">
-                                    <label className="block text-sm font-medium text-muted-foreground">Tags</label>
-                                    <div className="flex flex-wrap items-center gap-2 p-2 border rounded-md min-h-[42px]">
-                                        {localContact.tags?.map((tag, index) => (
-                                            <div key={index} className="inline-flex items-center bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full">
-                                                {tag}
-                                                <button 
-                                                    type="button"
-                                                    onClick={() => handleRemoveTag(tag)}
-                                                    className="ml-1.5 text-primary/70 hover:text-primary"
-                                                >
-                                                    &times;
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <input
-                                            type="text"
-                                            value={tagInput}
-                                            onChange={(e) => setTagInput(e.target.value)}
-                                            onKeyDown={handleAddTag}
-                                            placeholder="Digite uma tag e pressione Enter"
-                                            className="flex-1 min-w-[150px] bg-transparent text-foreground placeholder:text-muted-foreground/50 focus:outline-none text-sm"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="flex justify-end gap-2 pt-4 border-t">
+        <div className="container mx-auto p-4 md:p-6 max-w-6xl">
+            <div className="flex flex-col space-y-6">
+                {/* Cabeçalho e botões de ação */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex items-center space-x-4">
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => navigate(-1)}
+                            className="text-muted-foreground hover:text-foreground"
+                        >
+                            <ARROW_LEFT_ICON className="h-5 w-5" />
+                            <span className="sr-only">Voltar</span>
+                        </Button>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                            {isEditing ? 'Editar Contato' : 'Detalhes do Contato'}
+                        </h1>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                        {isEditing ? (
+                            <>
                                 <Button 
                                     variant="outline" 
                                     onClick={() => {
                                         setIsEditing(false);
-                                        if (storeContactDetails) {
-                                            setLocalContact(storeContactDetails);
-                                        }
+                                        setLocalContact(storeContactDetails);
                                     }}
                                     disabled={isSaving}
                                 >
@@ -555,89 +541,159 @@ const ContactDetails: React.FC = () => {
                                 <Button 
                                     onClick={handleSaveContact}
                                     disabled={isSaving}
+                                    isLoading={isSaving}
                                 >
-                                    {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                                    Salvar Alterações
                                 </Button>
-                            </div>
-                        </Card>
-                    ) : (
-                        <ContactCard 
-                            contact={localContact} 
-                            onEdit={() => setIsEditing(true)}
-                            className="sticky top-4"
-                        />
-                    )}
-
-                    {/* Seção de Campos Personalizados */}
-                    <Card>
-                        <div className="flex justify-between items-center p-4 border-b">
-                            <h2 className="text-lg font-semibold text-foreground">Informações Adicionais</h2>
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => setCurrentPage('settings', { tab: 'custom-fields' })}
-                                className="gap-1.5"
-                            >
-                                <PLUS_ICON className="w-3.5 h-3.5" />
-                                Gerenciar Campos
-                            </Button>
-                        </div>
-                        <div className="p-4">
-                            {renderCustomFieldsSection()}
-                        </div>
-                    </Card>
+                            </>
+                        ) : (
+                            <>
+                                <Button 
+                                    variant="outline" 
+                                    onClick={() => setIsEditing(true)}
+                                >
+                                    <EDIT_ICON className="w-4 h-4 mr-2" />
+                                    Editar
+                                </Button>
+                                <Button 
+                                    variant="outline"
+                                    onClick={() => setIsDealModalOpen(true)}
+                                >
+                                    <PLUS_ICON className="w-4 h-4 mr-2" />
+                                    Novo Negócio
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
 
-                {/* Coluna da direita - Atividades e Negócios */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Abas */}
-                    <div className="border-b border-border/50">
-                        <div className="flex space-x-4">
-                            <button
-                                onClick={() => setActiveTab('activities')}
-                                className={`py-2 px-4 font-medium text-sm border-b-2 ${
-                                    activeTab === 'activities' 
-                                        ? 'border-primary text-primary' 
-                                        : 'border-transparent text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                Atividades
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('deals')}
-                                className={`py-2 px-4 font-medium text-sm border-b-2 ${
-                                    activeTab === 'deals' 
-                                        ? 'border-primary text-primary' 
-                                        : 'border-transparent text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                Negócios
-                            </button>
-                        </div>
+                {/* Conteúdo principal */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Coluna da esquerda - Informações do contato */}
+                    <div className="space-y-6 lg:col-span-1">
+                        <ContactCard 
+                            contact={localContact} 
+                            onEdit={isEditing ? undefined : () => setIsEditing(true)}
+                            className={isEditing ? 'border-2 border-primary' : ''}
+                        />
+                        
+                        {/* Tags */}
+                        <Card className="p-4">
+                            <div className="flex justify-between items-center mb-3">
+                                <h3 className="font-medium text-foreground">Tags</h3>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    {localContact?.tags?.map((tag) => (
+                                        <span 
+                                            key={tag} 
+                                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
+                                        >
+                                            {tag}
+                                            <button 
+                                                type="button" 
+                                                onClick={() => handleRemoveTag(tag)}
+                                                className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/20 text-primary hover:bg-primary/30 focus:outline-none"
+                                            >
+                                                <span className="sr-only">Remover tag</span>
+                                                <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 8 8">
+                                                    <path fillRule="evenodd" d="M4 3.293l2.146-2.147a.5.5 0 01.708.708L4.707 4l2.147 2.146a.5.5 0 01-.708.708L4 4.707l-2.146 2.147a.5.5 0 01-.708-.708L3.293 4 1.146 1.854a.5.5 0 01.708-.708L4 3.293z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    ))}
+                                    {(!localContact?.tags || localContact.tags.length === 0) && (
+                                        <p className="text-sm text-muted-foreground">Nenhuma tag adicionada</p>
+                                    )}
+                                </div>
+                                
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        onKeyDown={handleAddTag}
+                                        placeholder="Adicione tags..."
+                                        className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                    />
+                                    <span className="absolute right-2 top-2 text-xs text-muted-foreground">
+                                        Pressione Enter ou vírgula
+                                    </span>
+                                </div>
+                            </div>
+                        </Card>
+                        
+                        {/* Campos personalizados */}
+                        <Card className="p-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-medium text-foreground">Campos Personalizados</h3>
+                                {isEditing && (
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        onClick={() => setIsCustomFieldModalOpen(true)}
+                                    >
+                                        <PLUS_ICON className="w-4 h-4 mr-1" />
+                                        Adicionar
+                                    </Button>
+                                )}
+                            </div>
+                            {renderCustomFieldsSection()}
+                        </Card>
                     </div>
-
-                    {/* Conteúdo das abas */}
-                    <div className="space-y-6">
-                        {activeTab === 'activities' ? renderActivitiesTab() : renderDealsTab()}
+                    
+                    {/* Coluna da direita - Abas de atividades e negócios */}
+                    <div className="space-y-6 lg:col-span-2">
+                        {/* Abas */}
+                        <div className="border-b">
+                            <nav className="-mb-px flex space-x-8">
+                                <button
+                                    onClick={() => setActiveTab('activities')}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                                        activeTab === 'activities'
+                                            ? 'border-primary text-primary'
+                                            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+                                    }`}
+                                >
+                                    Atividades
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('deals')}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                                        activeTab === 'deals'
+                                            ? 'border-primary text-primary'
+                                            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+                                    }`}
+                                >
+                                    Negócios
+                                </button>
+                            </nav>
+                        </div>
+                        
+                        {/* Conteúdo das abas */}
+                        <div className="pt-2">
+                            {activeTab === 'activities' ? renderActivitiesTab() : renderDealsTab()}
+                        </div>
                     </div>
                 </div>
             </div>
-
+            
             {/* Modais */}
-            <Modal
-                isOpen={isCustomFieldModalOpen}
+            <Modal 
+                isOpen={isCustomFieldModalOpen} 
                 onClose={() => setIsCustomFieldModalOpen(false)}
                 title="Adicionar Campo Personalizado"
             >
-                <div className="p-4">
-                    <p className="text-sm text-muted-foreground mb-4">
-                        Crie um novo campo personalizado para este contato.
+                <div className="p-6">
+                    <p className="text-muted-foreground mb-4">
+                        Os campos personalizados podem ser configurados nas configurações do sistema.
                     </p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                        A funcionalidade de campos personalizados está disponível na página de configurações.
-                    </p>
-                    <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsCustomFieldModalOpen(false)}>
+                    <div className="flex justify-end space-x-3 pt-4">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setIsCustomFieldModalOpen(false)}
+                        >
                             Fechar
                         </Button>
                         <Button 
@@ -651,17 +707,15 @@ const ContactDetails: React.FC = () => {
                     </div>
                 </div>
             </Modal>
-
-            {pipelines.length > 0 && (
-                <DealFormModal
-                    isOpen={isDealModalOpen}
-                    onClose={() => setIsDealModalOpen(false)}
-                    onSave={handleSaveDeal}
-                    pipeline={pipelines[0]}
-                    stages={stages.filter((s: PipelineStage) => s.pipeline_id === pipelines[0]?.id)}
-                    contactName={localContact?.name || ''}
-                />
-            )}
+            
+            <DealFormModal
+                isOpen={isDealModalOpen}
+                onClose={() => setIsDealModalOpen(false)}
+                onSave={handleSaveDeal}
+                pipeline={pipelines[0]}
+                stages={stages.filter(s => s.pipeline_id === pipelines[0]?.id)}
+                contactName={localContact?.name || 'Novo Contato'}
+            />
         </div>
     );
 };

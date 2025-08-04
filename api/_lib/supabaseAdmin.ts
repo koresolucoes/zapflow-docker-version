@@ -1,92 +1,150 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './database.types.js';
+import { Database } from './database.types';
+import { logger } from './utils/logger';
 
-// Enhanced logging for debugging environment variables in the Vercel runtime.
-console.log('[Supabase Admin] Initializing...');
-console.log(`[Supabase Admin] Has SUPABASE_URL: ${!!process.env.SUPABASE_URL}`);
-console.log(`[Supabase Admin] Has VITE_SUPABASE_URL: ${!!process.env.VITE_SUPABASE_URL}`);
-console.log(`[Supabase Admin] Has SUPABASE_SERVICE_ROLE_KEY: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}`);
+// Log inicial para depuração
+logger.info('Inicializando cliente Supabase Admin...', {
+  hasSupabaseUrl: !!process.env.SUPABASE_URL,
+  hasViteSupabaseUrl: !!process.env.VITE_SUPABASE_URL,
+  hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+});
 
-// These should be set in Vercel environment variables.
+// Configuração das credenciais do Supabase
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Validação das credenciais
 if (!supabaseUrl || supabaseUrl.trim() === '' || !supabaseServiceKey || supabaseServiceKey.trim() === '') {
-  const errorMessage = "Supabase URL (SUPABASE_URL or VITE_SUPABASE_URL) and Service Role Key (SUPABASE_SERVICE_ROLE_KEY) are required and cannot be empty.";
-  console.error(`[Supabase Admin] FATAL ERROR: ${errorMessage}`);
-  console.error(`[Supabase Admin] Received URL: '${supabaseUrl}'`);
+  const errorMessage = "Erro de configuração: URL do Supabase (SUPABASE_URL ou VITE_SUPABASE_URL) e Chave de Serviço (SUPABASE_SERVICE_ROLE_KEY) são obrigatórios e não podem estar vazios.";
+  logger.error(errorMessage, { 
+    supabaseUrl: !!supabaseUrl ? '***' : 'undefined',
+    supabaseServiceKey: !!supabaseServiceKey ? '***' : 'undefined'
+  });
   throw new Error(errorMessage);
 }
 
-console.log('[Supabase Admin] Credentials seem valid. Creating client with a custom fetch timeout and retry logic.');
-
-const getUrlStringForLogging = (url: RequestInfo | URL): string => {
+/**
+ * Obtém uma representação em string de uma URL para fins de log
+ * @param url A URL a ser formatada
+ * @returns Uma representação em string segura para logs
+ */
+const getUrlForLogging = (url: RequestInfo | URL): string => {
+  try {
     if (typeof url === 'string') {
-        return url;
+      // Remove credenciais sensíveis da URL
+      return url.replace(/([?&])([^=]+)=([^&]+)/g, (match, p1, p2) => 
+        p2.toLowerCase().includes('key') || p2.toLowerCase().includes('token') 
+          ? `${p1}${p2}=***` 
+          : match
+      );
     }
     if (url instanceof URL) {
-        return url.href;
+      return getUrlForLogging(url.href);
     }
-    // It's a Request object
-    return url.url;
+    // Para objetos Request
+    return getUrlForLogging(url.url);
+  } catch (error) {
+    logger.warn('Erro ao formatar URL para log', { error });
+    return '[URL não pôde ser formatada]';
+  }
 };
 
 /**
- * A wrapper around the global fetch that adds a timeout and retry logic.
- * This is crucial in serverless environments to prevent functions from hanging
- * on stalled network requests, especially when dealing with "waking up" a free-tier database.
- * @param url The request URL.
- * @param options The request options.
- * @param timeout The timeout in milliseconds for each attempt.
- * @param retries The total number of attempts to make.
- * @returns A fetch Response promise.
+ * Implementação personalizada de fetch com timeout e lógica de retentativa
+ * @param url A URL para a requisição
+ * @param options Opções da requisição
+ * @param timeout Timeout em milissegundos para cada tentativa
+ * @param maxRetries Número máximo de tentativas
+ * @returns Uma Promise com a Response
  */
-const fetchWithTimeoutAndRetries = async (
-    url: RequestInfo | URL,
-    options: RequestInit = {},
-    timeout = 25000, // 25 seconds
-    retries = 3
+const fetchWithRetry = async (
+  url: RequestInfo | URL,
+  options: RequestInit = {},
+  timeout = 10000, // 10 segundos por padrão
+  maxRetries = 3
 ): Promise<Response> => {
-    const urlForLogging = getUrlStringForLogging(url);
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        const controller = new AbortController();
-        const { signal } = controller;
+  const urlForLogging = getUrlForLogging(url);
+  let lastError: Error | null = null;
 
-        const timeoutId = setTimeout(() => {
-            console.warn(`[Supabase Admin] Fetch attempt ${attempt} timed out after ${timeout}ms for URL: ${urlForLogging}`);
-            controller.abort('Timeout');
-        }, timeout);
-
-        try {
-            const response = await fetch(url, { ...options, signal });
-            clearTimeout(timeoutId);
-            return response;
-        } catch (error: any) {
-            clearTimeout(timeoutId);
-            if (attempt === retries) {
-                console.error(`[Supabase Admin] Fetch failed on final attempt (${attempt}) for URL ${urlForLogging}:`, error);
-                throw error;
-            }
-            console.warn(`[Supabase Admin] Fetch attempt ${attempt} failed for ${urlForLogging}. Retrying in ${attempt}s...`, error.message);
-            // Simple exponential backoff
-            await new Promise(res => setTimeout(res, 1000 * attempt));
-        }
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      logger.debug(`Tentativa ${attempt} de ${maxRetries} para ${urlForLogging}`);
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      // Se a resposta for bem-sucedida, retorna imediatamente
+      if (response.ok) {
+        return response;
+      }
+      
+      // Para erros 4xx, não tenta novamente (exceto 408, 429, etc.)
+      if (response.status >= 400 && response.status < 500 && 
+          response.status !== 408 && response.status !== 429) {
+        logger.warn(`Requisição falhou com status ${response.status}`, {
+          url: urlForLogging,
+          status: response.status,
+          statusText: response.statusText
+        });
+        return response;
+      }
+      
+      // Para outros erros, lança para ser capturado no bloco catch
+      throw new Error(`HTTP error! status: ${response.status}`);
+      
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      lastError = error;
+      
+      // Se foi um aborto por timeout, loga como aviso
+      if (error.name === 'AbortError') {
+        logger.warn(`Timeout na tentativa ${attempt} para ${urlForLogging}`, { 
+          timeout,
+          attempt,
+          maxRetries 
+        });
+      } else {
+        logger.error(`Erro na tentativa ${attempt} para ${urlForLogging}`, { 
+          error: error.message,
+          stack: error.stack,
+          attempt,
+          maxRetries
+        });
+      }
+      
+      // Se for a última tentativa, não espera
+      if (attempt === maxRetries) break;
+      
+      // Espera exponencial entre as tentativas (1s, 2s, 4s, etc.)
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
-    // This line should be unreachable if retries > 0, but is required for TypeScript's control flow analysis.
-    throw new Error('Fetch failed after all retries. This should not be reached.');
+  }
+  
+  // Se chegou aqui, todas as tentativas falharam
+  throw lastError || new Error(`Falha após ${maxRetries} tentativas para ${urlForLogging}`);
 };
 
-
-// Create a single, shared admin client for use in server-side functions.
+// Cria o cliente Supabase com a implementação personalizada de fetch
 export const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {
-    auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-    },
-    // Add the timeout and retry logic to all fetch requests made by the Supabase client.
-    global: {
-        fetch: (url, options) => fetchWithTimeoutAndRetries(url, options)
-    }
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+    detectSessionInUrl: false
+  },
+  global: {
+    fetch: fetchWithRetry
+  }
 });
 
-console.log('[Supabase Admin] Client created successfully with retry logic.');
+// Log de sucesso na inicialização
+logger.info('Cliente Supabase Admin criado com sucesso', { 
+  url: getUrlForLogging(supabaseUrl),
+  // Não logamos a chave de serviço por questões de segurança
+});
