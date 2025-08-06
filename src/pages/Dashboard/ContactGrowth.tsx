@@ -12,8 +12,8 @@ const ContactGrowth: React.FC = () => {
 
     // Get theme colors
     const chartColors = {
-        grid: theme === 'dark' ? 'hsl(var(--muted))' : 'hsl(var(--muted))',
-        text: theme === 'dark' ? 'hsl(var(--muted-foreground))' : 'hsl(var(--muted-foreground))',
+        grid: 'hsl(var(--muted))',
+        text: 'hsl(var(--muted-foreground))',
         line: 'hsl(var(--primary))',
         activeDot: 'hsl(var(--background))',
     };
@@ -120,7 +120,7 @@ const ContactGrowth: React.FC = () => {
                                 {popularTags.map(([tag, count]) => (
                                     <span 
                                         key={tag} 
-                                        className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary"
+                                        className="px-2 py-1 text-xs rounded-full bg-accent text-accent-foreground"
                                     >
                                         {tag} ({count})
                                     </span>

@@ -143,7 +143,7 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard title="Total de Contatos" value={mainMetrics.totalContacts} icon={<CONTACTS_ICON />} />
             <StatCard title="Negócios em Aberto" value={mainMetrics.openDealsValue} icon={<FUNNEL_ICON />} />
-            <StatCard title="Taxa de Conversão" value={mainMetrics.conversionRate} icon={<span className="text-amber-500 font-bold text-xl">%</span>} footer="Negócios Ganhos vs. Perdidos" />
+            <StatCard title="Taxa de Conversão" value={mainMetrics.conversionRate} icon={<span className="text-warning font-bold text-xl">%</span>} footer="Negócios Ganhos vs. Perdidos" />
             <StatCard title="Automações Ativas" value={mainMetrics.activeAutomations} icon={<AUTOMATION_ICON />} />
         </div>
     ),

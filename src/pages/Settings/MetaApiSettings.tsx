@@ -264,7 +264,7 @@ const MetaApiSettings: React.FC = () => {
                 <div className="flex justify-end pt-4 border-t border-border/50 mt-8">
                     <div className="flex items-center gap-4">
                         {error && <p className="text-destructive text-sm">{error}</p>}
-                        {isSaved && <p className="text-green-600 dark:text-green-400 text-sm">Configurações salvas com sucesso!</p>}
+                        {isSaved && <p className="text-success text-sm">Configurações salvas com sucesso!</p>}
                         <Button 
                             type="submit" 
                             disabled={isSaving}
