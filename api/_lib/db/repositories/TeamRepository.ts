@@ -61,14 +61,14 @@ export class TeamRepository extends BaseRepository<'teams'> {
     try {
       const { data, error } = await supabaseAdmin
         .from('team_members')
-        .select<{ team: Team }>('team(*)')
+        .select('team_id')
         .eq('user_id', userId);
 
       if (error) {
         throw error;
       }
 
-      return data?.map(item => item.team) || [];
+      return data.map(item => item.team_id) || [];
     } catch (error) {
       logger.error('Erro ao buscar equipes do usuário', { error, userId });
       return [];

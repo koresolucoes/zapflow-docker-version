@@ -60,7 +60,7 @@ export async function triggerIdHandler(req: Request, res: Response) {
   }
   const contentType = req.headers['content-type'] || '';
   let body: any = {};
-  // Manually parse body if not JSON, as Vercel's default parser might not handle it.
+  // Manually parse body if not JSON, as the default parser might not handle it properly in our Docker environment.
   if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
     try {
       const rawBodyBuffer = await getRawBody(req);

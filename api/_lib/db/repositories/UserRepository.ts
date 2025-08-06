@@ -41,7 +41,7 @@ export class UserRepository extends BaseRepository<'profiles'> {
   async findByTeam(teamId: string): Promise<Profile[]> {
     const { data, error } = await supabaseAdmin
       .from('team_members')
-      .select<{ profiles: Profile }>('profiles(*)')
+      .select('profiles:profiles(*)')
       .eq('team_id', teamId);
 
     if (error || !data) {
@@ -49,7 +49,7 @@ export class UserRepository extends BaseRepository<'profiles'> {
       return [];
     }
 
-    return data.map(item => item.profiles);
+    return (data as unknown as Array<{ profiles: Profile }>).map(item => item.profiles);
   }
 
   /**

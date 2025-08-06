@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { MetricsSummary } from './components/MetricsSummary.js';
 import { GoalsMetrics } from './components/GoalsMetrics.js';
 import WhatsAppAnalytics  from './components/WhatsAppAnalytics.js';
+import PerformanceMetrics from './components/PerformanceMetrics.js';
 
 interface MetricComponentProps {
   startDate?: string;
@@ -120,8 +121,8 @@ const Metrics = () => {
         <TabsList>
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
-          <TabsTrigger value="performance">Desempenho</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -153,49 +154,17 @@ const Metrics = () => {
             startDate={dateRange?.from} 
             endDate={dateRange?.to} 
           />
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tempo de Resposta</CardTitle>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                <ResponseTimeMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Status das Mensagens</CardTitle>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                <StatusMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
-              </CardContent>
-            </Card>
-          </div>
+        </TabsContent>
+
+        <TabsContent value="performance" className="space-y-4">
+          <PerformanceMetrics 
+            startDate={dateRange?.from} 
+            endDate={dateRange?.to} 
+          />
         </TabsContent>
 
         <TabsContent value="campaigns">
           <CampaignMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4">
-              <CardHeader>
-                <CardTitle>Desempenho</CardTitle>
-              </CardHeader>
-              <CardContent className="pl-2">
-                <GoalsMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
-              </CardContent>
-            </Card>
-            <Card className="col-span-3">
-              <CardHeader>
-                <CardTitle>Métricas de Resposta</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponseTimeMetrics startDate={formattedStartDate} endDate={formattedEndDate} />
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
       </Tabs>
     </div>

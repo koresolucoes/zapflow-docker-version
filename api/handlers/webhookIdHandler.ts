@@ -1,119 +1,290 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
-import { getProfileForWebhook } from '../_lib/webhook/profile-handler.js';
-import { processStatusUpdate } from '../_lib/webhook/status-handler.js';
-import { processIncomingMessage } from '../_lib/webhook/message-handler.js';
-import { TablesInsert, Json } from '../_lib/types.js';
-import { getRawBody } from '../_lib/webhook/parser.js';
+import { MetricsService } from '../_lib/services/metrics.service.js';
+
+interface WebhookPayload {
+  object: string;
+  entry: Array<{
+    id: string;
+    time: number;
+    changes: Array<{
+      value: {
+        messaging_product: string;
+        metadata: {
+          display_phone_number: string;
+          phone_number_id: string;
+        };
+        contacts?: Array<{
+          profile: {
+            name: string;
+          };
+          wa_id: string;
+        }>;
+        messages?: Array<{
+          from: string;
+          id: string;
+          timestamp: string;
+          type: string;
+          text?: {
+            body: string;
+          };
+          image?: {
+            id: string;
+            mime_type: string;
+            sha256: string;
+          };
+          document?: {
+            id: string;
+            filename: string;
+            mime_type: string;
+            sha256: string;
+          };
+          audio?: {
+            id: string;
+            mime_type: string;
+            sha256: string;
+          };
+          video?: {
+            id: string;
+            mime_type: string;
+            sha256: string;
+          };
+          button?: {
+            text: string;
+            payload: string;
+          };
+          interactive?: {
+            type: string;
+            button_reply?: {
+              id: string;
+              title: string;
+            };
+            list_reply?: {
+              id: string;
+              title: string;
+              description: string;
+            };
+          };
+        }>;
+        statuses?: Array<{
+          id: string;
+          status: 'sent' | 'delivered' | 'read' | 'failed' | 'deleted';
+          timestamp: string;
+          recipient_id: string;
+          conversation?: {
+            id: string;
+            origin: {
+              type: string;
+            };
+          };
+          pricing?: {
+            pricing_model: string;
+            category: string;
+            billable: boolean;
+            per_unit_price: {
+              amount: number;
+              currency: string;
+            };
+          };
+          errors?: Array<{
+            code: number;
+            title: string;
+            message: string;
+            error_data?: {
+              details: string;
+            };
+          }>;
+        }>;
+      };
+      field: string;
+    }>;
+  }>;
+}
 
 export async function webhookIdHandler(req: Request, res: Response) {
-  const pathIdentifier = req.params.id;
-  // 1. Lidar com a Solicitação de Verificação da Meta (GET)
+  const { id } = req.params;
+  
+  // Verifica se é uma requisição de verificação do webhook
   if (req.method === 'GET') {
-    if (!pathIdentifier) {
-      console.error("[Webhook VERIFY] Requisição GET recebida sem um identificador na URL.");
-      return res.status(400).send("Bad Request: Missing identifier.");
+    const mode = req.query['hub.mode'] as string;
+    const token = req.query['hub.verify_token'] as string;
+    const challenge = req.query['hub.challenge'] as string;
+
+    if (mode === 'subscribe' && token) {
+      // Busca o token de verificação do perfil
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('meta_verify_token')
+        .eq('id', id)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('Profile not found for webhook verification:', id);
+        return res.status(404).json({ error: 'Profile not found' });
+      }
+
+      if (token === profile.meta_verify_token) {
+        console.log('Webhook verified for profile:', id);
+        return res.status(200).send(challenge);
+      } else {
+        console.error('Invalid verify token for profile:', id);
+        return res.status(403).json({ error: 'Invalid verify token' });
+      }
     }
-    const profile = await getProfileForWebhook(pathIdentifier);
-    if (!profile || !profile.meta_verify_token) {
-      console.error(`[Webhook VERIFY] Perfil ou token de verificação não encontrado para o identificador ${pathIdentifier}.`);
-      return res.status(403).send('Forbidden: Profile or verification token not found.');
-    }
-    const verifyTokenFromDb = profile.meta_verify_token;
-    const mode = req.query['hub.mode'];
-    const tokenFromMeta = req.query['hub.verify_token'];
-    const challenge = req.query['hub.challenge'];
-    if (mode === 'subscribe' && tokenFromMeta === verifyTokenFromDb) {
-      console.log(`Webhook verificado com sucesso para o usuário ${profile.id}!`);
-      return res.status(200).send(challenge);
-    } else {
-      console.error(`Falha na verificação do webhook para o usuário ${profile.id}. Tokens não correspondem.`);
-      return res.status(403).send('Forbidden: Token mismatch.');
-    }
+
+    return res.status(400).json({ error: 'Invalid webhook verification request' });
   }
-  // 2. Lidar com Notificações de Eventos da Meta (POST)
+
+  // Processa notificações do webhook
   if (req.method === 'POST') {
     try {
-      if (!pathIdentifier) {
-        console.error("[Webhook] Requisição recebida sem um identificador na URL.");
-        return res.status(400).send("Bad Request: Missing identifier.");
+      const payload: WebhookPayload = req.body;
+      
+      // Verifica se é um webhook do WhatsApp
+      if (payload.object !== 'whatsapp_business_account') {
+        return res.status(400).json({ error: 'Invalid webhook object' });
       }
-      const profile = await getProfileForWebhook(pathIdentifier);
-      if (!profile) {
-        console.error(`[Webhook] Nenhum perfil encontrado para o identificador ${pathIdentifier}. Abortando.`);
-        return res.status(200).send('EVENT_RECEIVED_PROFILE_NOT_FOUND');
-      }
-      const userId = profile.id;
-      console.log(`[Webhook] Perfil encontrado. Processando payload para o usuário: ${userId}`);
-      const rawBodyBuffer = await getRawBody(req);
-      if (rawBodyBuffer.length === 0) {
-        console.warn('[Webhook] Request body is empty.');
-        return res.status(200).send('EVENT_RECEIVED_EMPTY_BODY');
-      }
-      let body: any;
-      try {
-        body = JSON.parse(rawBodyBuffer.toString('utf-8'));
-      } catch (parseError: any) {
-        console.error('[Webhook] Falha ao analisar corpo da requisição como JSON:', parseError.message);
-        return res.status(400).send('Bad Request: Invalid JSON.');
-      }
-      try {
-        const { data: teamData, error: teamError } = await supabaseAdmin.from('teams').select('id').eq('owner_id', userId).single();
-        if (teamError || !teamData) {
-          console.error(`[Webhook] Could not find team for user ${userId}, webhook event will not be logged.`);
-        } else {
-          const teamId = (teamData as any).id;
-          const logPayload: TablesInsert<'webhook_logs'> = {
-            team_id: teamId,
-            source: 'meta_message',
-            payload: body as unknown as Json,
-            path: req.url || null,
-          };
-          await supabaseAdmin.from('webhook_logs').insert(logPayload as any);
-        }
-      } catch (logError) {
-        console.error('[Webhook] Falha ao registrar webhook de entrada:', logError);
-      }
-      const { entry } = body;
-      if (!entry || !Array.isArray(entry)) {
-        console.warn("[Webhook] Payload recebido mas 'entry' não foi encontrado ou não é um array.");
-        return res.status(200).send('EVENT_RECEIVED_NO_ENTRY');
-      }
-      const processingPromises: Promise<any>[] = [];
-      for (const item of entry) {
-        for (const change of item.changes) {
-          if (change.field !== 'messages' || !change.value) continue;
-          const { value } = change;
-          if (value.statuses && Array.isArray(value.statuses)) {
-            for (const status of value.statuses) {
-              processingPromises.push(processStatusUpdate(status, userId));
-            }
-          }
-          if (value.messages && Array.isArray(value.messages)) {
-            for (const message of value.messages) {
-              processingPromises.push(processIncomingMessage(userId, message, value.contacts));
-            }
+
+      // Processa cada entrada do webhook
+      for (const entry of payload.entry) {
+        for (const change of entry.changes) {
+          if (change.field === 'messages') {
+            await processMessages(change.value, id);
+          } else if (change.field === 'message_status') {
+            await processStatuses(change.value, id);
+          } else if (change.field === 'flows') {
+            await processFlowEvents(change.value, id);
           }
         }
       }
-      if (processingPromises.length > 0) {
-        console.log(`[Webhook] Aguardando a conclusão de ${processingPromises.length} promessas de processamento.`);
-        const results = await Promise.allSettled(processingPromises);
-        results.forEach((result, index) => {
-          if (result.status === 'rejected') {
-            console.error(`[Webhook] A promessa de processamento na posição ${index} falhou:`, result.reason);
-          }
-        });
-        console.log(`[Webhook] Lote de processamento para o usuário ${userId} concluído.`);
-      } else {
-        console.log('[Webhook] Nenhum evento de mensagem ou status válido para processar no payload.');
-      }
-      return res.status(200).send('EVENT_RECEIVED');
-    } catch (error: any) {
-      console.error("[Webhook] Erro não tratado no manipulador de POST:", error.message, error.stack);
-      return res.status(500).send('Internal Server Error');
+
+      return res.status(200).json({ status: 'ok' });
+    } catch (error) {
+      console.error('Error processing webhook:', error);
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
-  // 3. Lidar com outros métodos
-  return res.status(405).send('Method Not Allowed');
+
+  return res.status(405).json({ error: 'Method not allowed' });
+}
+
+async function processMessages(value: any, profileId: string) {
+  if (!value.messages || value.messages.length === 0) return;
+
+  for (const message of value.messages) {
+    try {
+      // Determina o tipo de mensagem
+      let messageType: 'text' | 'image' | 'document' | 'audio' | 'video' | 'button' | 'list' | 'template' = 'text';
+      
+      if (message.image) messageType = 'image';
+      else if (message.document) messageType = 'document';
+      else if (message.audio) messageType = 'audio';
+      else if (message.video) messageType = 'video';
+      else if (message.button) messageType = 'button';
+      else if (message.interactive) messageType = 'list';
+      else if (message.text) messageType = 'text';
+
+      // Busca ou cria o contato
+      const contactId = await getOrCreateContact(message.from, profileId);
+
+      // Registra a métrica da mensagem
+      await MetricsService.logMessage({
+        profileId,
+        messageId: message.id,
+        contactId,
+        direction: 'inbound',
+        status: 'sent',
+        messageType,
+        timestamp: new Date(parseInt(message.timestamp) * 1000),
+        templateName: message.template?.name || null,
+      });
+
+      console.log(`Processed inbound message: ${message.id}`);
+    } catch (error) {
+      console.error('Error processing message:', error);
+    }
+  }
+}
+
+async function processStatuses(value: any, profileId: string) {
+  if (!value.statuses || value.statuses.length === 0) return;
+
+  for (const status of value.statuses) {
+    try {
+      // Atualiza o status da mensagem
+      await MetricsService.updateMessageStatus({
+        profileId,
+        messageId: status.id,
+        status: status.status,
+        timestamp: new Date(parseInt(status.timestamp) * 1000),
+        errorCode: status.errors?.[0]?.code?.toString() || null,
+      });
+
+      console.log(`Updated message status: ${status.id} -> ${status.status}`);
+    } catch (error) {
+      console.error('Error processing status:', error);
+    }
+  }
+}
+
+async function processFlowEvents(value: any, profileId: string) {
+  try {
+    const { event, flow_id, old_status, new_status } = value;
+
+    // Registra eventos de Flow
+    await supabaseAdmin
+      .from('webhook_logs')
+      .insert({
+        team_id: profileId, // Assumindo que profileId é o team_id
+        source: 'whatsapp_flows',
+        payload: {
+          event,
+          flow_id,
+          old_status,
+          new_status,
+          timestamp: new Date().toISOString(),
+        },
+        path: `/webhook/${profileId}`,
+      });
+
+    console.log(`Processed Flow event: ${event} for flow ${flow_id}`);
+  } catch (error) {
+    console.error('Error processing Flow event:', error);
+  }
+}
+
+async function getOrCreateContact(phoneNumber: string, profileId: string): Promise<string> {
+  try {
+    // Busca o contato existente
+    const { data: existingContact, error: searchError } = await supabaseAdmin
+      .from('contacts')
+      .select('id')
+      .eq('phone', phoneNumber)
+      .eq('team_id', profileId) // Assumindo que profileId é o team_id
+      .single();
+
+    if (existingContact) {
+      return existingContact.id;
+    }
+
+    // Cria um novo contato
+    const { data: newContact, error: insertError } = await supabaseAdmin
+      .from('contacts')
+      .insert({
+        name: `Contato ${phoneNumber}`,
+        phone: phoneNumber,
+        team_id: profileId, // Assumindo que profileId é o team_id
+      })
+      .select('id')
+      .single();
+
+    if (insertError) {
+      throw insertError;
+    }
+
+    return newContact.id;
+  } catch (error) {
+    console.error('Error getting or creating contact:', error);
+    throw error;
+  }
 }
