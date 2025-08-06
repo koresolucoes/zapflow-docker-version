@@ -104,7 +104,7 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">
                         Nome do Campo *
                     </label>
                     <input
@@ -113,14 +113,14 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({
                         name="name"
                         value={formData.name}
                         onChange={handleFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring bg-background text-foreground"
                         placeholder="Ex: Tamanho da Camiseta"
                         required
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="key" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label htmlFor="key" className="block text-sm font-medium text-muted-foreground mb-1">
                         Chave (identificador único)
                     </label>
                     <input
@@ -129,16 +129,16 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({
                         name="key"
                         value={formData.key}
                         onChange={handleFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
+                        className="w-full px-3 py-2 border border-input rounded-md shadow-sm bg-muted text-muted-foreground"
                         readOnly
                     />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-xs text-muted-foreground">
                         Este valor será usado para identificar o campo no sistema.
                     </p>
                 </div>
 
                 <div>
-                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label htmlFor="type" className="block text-sm font-medium text-muted-foreground mb-1">
                         Tipo de Campo *
                     </label>
                     <select
@@ -146,7 +146,7 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({
                         name="type"
                         value={formData.type}
                         onChange={handleFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring bg-background text-foreground"
                         required
                     >
                         <option value="TEXTO">Texto</option>
@@ -158,7 +158,7 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({
 
                 {formData.type === 'LISTA' && (
                     <div>
-                        <label htmlFor="options" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label htmlFor="options" className="block text-sm font-medium text-muted-foreground mb-1">
                             Opções (separadas por vírgula) *
                         </label>
                         <input
@@ -167,7 +167,7 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({
                             name="options"
                             value={formData.options?.join(', ') || ''}
                             onChange={handleFormChange}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                            className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring bg-background text-foreground"
                             placeholder="Ex: P, M, G, GG"
                             required={formData.type === 'LISTA'}
                         />
@@ -175,7 +175,7 @@ const AddCustomFieldModal: React.FC<AddCustomFieldModalProps> = ({
                 )}
 
                 {error && (
-                    <div className="p-3 text-sm text-red-700 bg-red-100 dark:bg-red-900/30 dark:text-red-400 rounded-md">
+                    <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
                         {error}
                     </div>
                 )}

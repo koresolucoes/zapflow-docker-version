@@ -17,19 +17,12 @@ const SalesMetrics: React.FC = () => {
         won: 'hsl(var(--success))',
         lost: 'hsl(var(--destructive))',
         intermediate: 'hsl(var(--muted-foreground))',
-        hoverBg: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        hoverBg: 'hsl(var(--accent) / 0.5)',
         cardBg: 'hsl(var(--card))',
         cardBorder: 'hsl(var(--border))',
         text: 'hsl(var(--foreground))',
         mutedText: 'hsl(var(--muted-foreground))',
         primary: 'hsl(var(--primary))',
-        primaryForeground: 'hsl(var(--primary-foreground))',
-        secondary: 'hsl(var(--secondary))',
-        secondaryForeground: 'hsl(var(--secondary-foreground))',
-        accent: 'hsl(var(--accent))',
-        accentForeground: 'hsl(var(--accent-foreground))',
-        muted: 'hsl(var(--muted))',
-        mutedForeground: 'hsl(var(--muted-foreground))',
     };
 
     const salesKPIs = useMemo(() => {

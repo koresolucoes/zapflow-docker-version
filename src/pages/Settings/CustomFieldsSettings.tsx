@@ -87,12 +87,12 @@ const CustomFieldsSettings: React.FC = () => {
                                         {def.key}
                                     </SettingsTableCell>
                                     <SettingsTableCell>
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent text-accent-foreground">
                                             {def.type}
                                         </span>
                                     </SettingsTableCell>
                                     <SettingsTableCell>
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                                             Opcional
                                         </span>
                                     </SettingsTableCell>
