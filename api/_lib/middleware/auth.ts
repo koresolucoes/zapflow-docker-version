@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabaseAdmin } from '../supabaseAdmin.js';
 import { userService } from '../services/UserService.js';
-import { AuthUser, ErrorResponse } from './types';
+import { AuthUser, ErrorResponse } from './types.js';
 
 /**
  * Interface para o objeto de autenticação que será anexado ao objeto Request

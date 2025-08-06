@@ -1,4 +1,4 @@
-import { BaseRepository } from '../BaseRepository';
+import { BaseRepository } from '../BaseRepository.js';
 import { Database } from '../../database.types.js';
 import { supabaseAdmin } from '../../supabaseAdmin.js';
 

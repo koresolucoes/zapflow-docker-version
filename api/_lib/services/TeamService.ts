@@ -1,7 +1,7 @@
-import { teamRepository } from '../db/repositories/TeamRepository';
-import { userService } from './UserService';
-import { Database } from '../database.types';
-import { logger } from '../utils/logger';
+import { teamRepository } from '../db/repositories/TeamRepository.js';
+import { userService } from './UserService.js';
+import { Database } from '../database.types.js';
+import { logger } from '../utils/logger.js';
 
 type Team = Database['public']['Tables']['teams']['Row'];
 type TeamMember = Database['public']['Tables']['team_members']['Row'];

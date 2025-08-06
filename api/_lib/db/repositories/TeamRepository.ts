@@ -1,7 +1,7 @@
-import { BaseRepository } from '../BaseRepository';
-import { Database } from '../../database.types';
-import { supabaseAdmin } from '../../supabaseAdmin';
-import { logger } from '../../utils/logger';
+import { BaseRepository } from '../BaseRepository.js';
+import { Database } from '../../database.types.js';
+import { supabaseAdmin } from '../../supabaseAdmin.js';
+import { logger } from '../../utils/logger.js';
 
 type Team = Database['public']['Tables']['teams']['Row'];
 type TeamInsert = Database['public']['Tables']['teams']['Insert'];
@@ -257,7 +257,8 @@ export class TeamRepository extends BaseRepository<'teams'> {
    */
   async findById(id: string): Promise<Team | null> {
     try {
-      const { data, error } = await this.query
+      const { data, error } = await supabaseAdmin
+        .from('teams')
         .select('*')
         .eq('id', id)
         .single();

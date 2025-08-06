@@ -1,7 +1,7 @@
 import { PostgrestError, PostgrestSingleResponse } from '@supabase/supabase-js';
-import { supabaseAdmin } from '../supabaseAdmin';
-import { Database } from '../database.types';
-import { logger } from '../utils/logger';
+import { supabaseAdmin } from '../supabaseAdmin.js';
+import { Database } from '../database.types.js';
+import { logger } from '../utils/logger.js';
 
 type TableRow<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
 type TableInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
