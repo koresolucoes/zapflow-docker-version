@@ -1,86 +1,79 @@
+import { Worker, Job } from 'bullmq';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { processCampaignMessageHandler } from '../handlers/processCampaignMessageHandler.js';
-import redisQueue from '../_lib/redisQueue.js';
 
-// Tipos para a requisição e resposta simuladas
-interface SimulatedRequest {
-  method: string;
-  body: any;
-  headers: Record<string, string>;
-}
+// Connection details for Redis, consistent with the queue
+const connection = {
+  host: process.env.REDIS_HOST || 'redis',
+  port: Number(process.env.REDIS_PORT) || 6379,
+};
 
-interface SimulatedResponse {
-  status: (code: number) => {
-    json: (data: any) => void;
+/**
+ * The processor function that will be called for each job in the queue.
+ * It simulates a request and response object to be compatible with the existing handler.
+ */
+const processJob = async (job: Job) => {
+  const { messageId } = job.data;
+  console.log(`[Worker] Processing job ${job.id} for message ${messageId}`);
+
+  // Simulate the request object that processCampaignMessageHandler expects
+  const req = {
+    method: 'POST',
+    body: job.data,
+    headers: {},
   };
-}
 
-// Função para processar uma única mensagem
-async function processMessage(message: any) {
+  // Simulate the response object
+  const res = {
+    status: (code: number) => ({
+      json: (data: any) => {
+        console.log(`[Worker] Handler for message ${messageId} finished with status ${code}.`, data);
+      },
+    }),
+  };
+
   try {
-    console.log(`Processing message ${message.messageId}`);
-    
-    // Cria um objeto de requisição simulado para o processamento
-    const req: SimulatedRequest = {
-      method: 'POST',
-      body: message,
-      headers: {}
-    };
-    
-    const res: SimulatedResponse = {
-      status: (code: number) => ({
-        json: (data: any) => {
-          console.log(`Processed message ${message.messageId} with status ${code}`, data);
-          return { code, data };
-        }
-      })
-    };
-
-    // Processa a mensagem
+    // Execute the actual message processing logic
     await processCampaignMessageHandler(req as any, res as any);
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`Error processing message ${message.messageId}:`, errorMessage);
+  } catch (error: any) {
+    console.error(`[Worker] Error processing message ${messageId} (Job ID: ${job.id}):`, error);
     
-    // Atualiza o status da mensagem para falha
+    // If an error occurs, update the message status in the database to 'failed'
     await supabaseAdmin
       .from('messages')
-      .update({ status: 'failed', error: errorMessage })
-      .eq('id', message.messageId);
-  }
-}
+      .update({ status: 'failed', error: error.message })
+      .eq('id', messageId);
 
-// Função principal do worker
-export async function startWorker() {
-  console.log('Starting campaign worker...');
-  
-  // Conecta ao Redis
-  await redisQueue.connect();
-  
-  // Loop principal do worker
-  while (true) {
-    try {
-      // Tenta obter uma mensagem da fila
-      const message = await redisQueue.dequeue();
-      
-      if (message) {
-        console.log(`Processing message ${message.messageId}`);
-        await processMessage(message);
-      } else {
-        // Se não houver mensagens, aguarda um pouco antes de tentar novamente
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    } catch (error) {
-      console.error('Error in worker loop:', error);
-      // Em caso de erro, aguarda um pouco antes de continuar
-      await new Promise(resolve => setTimeout(resolve, 5000));
-    }
+    // Re-throw the error to let BullMQ know the job has failed
+    throw error;
   }
-}
+};
 
-// Inicia o worker se este arquivo for executado diretamente
-// Verificação de execução direta sem usar require
-const isMainModule = process.argv[1] === __filename;
-if (isMainModule) {
-  startWorker().catch(console.error);
-}
+// --- Worker Setup ---
+// Create a new BullMQ Worker to process jobs from the 'campaign-messages' queue.
+const campaignWorker = new Worker('campaign-messages', processJob, {
+  connection,
+  concurrency: 5, // Process up to 5 jobs concurrently
+  limiter: {      // Limit to 100 jobs every 10 seconds to avoid overwhelming external APIs
+    max: 100,
+    duration: 10000,
+  },
+});
+
+// --- Event Listeners for Logging and Monitoring ---
+campaignWorker.on('completed', (job: Job) => {
+  console.log(`[Worker] Completed job ${job.id} for message ${job.data.messageId}`);
+});
+
+campaignWorker.on('failed', (job: Job | undefined, error: Error) => {
+  if (job) {
+    console.error(`[Worker] Failed job ${job.id} for message ${job.data.messageId}. Error: ${error.message}`);
+  } else {
+    console.error(`[Worker] An unspecified job failed. Error: ${error.message}`);
+  }
+});
+
+console.log('Campaign worker has been initialized.');
+
+// Export the worker instance if it needs to be managed elsewhere
+export { campaignWorker };
