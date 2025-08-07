@@ -1,4 +1,4 @@
-import { userRepository } from '../db/repositories/UserRepository';
+import { userRepository } from '../db/repositories/UserRepository.js';
 import { supabaseAdmin } from '../supabaseAdmin.js';
 import { Database } from '../database.types.js';
 

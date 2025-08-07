@@ -374,19 +374,19 @@ const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ startDate, endD
                 <h4 className="font-medium text-sm mb-2">Taxa de Erro</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Crítico (>50%)</span>
+                    <span>Crítico (50%)</span>
                     <span className="text-red-500">
                       {performanceAlerts?.errorRate.critical || 0} alertas
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Alto (>10%)</span>
+                    <span>Alto (10%)</span>
                     <span className="text-orange-500">
                       {performanceAlerts?.errorRate.high || 0} alertas
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Médio (>5%)</span>
+                    <span>Médio (5%)</span>
                     <span className="text-yellow-500">
                       {performanceAlerts?.errorRate.medium || 0} alertas
                     </span>
@@ -398,19 +398,19 @@ const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ startDate, endD
                 <h4 className="font-medium text-sm mb-2">Latência</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Crítico (>7s)</span>
+                    <span>Crítico (7s)</span>
                     <span className="text-red-500">
                       {performanceAlerts?.latency.critical || 0} alertas
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Alto (>5s)</span>
+                    <span>Alto (5s)</span>
                     <span className="text-orange-500">
                       {performanceAlerts?.latency.high || 0} alertas
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Médio (>1s)</span>
+                    <span>Médio (1s)</span>
                     <span className="text-yellow-500">
                       {performanceAlerts?.latency.medium || 0} alertas
                     </span>
@@ -422,19 +422,19 @@ const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ startDate, endD
                 <h4 className="font-medium text-sm mb-2">Disponibilidade</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Crítico (<90%)</span>
+                    <span>Crítico (90%)</span>
                     <span className="text-red-500">
                       {performanceAlerts?.availability.critical || 0} alertas
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Baixo (<95%)</span>
+                    <span>Baixo (95%)</span>
                     <span className="text-orange-500">
                       {performanceAlerts?.availability.low || 0} alertas
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Ótimo (>99%)</span>
+                    <span>Ótimo (99%)</span>
                     <span className="text-green-500">
                       {performanceAlerts?.availability.good || 0} dias
                     </span>

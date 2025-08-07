@@ -1,17 +1,17 @@
 // Exportar camada de acesso a dados
-export * from './db';
+export * from './db/index.js';
 
 // Exportar serviços
-export * from './services';
+export * from './services/index.js';
 
 // Exportar tipos e interfaces
-export * from './types';
+export * from './types.js';
 
 // Exportar utilitários
-export * from './utils';
+export * from './utils/index.js';
 
 // Exportar configurações
-export { supabaseAdmin } from './supabaseAdmin';
+export { supabaseAdmin } from './supabaseAdmin.js';
 
 // Exportar tipos do banco de dados (apenas os tipos, não as constantes)
-export type { Database } from './database.types';
+export type { Database } from './database.types.js';

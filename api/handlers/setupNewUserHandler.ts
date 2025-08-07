@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { userService } from '../_lib';
+import { userService } from '../_lib/services/UserService.js';
 
 /**
  * @swagger

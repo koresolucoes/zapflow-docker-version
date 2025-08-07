@@ -34,7 +34,7 @@ export async function runTriggerHandler(req: Request, res: Response) {
         await publishEvent('contact_created', userId, { contact });
         if (contact.tags && contact.tags.length > 0) {
           await Promise.all(
-            contact.tags.map(tag => publishEvent('tag_added', userId, { contact, tag }))
+            contact.tags.map((tag: string) => publishEvent('tag_added', userId, { contact, tag }))
           );
         }
         break;
