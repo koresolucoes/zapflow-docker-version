@@ -4,14 +4,14 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
-import { setupTeamRoutes } from './handlers/teamHandler';
-import { setupNewUserHandler } from './handlers/setupNewUserHandler';
-import { conversationHandler } from './handlers/conversationHandler';
-import { metricsHandler } from './handlers/metricsHandler';
-import { runTriggerHandler } from './handlers/runTriggerHandler';
-import { webhookIdHandler } from './handlers/webhookIdHandler';
-import { triggerIdHandler } from './handlers/triggerIdHandler';
-import { membersHandler } from './handlers/membersHandler';
+import { setupTeamRoutes } from './handlers/teamHandler.js';
+import { setupNewUserHandler } from './handlers/setupNewUserHandler.js';
+import { conversationHandler } from './handlers/conversationHandler.js';
+import { metricsHandler } from './handlers/metricsHandler.js';
+import { runTriggerHandler } from './handlers/runTriggerHandler.js';
+import { webhookIdHandler } from './handlers/webhookIdHandler.js';
+import { triggerIdHandler } from './handlers/triggerIdHandler.js';
+import { membersHandler } from './handlers/membersHandler.js';
 import { analyzeSentimentHandler } from './handlers/analyzeSentimentHandler.js';
 import { generateReplyHandler } from './handlers/generateReplyHandler.js';
 import { enqueueCampaignSendHandler } from './handlers/enqueueCampaignSendHandler.js';
@@ -62,7 +62,7 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: ['./api/handlers/*.ts'],
+  apis: ['./api/handlers/*.js'],
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
