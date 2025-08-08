@@ -78,7 +78,10 @@ app.use('/api/setup-new-user', setupNewUserHandler);
 app.use('/api/conversations', conversationHandler);
 app.use('/api/metrics', metricsHandler);
 app.use('/api/triggers', runTriggerHandler);
-app.use('/api/webhooks', webhookIdHandler);
+// Rota de webhook de automação por ID do nó (ex.: /api/trigger/<prefix>__<nodeId>)
+app.all('/api/trigger/:id', triggerIdHandler);
+// Webhook de provedores externos (ex.: WhatsApp) por perfil/ID: /api/webhooks/:id
+app.all('/api/webhooks/:id', webhookIdHandler);
 
 // Rotas de campanhas
 app.post('/api/analyze-sentiment', analyzeSentimentHandler);

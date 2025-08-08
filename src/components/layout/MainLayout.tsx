@@ -13,7 +13,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 md:p-8">
-          <div className="mx-auto max-w-[1400px]">
+          <div className="mx-auto max-w-[1400px] h-full min-h-0">
             {children}
           </div>
         </main>

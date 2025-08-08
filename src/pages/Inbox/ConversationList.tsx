@@ -139,8 +139,8 @@ const ConversationList: React.FC = () => {
     };
 
     return (
-        <aside className="w-96 flex-shrink-0 bg-card border-r border-border flex flex-col">
-            <div className="p-4 space-y-3">
+        <aside className="w-96 flex-shrink-0 bg-card border-r border-border flex flex-col min-h-0">
+            <div className="p-4 space-y-3 flex-shrink-0">
                 <input
                     type="search"
                     placeholder="Pesquisar..."
@@ -154,7 +154,7 @@ const ConversationList: React.FC = () => {
                     <FilterButton label="Não Atribuídas" isActive={filter === 'unassigned'} onClick={() => setFilter('unassigned')} />
                 </div>
             </div>
-            <ul className="flex-grow overflow-y-auto px-2">
+            <ul className="flex-1 min-h-0 overflow-y-auto px-2">
                  {inboxLoading && conversations.length === 0 ? (
                     <div className="p-4 text-center text-muted-foreground">Carregando conversas...</div>
                 ) : filteredConversations.length === 0 ? (

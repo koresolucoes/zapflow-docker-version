@@ -10,13 +10,13 @@ const Inbox: React.FC = () => {
     const [isPanelOpen, setIsPanelOpen] = useState(true);
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="h-full min-h-0 flex flex-col">
             <header className="flex-shrink-0 px-6 py-4">
                 <h1 className="text-3xl font-bold text-foreground">Caixa de Entrada</h1>
             </header>
-            <main className="flex-grow flex-1 flex overflow-hidden bg-card/60 rounded-xl border border-border">
+            <main className="flex-grow flex-1 min-h-0 flex overflow-hidden bg-card/60 rounded-xl border border-border">
                 <ConversationList />
-                <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 min-h-0 flex overflow-hidden">
                     {activeContactId ? (
                         <>
                             <ChatWindow 
