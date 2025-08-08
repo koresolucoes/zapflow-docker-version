@@ -5,12 +5,14 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
+        - VITE_APP_URL=${VITE_APP_URL}
         - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
         - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     ports:
       - "5173:80"
     environment:
       - NODE_ENV=production
+      - VITE_APP_URL=${VITE_APP_URL}
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     depends_on:
@@ -33,7 +35,7 @@ services:
       - PORT=3001
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - APP_URL=http://localhost:5173
+      - APP_URL=${APP_URL}
       # assegura uso do host do serviço redis
       - REDIS_URL=redis://redis:6379
     depends_on:
