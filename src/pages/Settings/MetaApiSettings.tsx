@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EditableProfile } from '../../types/index.js';
 import { Button } from '../../components/common/Button.js';
+import { API_BASE_URL } from '../../services/api.js';
 import { COPY_ICON } from '../../components/icons/index.js';
 import { useAuthStore } from '../../stores/authStore.js';
 import { cn } from '../../lib/utils.js';
@@ -65,7 +66,7 @@ const MetaApiSettings: React.FC = () => {
     }, [profile, updateProfile]);
 
     // Construir a URL completa do webhook
-    const webhookUrl = user ? `${import.meta.env.VITE_APP_URL || window.location.origin}/api/webhook/${user.id}` : '';
+    const webhookUrl = user ? `${API_BASE_URL}/api/webhook/${user.id}` : '';
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

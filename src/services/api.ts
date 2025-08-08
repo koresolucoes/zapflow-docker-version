@@ -3,7 +3,11 @@
  * Garante que todas as chamadas usem o domínio correto (VITE_APP_URL ou window.location.origin)
  */
 
-const API_BASE_URL = import.meta.env.VITE_APP_URL || window.location.origin;
+export const API_BASE_URL = import.meta.env.VITE_APP_URL;
+
+if (!API_BASE_URL) {
+  throw new Error("VITE_APP_URL is not defined. Please set it in your .env file.");
+}
 
 /**
  * Realiza uma requisição à API
