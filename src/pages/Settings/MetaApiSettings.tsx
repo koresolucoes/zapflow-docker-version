@@ -65,7 +65,7 @@ const MetaApiSettings: React.FC = () => {
     }, [profile, updateProfile]);
 
     // Construir a URL completa do webhook
-    const webhookUrl = user ? `${window.location.origin}/api/webhook/${user.id}` : '';
+    const webhookUrl = user ? `${import.meta.env.VITE_APP_URL || window.location.origin}/api/webhook/${user.id}` : '';
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
