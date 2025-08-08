@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { API_BASE_URL } from '../../../services/api.js';
 import { NodeSettingsProps } from './common.js';
 import { Button } from '../../../components/common/Button.js';
 import { COPY_ICON, PLUS_ICON, TRASH_ICON } from '../../../components/icons/index.js';
@@ -40,7 +41,7 @@ const TriggerSettings: React.FC<NodeSettingsProps> = ({ node, onConfigChange, pr
     };
 
     const webhookPath = useMemo(() => `${profile?.webhook_path_prefix || profile?.id}__${node.id}`, [profile, node.id]);
-    const webhookUrl = `${import.meta.env.VITE_APP_URL || window.location.origin}/api/trigger/${webhookPath}`;
+    const webhookUrl = `${API_BASE_URL}/api/trigger/${webhookPath}`;
 
     const updateMapping = (updater: (draft: any[]) => any[]) => {
         const currentMapping = config.data_mapping || [];
