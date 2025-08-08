@@ -8,10 +8,10 @@ import AccountSettings from './AccountSettings.js';
 const TabButton = ({ label, isActive, onClick }: { label: string, isActive: boolean, onClick: () => void }) => (
     <button
         onClick={onClick}
-        className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors ${
+        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
             isActive
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? 'bg-accent text-accent-foreground'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
         }`}
     >
         {label}
@@ -22,10 +22,10 @@ const Settings: React.FC = () => {
     const [activeTab, setActiveTab] = useState('meta');
 
     return (
-        <div className="max-w-3xl mx-auto space-y-8">
+        <div className="max-w-4xl mx-auto space-y-8">
             <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
             <div>
-                <div className="border-b border flex flex-wrap">
+                <div className="flex flex-wrap gap-2">
                     <TabButton label="API da Meta & Webhooks" isActive={activeTab === 'meta'} onClick={() => setActiveTab('meta')} />
                     <TabButton label="Campos Personalizados" isActive={activeTab === 'custom'} onClick={() => setActiveTab('custom')} />
                     <TabButton label="Respostas Rápidas" isActive={activeTab === 'canned'} onClick={() => setActiveTab('canned')} />

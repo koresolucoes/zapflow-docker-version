@@ -18,7 +18,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'relative rounded-lg border bg-card text-card-foreground shadow-sm',
+          'relative rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow',
           glowClass,
           glowColorClass,
           glowActiveClass,

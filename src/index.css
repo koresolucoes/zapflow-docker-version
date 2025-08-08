@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
   :root {
     /* Cores base */
     --background: 0 0% 100%;

@@ -32,7 +32,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, footer }) => {
                         <h3 className="text-sm font-medium text-muted-foreground truncate">{title}</h3>
                         <p className="text-2xl font-bold text-foreground mt-1 truncate">{value}</p>
                     </div>
-                    <div className="ml-4 flex-shrink-0 p-3 bg-accent/10 rounded-lg">
+                    <div className="ml-4 flex-shrink-0 p-3 bg-accent/30 rounded-lg">
                         <div className="w-6 h-6 text-accent-foreground">
                             {icon}
                         </div>

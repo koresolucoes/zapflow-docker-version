@@ -6,10 +6,12 @@ WORKDIR /app
 # Definir argumentos de build
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_APP_URL
 
 # Criar arquivo .env temporário para o build
 RUN echo "VITE_SUPABASE_URL=$VITE_SUPABASE_URL" > .env && \
-    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env
+    echo "VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY" >> .env && \
+    echo "VITE_APP_URL=$VITE_APP_URL" >> .env
 
 # Copiar arquivos de configuração
 COPY package*.json ./

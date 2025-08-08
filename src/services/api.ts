@@ -1,13 +1,27 @@
 /**
  * Serviço de API para padronizar chamadas à API
- * Garante que todas as chamadas usem o domínio correto (VITE_APP_URL ou window.location.origin)
+ * Resolve a base URL da API de forma resiliente:
+ * - Se VITE_APP_URL estiver definido e não for localhost, usa-o
+ * - Caso contrário, usa window.location.origin (runtime), para funcionar atrás do Nginx/Portainer
  */
 
-export const API_BASE_URL = import.meta.env.VITE_APP_URL;
+const resolveApiBaseUrl = (): string => {
+  const configured = (import.meta as any)?.env?.VITE_APP_URL as string | undefined;
+  const isLocalLike = (url?: string) => !!url && /localhost|127\.0\.0\.1/i.test(url);
 
-if (!API_BASE_URL) {
-  throw new Error("VITE_APP_URL is not defined. Please set it in your .env file.");
-}
+  if (configured && !isLocalLike(configured)) {
+    return configured.replace(/\/$/, '');
+  }
+
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin.replace(/\/$/, '');
+  }
+
+  // Fallback seguro apenas para build sem janela (raro em produção de SPA)
+  return configured || 'http://localhost:5173';
+};
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 /**
  * Realiza uma requisição à API

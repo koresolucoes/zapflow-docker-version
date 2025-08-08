@@ -36,11 +36,36 @@ services:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - APP_URL=${APP_URL}
-      # assegura uso do host do serviço redis
+      # configurações explícitas do Redis para BullMQ
       - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       redis:
         condition: service_healthy
+    networks:
+      - app-network
+
+  worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    command: ["npm", "run", "worker:campaign"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - APP_URL=${APP_URL}
+      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./api:/app
+      - ./tsconfig.json:/app/tsconfig.json
+      - /app/node_modules
     networks:
       - app-network
 

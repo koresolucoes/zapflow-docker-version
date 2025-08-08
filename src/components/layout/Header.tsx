@@ -101,16 +101,16 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex items-center h-16 px-4">
-        <div className="flex items-center space-x-4">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center h-14 px-4">
+        <div className="flex items-center gap-3">
           <TeamSwitcher />
         </div>
         <div className="flex-1" />
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <ThemeToggle />
           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-            <span className="text-sm font-medium text-foreground">
+            <span className="text-sm font-semibold text-foreground">
               {user?.email?.charAt(0).toUpperCase()}
             </span>
           </div>

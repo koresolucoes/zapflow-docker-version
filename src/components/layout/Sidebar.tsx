@@ -36,14 +36,14 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, isActive, onClick }) => 
         onClick();
       }}
       className={cn(
-        'flex items-center p-3 my-1 rounded-lg transition-colors',
-        isActive 
-          ? 'bg-primary text-primary-foreground font-semibold' 
-          : 'text-secondary-foreground hover:bg-primary/50 hover:text-primary-foreground'
+        'group flex items-center p-2 my-1 rounded-md transition-colors',
+        isActive
+          ? 'bg-accent text-accent-foreground font-semibold'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
       )}
     >
-      {icon}
-      <span className="ml-4 text-sm font-medium">{label}</span>
+      <span className={cn('mr-3 transition-transform group-hover:scale-110')}>{icon}</span>
+      <span className="text-sm font-medium">{label}</span>
     </a>
   </li>
 );
@@ -72,12 +72,12 @@ const Sidebar: React.FC = () => {
 
   return (
     <aside className="hidden md:flex md:flex-shrink-0">
-      <div className="flex flex-col w-64 border-r border-border h-screen bg-background">
+      <div className="flex flex-col w-64 border-r border-border h-screen bg-card/50">
         {/* Logo */}
-        <div className="flex items-center h-16 px-4 border-b border-border bg-card">
+        <div className="flex items-center h-16 px-4 border-b border-border">
           <div className="flex items-center">
             <ZAPFLOW_AI_LOGO className="h-8 w-auto" />
-            <span className="ml-2 text-lg font-bold text-foreground">ZapFlow</span>
+            <span className="ml-2 text-lg font-semibold text-foreground">ZapFlow</span>
           </div>
         </div>
         
@@ -98,7 +98,7 @@ const Sidebar: React.FC = () => {
         </nav>
         
         {/* Navegação inferior */}
-        <div className="p-3 border-t border-border bg-card">
+        <div className="p-3 border-t border-border">
           <ul className="space-y-2">
             {bottomNavItems.map((item) => (
               <NavItem
@@ -112,8 +112,8 @@ const Sidebar: React.FC = () => {
             ))}
           </ul>
         </div>
-        <div className="p-4 mt-auto bg-muted/50 rounded-t-lg text-center">
-            <p className="text-xs text-muted-foreground"> 2024 ZapFlow AI. Todos os direitos reservados.</p>
+        <div className="p-4 mt-auto text-center">
+            <p className="text-xs text-muted-foreground">2024 ZapFlow AI</p>
         </div>
       </div>
     </aside>

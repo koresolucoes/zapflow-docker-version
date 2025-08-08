@@ -239,7 +239,7 @@ const Templates: React.FC = () => {
       </div>
 
       {error && (
-        <Card className="border-l-4 border-destructive">
+        <Card className="border-l-4 border-destructive/60">
           <div className="p-4">
             <p className="text-destructive">{error}</p>
           </div>
@@ -247,7 +247,7 @@ const Templates: React.FC = () => {
       )}
       
       {syncMessage && (
-        <Card className="border-l-4 border-success">
+        <Card className="border-l-4 border-success/60">
           <div className="p-4">
             <p className="text-success">{syncMessage}</p>
           </div>
