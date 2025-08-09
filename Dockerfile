@@ -30,14 +30,21 @@ RUN npm run build
 # Estágio de produção
 FROM nginx:alpine
 
+# Instalar utilitário para template de env (envsubst)
+RUN apk add --no-cache gettext
+
 # Copiar os arquivos construídos do estágio anterior
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copiar configuração personalizada do nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Adicionar suporte a configuração em runtime via env.js
+COPY env.template.js /usr/share/nginx/html/env.template.js
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Usa nosso entrypoint para gerar env.js e depois iniciar nginx
+ENTRYPOINT ["/docker-entrypoint.sh"]
 # Expor a porta 80
 EXPOSE 80
-
-# Comando para iniciar o servidor nginx
-CMD ["nginx", "-g", "daemon off;"]
