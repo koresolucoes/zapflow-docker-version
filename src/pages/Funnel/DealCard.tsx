@@ -81,9 +81,9 @@ const DealCard: React.FC<DealCardProps> = ({ deal, onDragStart, isGhost, onEdit,
                 'flex flex-col gap-2',
                 'hover:-translate-y-0.5',
                 'dark:hover:shadow-sky-500/10',
-                'glow-effect', 
-                currentStatus.glow, 
-                'hover:glow-active', 
+                'glow-effect',
+                'glow-primary',
+                'glow-active',
                 currentStatus.border
             )}
         >
