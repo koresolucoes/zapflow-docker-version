@@ -9,7 +9,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, glow = 'none', glowAlwaysOn = false, ...props }, ref) => {
+  ({ className, glow = 'primary', glowAlwaysOn = true, ...props }, ref) => {
     const glowClass = glow !== 'none' ? 'glow-effect' : '';
     const glowColorClass = glow !== 'none' ? `glow-${glow}` : '';
     const glowActiveClass = glowAlwaysOn ? 'glow-active' : '';

@@ -53,11 +53,12 @@
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
 
-    /* Cores de brilho */
-    --glow-primary: 240 5.9% 10%;
-    --glow-success: 142 76% 36%;
-    --glow-warning: 38 92% 50%;
-    --glow-destructive: 0 84.2% 60.2%;
+    /* Cores de brilho (tema claro) */
+    /* Azul fluorescente para cards/modais no claro */
+    --glow-primary: 200 100% 50%; /* ciano/azul vivo */
+    --glow-success: 142 90% 45%;
+    --glow-warning: 38 100% 55%;
+    --glow-destructive: 0 84% 60%;
   }
 
   .dark {
@@ -98,11 +99,12 @@
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
 
-    /* Ajustes de brilho para o tema escuro */
-    --glow-primary: 0 0% 98%;
-    --glow-success: 142 76% 46%;
-    --glow-warning: 38 92% 60%;
-    --glow-destructive: 0 84.2% 70.2%;
+    /* Cores de brilho (tema escuro) */
+    /* Verde fluorescente para cards/modais no escuro */
+    --glow-primary: 142 100% 50%; /* verde vivo para borda */
+    --glow-success: 142 100% 55%;
+    --glow-warning: 38 100% 60%;
+    --glow-destructive: 0 84% 70%;
   }
 }
 
@@ -136,13 +138,13 @@
 
   /* Cores de brilho */
   .glow-primary::before {
-    background: linear-gradient(135deg, hsl(var(--glow-primary) / 0.8), hsl(var(--glow-primary) / 0.4));
-    box-shadow: 0 0 15px 2px hsl(var(--glow-primary) / 0.3);
+    background: linear-gradient(135deg, hsl(var(--glow-primary) / 0.95), hsl(var(--glow-primary) / 0.55));
+    box-shadow: 0 0 22px 3px hsl(var(--glow-primary) / 0.45);
   }
 
   .glow-success::before {
-    background: linear-gradient(135deg, hsl(var(--glow-success) / 0.8), hsl(var(--glow-success) / 0.4));
-    box-shadow: 0 0 15px 2px hsl(var(--glow-success) / 0.3);
+    background: linear-gradient(135deg, hsl(var(--glow-success) / 0.9), hsl(var(--glow-success) / 0.5));
+    box-shadow: 0 0 20px 3px hsl(var(--glow-success) / 0.4);
   }
 
   .glow-warning::before {

@@ -46,7 +46,7 @@ const Modal: React.FC<ModalProps> = ({
     {
       'glow-effect': glow !== 'none',
       [`glow-${glow}`]: glow !== 'none',
-      'glow-active': true, // Sempre ativo para modais
+      'glow-active': true,
     }
   );
 
