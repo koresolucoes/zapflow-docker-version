@@ -317,7 +317,21 @@ export const useAuthStore = create<AuthState>((set, get) => {
       }
     });
 
-    set({ isInitialized: true });
+    // Buscar a sessão atual imediatamente para evitar loop de loading infinito
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Erro ao obter sessão inicial:', error);
+        }
+        await handleSession(data?.session ?? null);
+      } catch (err) {
+        console.error('Falha ao inicializar sessão:', err);
+        set({ loading: false, teamLoading: false });
+      } finally {
+        set({ isInitialized: true });
+      }
+    })();
     
     return () => {
       subscription?.unsubscribe();
