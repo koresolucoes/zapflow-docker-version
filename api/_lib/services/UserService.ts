@@ -1,5 +1,4 @@
 import { userRepository } from '../db/repositories/UserRepository.js';
-import { supabaseAdmin } from '../supabaseAdmin.js';
 import { Database } from '../database.types.js';
 
 // Define the TeamWithRole type
