@@ -6,7 +6,8 @@ import { Select } from '../../components/common/Select.js';
 import Modal from '../../components/common/Modal.js';
 import TemplatePreview from '../../components/common/TemplatePreview.js';
 import { useAuthStore } from '../../stores/authStore.js';
-import { supabase } from '../../lib/supabaseClient.js';
+// Import your API client for the new authentication system
+import { apiClient } from '../../lib/apiClient';
 import { Contact } from '../../types/index.js';
 
 // Helper to resolve nested object paths for variables. e.g., "contact.name"

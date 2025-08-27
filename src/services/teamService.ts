@@ -1,77 +1,54 @@
-import { supabase } from '../lib/supabaseClient.js';
-import { TeamMemberWithEmail } from '../types/index.js';
-import type { User } from '@supabase/supabase-js';
+import { apiGet, apiPost, apiPut, apiDelete } from '../lib/apiClient.js';
+import type { TeamMemberWithEmail } from '../types/index.js';
 
 export const getTeamMembersForTeams = async (teamIds: string[]): Promise<TeamMemberWithEmail[]> => {
     if (teamIds.length === 0) {
         return [];
     }
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-        throw new Error("Not authenticated");
-    }
 
-    const response = await fetch(`/api/members?team_ids=${teamIds.join(',')}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-        },
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Falha ao buscar membros da equipe via API:", errorData);
-        throw new Error(errorData.error || 'Failed to fetch team members');
+    try {
+        const query = new URLSearchParams();
+        teamIds.forEach(id => query.append('team_ids', id));
+        
+        const members = await apiGet<TeamMemberWithEmail[]>(`/members?${query.toString()}`);
+        return members || [];
+    } catch (error) {
+        console.error("Failed to fetch team members:", error);
+        throw new Error('Failed to fetch team members');
     }
-    
-    const data = await response.json();
-    return (data as TeamMemberWithEmail[]) || [];
 };
 
-export const inviteUserToTeam = async (teamId: string, email: string, role: 'admin' | 'agent'): Promise<any> => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-        throw new Error("Não autenticado. Por favor, faça login novamente.");
-    }
-
-    const response = await fetch('/api/members', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+export const inviteUserToTeam = async (teamId: string, email: string, role: 'admin' | 'agent'): Promise<TeamMemberWithEmail> => {
+    try {
+        const response = await apiPost<TeamMemberWithEmail>('/members', {
             team_id: teamId,
-            email: email,
-            role: role,
-        }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-        throw new Error(result.error || 'Falha ao convidar membro. Verifique o console para mais detalhes.');
+            email,
+            role,
+        });
+        return response;
+    } catch (error) {
+        console.error("Failed to invite user to team:", error);
+        throw new Error('Failed to invite user to team');
     }
-
-    return result;
 };
 
 export const updateTeamMemberRole = async (teamId: string, userId: string, newRole: 'admin' | 'agent'): Promise<void> => {
-    const { error } = await supabase
-        .from('team_members')
-        .update({ role: newRole } as any)
-        .eq('team_id', teamId)
-        .eq('user_id', userId);
-    if (error) throw error;
+    try {
+        await apiPut(`/members/${userId}/role`, { 
+            team_id: teamId, 
+            role: newRole 
+        });
+    } catch (error) {
+        console.error("Failed to update team member role:", error);
+        throw new Error('Failed to update team member role');
+    }
 };
 
 export const removeTeamMember = async (teamId: string, userId: string): Promise<void> => {
-    const { error } = await supabase
-        .from('team_members')
-        .delete()
-        .eq('team_id', teamId)
-        .eq('user_id', userId);
-    if (error) throw error;
+    try {
+        await apiDelete(`/teams/${teamId}/members/${userId}`);
+    } catch (error) {
+        console.error("Failed to remove team member:", error);
+        throw new Error('Failed to remove team member');
+    }
 };

@@ -1,40 +1,27 @@
-import { supabase } from '../lib/supabaseClient.js';
-import { Profile, EditableProfile } from '../types/index.js';
+import { apiGet, apiPut } from '../lib/apiClient.js';
+import type { Profile, EditableProfile } from '../types/index.js';
 
 export const getProfile = async (userId: string): Promise<Profile | null> => {
-    const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is not an error here
+    try {
+        const data = await apiGet<Profile>(`/profiles/${userId}`);
+        return data || null;
+    } catch (error) {
         console.error("Error fetching profile:", error);
         throw error;
     }
-    return data as unknown as Profile | null;
 };
 
 export const updateProfileInDb = async (userId: string, profileData: EditableProfile): Promise<Profile> => {
-    // Tenta update; se não houver linha (PGRST116), faz upsert
-    const { data, error } = await supabase
-        .from('profiles')
-        .update(profileData as any)
-        .eq('id', userId)
-        .select('*')
-        .maybeSingle();
-
-    if (error && error.code !== 'PGRST116') {
+    try {
+        // First try to update the profile
+        const updatedProfile = await apiPut<Profile>(`/profiles/${userId}`, profileData);
+        return updatedProfile;
+    } catch (error: any) {
+        if (error.message.includes('not found')) {
+            // If profile doesn't exist, create it
+            const newProfile = await apiPut<Profile>('/profiles', { ...profileData, id: userId });
+            return newProfile;
+        }
         throw error;
     }
-
-    if (data) return data as unknown as Profile;
-
-    const { data: upserted, error: upsertError } = await supabase
-        .from('profiles')
-        .upsert({ id: userId, ...(profileData as any) }, { onConflict: 'id' })
-        .select('*')
-        .single();
-
-    if (upsertError) throw upsertError;
-    return upserted as unknown as Profile;
 };

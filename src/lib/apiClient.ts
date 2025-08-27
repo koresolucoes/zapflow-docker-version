@@ -1,4 +1,5 @@
-const API_URL = '/api';
+// Use environment variable for API URL, fallback to '/api' for development
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 /**
  * Performs a request to the API.
@@ -14,9 +15,9 @@ export const apiClient = async <T>(
 
   const token = localStorage.getItem('authToken');
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...customHeaders,
+    ...(customHeaders as Record<string, string>),
   };
 
   if (token) {

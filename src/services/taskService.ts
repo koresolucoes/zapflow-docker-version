@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabaseClient.js';
+import { apiGet, apiPost, apiPut, apiDelete } from '../lib/apiClient.js';
 
 export interface TaskContact {
   id: string;
@@ -49,61 +49,40 @@ export const fetchAllTasks = async (
   filters: TaskFilters = {}
 ): Promise<TasksResponse> => {
   try {
-    let query = supabase
-      .from('contact_activities')
-      .select('*', { count: 'exact' })
-      .eq('team_id', teamId)
-      .eq('type', 'TAREFA')
-      .order('due_date', { ascending: true });
+    // Build query parameters
+    const params: Record<string, string> = {
+      team_id: teamId,
+      type: 'TAREFA',
+      ...(filters.status && { status: filters.status }),
+      ...(filters.priority && { priority: filters.priority }),
+      ...(filters.search && { search: filters.search }),
+      ...(filters.assignedTo && { assigned_to: filters.assignedTo }),
+      ...(filters.contactId && { contact_id: filters.contactId }),
+      ...(filters.startDate && { start_date: filters.startDate }),
+      ...(filters.endDate && { end_date: filters.endDate }),
+      page: String(filters.page || 1),
+      limit: String(filters.limit || 20)
+    };
 
-    // Apply filters
-    if (filters.status) {
-      query = query.eq('status', filters.status);
-    }
-    
-    if (filters.priority) {
-      query = query.eq('priority', filters.priority);
-    }
-    
-    if (filters.search) {
-      query = query.ilike('content', `%${filters.search}%`);
-    }
-    
-    if (filters.assignedTo) {
-      query = query.eq('assigned_to', filters.assignedTo);
-    }
-    
-    if (filters.contactId) {
-      query = query.eq('contact_id', filters.contactId);
-    }
-    
-    if (filters.startDate) {
-      query = query.gte('due_date', filters.startDate);
-    }
-    
-    if (filters.endDate) {
-      query = query.lte('due_date', filters.endDate);
-    }
-    
-    // Apply pagination
-    const page = filters.page || 1;
-    const limit = filters.limit || 20;
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-    
-    query = query.range(from, to);
-    
-    const { data, error, count } = await query;
-    
-    if (error) {
-      console.error('Error fetching tasks:', error);
-      throw error;
-    }
+    // Convert params to URLSearchParams
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        queryParams.append(key, value);
+      }
+    });
+
+    // Make API request
+    const response = await apiGet<{
+      data: Task[];
+      total: number;
+      hasMore: boolean;
+    }>(`/tasks?${queryParams.toString()}`);
     
     return {
-      tasks: data as Task[],
-      hasMore: (to + 1) < (count || 0),
-      total: count || 0
+      tasks: response.data || [],
+      hasMore: response.hasMore,
+      total: response.total
     };
   } catch (error) {
     console.error('Failed to fetch tasks:', error);
@@ -117,24 +96,17 @@ export const fetchAllTasks = async (
 
 export const fetchTaskById = async (taskId: string): Promise<Task> => {
   try {
-    const { data, error } = await supabase
-      .from('contact_activities')
-      .select('*')
-      .eq('id', taskId)
-      .eq('type', 'TAREFA')
-      .single();
-      
-    if (error) throw error;
-    return data as Task;
+    const task = await apiGet<Task>(`/tasks/${taskId}`);
+    return task;
   } catch (error) {
     console.error(`Failed to fetch task ${taskId}:`, error);
-    throw error;
+    throw new Error('Failed to fetch task');
   }
 };
 
 export const createTask = async (
   teamId: string,
-  taskData: Omit<Task, 'id' | 'created_at' | 'updated_at' | 'status' | 'type'>
+  taskData: Omit<Task, 'id' | 'created_at' | 'updated_at' | 'status' | 'type' | 'is_completed'>
 ): Promise<Task> => {
   try {
     const taskWithType = {
@@ -145,17 +117,11 @@ export const createTask = async (
       status: 'pending' as const
     };
     
-    const { data, error } = await supabase
-      .from('contact_activities')
-      .insert([taskWithType])
-      .select()
-      .single();
-      
-    if (error) throw error;
-    return data as Task;
+    const newTask = await apiPost<Task>('/tasks', taskWithType);
+    return newTask;
   } catch (error) {
     console.error('Failed to create task:', error);
-    throw error;
+    throw new Error('Failed to create task');
   }
 };
 
@@ -167,19 +133,11 @@ export const updateTask = async (
     // Don't allow changing the type to something else
     const { type, ...safeUpdates } = updates;
     
-    const { data, error } = await supabase
-      .from('contact_activities')
-      .update(safeUpdates)
-      .eq('id', taskId)
-      .eq('type', 'TAREFA')
-      .select()
-      .single();
-      
-    if (error) throw error;
-    return data as Task;
+    const updatedTask = await apiPut<Task>(`/tasks/${taskId}`, safeUpdates);
+    return updatedTask;
   } catch (error) {
     console.error(`Failed to update task ${taskId}:`, error);
-    throw error;
+    throw new Error('Failed to update task');
   }
 };
 
@@ -188,40 +146,25 @@ export const updateTaskStatus = async (
   isCompleted: boolean
 ): Promise<Task> => {
   try {
-    const { data, error } = await supabase
-      .from('contact_activities')
-      .update({ 
-        is_completed: isCompleted
-      })
-      .eq('id', taskId)
-      .eq('type', 'TAREFA')
-      .select()
-      .single();
-      
-    if (error) {
-      console.error('Supabase error details:', error);
-      throw error;
-    }
+    const updatedTask = await apiPut<Task>(`/tasks/${taskId}/status`, {
+      is_completed: isCompleted,
+      status: isCompleted ? 'completed' : 'pending',
+      completed_at: isCompleted ? new Date().toISOString() : null
+    });
     
-    return data as Task;
+    return updatedTask;
   } catch (error) {
-    console.error(`Failed to update task ${taskId} status:`, error);
-    throw error;
+    console.error(`Failed to update task status for ${taskId}:`, error);
+    throw new Error('Failed to update task status');
   }
 };
 
 export const deleteTask = async (taskId: string): Promise<void> => {
   try {
-    const { error } = await supabase
-      .from('contact_activities')
-      .delete()
-      .eq('id', taskId)
-      .eq('type', 'TAREFA');
-      
-    if (error) throw error;
+    await apiDelete(`/tasks/${taskId}`);
   } catch (error) {
     console.error(`Failed to delete task ${taskId}:`, error);
-    throw error;
+    throw new Error('Failed to delete task');
   }
 };
 
@@ -230,17 +173,11 @@ export const fetchTodaysTasks = async (teamId: string): Promise<Task[]> => {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
     
-    const { data, error } = await supabase
-      .from('contact_activities')
-      .select('*')
-      .eq('team_id', teamId)
-      .eq('type', 'TAREFA')
-      .eq('is_completed', false)
-      .lte('due_date', today.toISOString())
-      .order('due_date', { ascending: true });
-      
-    if (error) throw error;
-    return data as Task[];
+    const response = await apiGet<Task[]>(
+      `/tasks?team_id=${teamId}&due_date_lte=${today.toISOString()}&is_completed=false&type=TAREFA&sort=due_date:asc`
+    );
+    
+    return response || [];
   } catch (error) {
     console.error('Failed to fetch today\'s tasks:', error);
     return [];
@@ -256,18 +193,11 @@ export const fetchUpcomingTasks = async (teamId: string): Promise<Task[]> => {
     nextWeek.setDate(today.getDate() + 7);
     nextWeek.setHours(23, 59, 59, 999);
     
-    const { data, error } = await supabase
-      .from('contact_activities')
-      .select('*')
-      .eq('team_id', teamId)
-      .eq('type', 'TAREFA')
-      .eq('is_completed', false)
-      .gte('due_date', today.toISOString())
-      .lte('due_date', nextWeek.toISOString())
-      .order('due_date', { ascending: true });
-      
-    if (error) throw error;
-    return data as Task[];
+    const response = await apiGet<Task[]>(
+      `/tasks?team_id=${teamId}&due_date_gte=${today.toISOString()}&due_date_lte=${nextWeek.toISOString()}&is_completed=false&type=TAREFA&sort=due_date:asc`
+    );
+    
+    return response || [];
   } catch (error) {
     console.error('Failed to fetch upcoming tasks:', error);
     return [];
