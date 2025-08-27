@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabaseClient.js';
-import { Campaign, CampaignWithMetrics, MessageStatus, TemplateCategory, TemplateStatus, AutomationStatus, Edge, AutomationNode, Contact, MessageTemplate, Automation, Pipeline, PipelineStage, DealWithContact, CustomFieldDefinition, CannedResponse } from '../types/index.js';
+import { Campaign, CampaignWithMetrics, MessageStatus, TemplateCategory, TemplateStatus, AutomationStatus, Edge, AutomationNode, MessageTemplate, Automation, Pipeline, PipelineStage, DealWithContact, CustomFieldDefinition, CannedResponse } from '../types/index.js';
 import { MetaTemplateComponent } from './meta/types.js';
+import { fetchContacts } from './contactService.js';
 
 const fetchCampaignsWithMetrics = async (campaignsData: Campaign[]): Promise<CampaignWithMetrics[]> => {
     if (campaignsData.length === 0) return [];
@@ -46,10 +47,15 @@ const fetchCampaignsWithMetrics = async (campaignsData: Campaign[]): Promise<Cam
 };
 
 
+import { fetchContacts } from './contactService.js';
+
 export const fetchAllInitialData = async (teamId: string) => {
-    const [templatesRes, contactsRes, campaignsRes, automationsRes, pipelinesRes, stagesRes, dealsRes, customFieldsRes, cannedResponsesRes] = await Promise.all([
+    // Refactor in progress. Fetch contacts from the new API endpoint.
+    const contacts = await fetchContacts();
+
+    const [templatesRes, campaignsRes, automationsRes, pipelinesRes, stagesRes, dealsRes, customFieldsRes, cannedResponsesRes] = await Promise.all([
         supabase.from('message_templates').select('*').eq('team_id', teamId).order('created_at', { ascending: false }),
-        supabase.from('contacts').select('*').eq('team_id', teamId).order('created_at', { ascending: false }),
+        // Contacts are now fetched above
         supabase.from('campaigns').select('*').eq('team_id', teamId).order('created_at', { ascending: false }),
         supabase.from('automations').select('*').eq('team_id', teamId).order('created_at', { ascending: false }),
         supabase.from('pipelines').select('*').eq('team_id', teamId).order('created_at', { ascending: true }),
@@ -60,7 +66,6 @@ export const fetchAllInitialData = async (teamId: string) => {
     ]);
 
     if (templatesRes.error) console.error("DataService Error (Templates):", templatesRes.error);
-    if (contactsRes.error) console.error("DataService Error (Contacts):", contactsRes.error);
     if (campaignsRes.error) console.error("DataService Error (Campaigns):", campaignsRes.error);
     if (automationsRes.error) console.error("DataService Error (Automations):", automationsRes.error);
     if (pipelinesRes.error) console.error("DataService Error (Pipelines):", pipelinesRes.error);
@@ -91,7 +96,7 @@ export const fetchAllInitialData = async (teamId: string) => {
 
     return {
         templates,
-        contacts: (contactsRes.data as unknown as Contact[]) || [],
+        contacts: contacts,
         campaigns,
         automations,
         pipelines: (pipelinesRes.data as unknown as Pipeline[]) || [],

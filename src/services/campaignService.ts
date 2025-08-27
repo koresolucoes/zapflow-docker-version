@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabaseClient.js';
 import { Campaign, MessageInsert, CampaignWithDetails, MessageWithContact, CampaignStatus, TemplateCategory, TemplateStatus, MessageTemplate } from '../types/index.js';
-import { TablesInsert, Tables } from '../types/database.types.js';
 import { MetaTemplateComponent } from './meta/types.js';
 
 
@@ -33,7 +32,7 @@ export const fetchCampaignDetailsFromDb = async (teamId: string, campaignId: str
         failed: typedMessagesData.filter(d => d.status === 'failed').length
     };
     
-    const campaignDataTyped = campaignData as unknown as (Tables<'campaigns'> & { message_templates: Tables<'message_templates'> | null });
+    const campaignDataTyped = campaignData as unknown as (Campaign & { message_templates: MessageTemplate | null });
     const message_template_data = campaignDataTyped.message_templates;
 
     return {
@@ -56,7 +55,7 @@ export const addCampaignToDb = async (
     messages: Omit<MessageInsert, 'campaign_id' | 'team_id'>[]
 ): Promise<Campaign> => {
      const now = new Date().toISOString();
-    const campaignPayload: TablesInsert<'campaigns'> = {
+    const campaignPayload: Partial<Campaign> = {
         ...campaign,
         team_id: teamId,
         created_at: now,

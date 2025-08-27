@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { setupTeamRoutes } from './handlers/teamHandler.js';
 import authRoutes from './routes/auth.js';
+import contactsRoutes from './routes/contacts.js';
 import { conversationHandler } from './handlers/conversationHandler.js';
 import { metricsHandler } from './handlers/metricsHandler.js';
 import { runTriggerHandler } from './handlers/runTriggerHandler.js';
@@ -77,6 +78,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 
 // Configuração das rotas principais
+app.use('/api/contacts', contactsRoutes);
 app.use('/api/conversations', conversationHandler);
 app.use('/api/metrics', metricsHandler);
 app.use('/api/triggers', runTriggerHandler);

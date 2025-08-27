@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../../supabaseAdmin.js';
+import pool from '../../db.js';
 import { sendTemplatedMessage, sendTextMessage, sendMediaMessage, sendInteractiveMessage } from '../../meta/messages.js';
 import { getMetaTemplateById } from '../../meta/templates.js';
 import { MessageTemplate, MessageInsert } from '../../types.js';
@@ -6,10 +6,17 @@ import { ActionHandler } from '../types.js';
 import { getMetaConfig, resolveVariables } from '../helpers.js';
 
 const logSentMessage = async (payload: Omit<MessageInsert, 'team_id'>, teamId: string) => {
-    const { error } = await supabaseAdmin.from('messages').insert({ ...payload, team_id: teamId } as any);
-    if (error) {
-        // Log the error but don't throw, as the message was already sent to Meta.
-        // This prevents the automation from failing if only the DB logging fails.
+    const query = `
+        INSERT INTO messages (id, contact_id, automation_id, campaign_id, content, meta_message_id, status, source, type, sent_at, team_id)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+    `;
+    const values = [
+        payload.contact_id, payload.automation_id, payload.campaign_id, payload.content,
+        payload.meta_message_id, payload.status, payload.source, payload.type, payload.sent_at, teamId
+    ];
+    try {
+        await pool.query(query, values);
+    } catch (error) {
         console.error(`[Message Logging] Failed to log sent message for contact ${payload.contact_id}:`, error);
     }
 };
@@ -23,11 +30,13 @@ export const sendTemplate: ActionHandler = async ({ profile, contact, node, trig
         throw new Error('Nenhum template foi selecionado nas configurações do nó.');
     }
 
-    const { data: template, error: templateError } = await supabaseAdmin.from('message_templates').select('*').eq('id', config.template_id).single();
-    if (templateError) throw templateError;
-    if (!template) throw new Error(`Template com ID ${config.template_id} não encontrado.`);
+    const { rows } = await pool.query('SELECT * FROM message_templates WHERE id = $1', [config.template_id]);
+    if (rows.length === 0) {
+        throw new Error(`Template com ID ${config.template_id} não encontrado.`);
+    }
+    const template = rows[0];
     
-    if (!(template as any).meta_id) {
+    if (!template.meta_id) {
         throw new Error(`O template '${(template as any).template_name}' não está sincronizado com a Meta e não pode ser enviado.`);
     }
     

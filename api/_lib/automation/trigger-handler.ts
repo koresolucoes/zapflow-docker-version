@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../supabaseAdmin.js';
+import pool from '../db.js';
 import { executeAutomation } from './engine.js';
 import { Automation, Contact, Json, Profile, Deal, AutomationNode, TriggerInfo } from '../types.js';
 import { sanitizeAutomation } from './utils.js';
@@ -8,27 +8,32 @@ const dispatchAutomations = async (userId: string, triggers: TriggerInfo[], cont
 
     console.log(`[DISPATCHER] Found ${triggers.length} potential automations to dispatch for user ${userId}.`);
 
-    const { data, error: profileError } = await supabaseAdmin
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-    
-    const profile = data as unknown as Profile;
-
-    if (profileError || !profile) {
-        console.error(`[DISPATCHER] ERRO: Perfil não encontrado para o usuário ${userId}.`, profileError);
+    let profile: Profile;
+    try {
+        const profileResult = await pool.query('SELECT * FROM profiles WHERE id = $1', [userId]);
+        if (profileResult.rows.length === 0) {
+            console.error(`[DISPATCHER] ERRO: Perfil não encontrado para o usuário ${userId}.`);
+            return;
+        }
+        profile = profileResult.rows[0];
+    } catch (profileError) {
+        console.error(`[DISPATCHER] ERRO: Falha ao buscar perfil para o usuário ${userId}.`, profileError);
         return;
     }
 
     const uniqueAutomationIds = [...new Set(triggers.map(t => t.automation_id))];
+    if (uniqueAutomationIds.length === 0) {
+        return;
+    }
 
-    const { data: automations, error } = await supabaseAdmin
-        .from('automations')
-        .select('created_at, edges, id, name, nodes, status, team_id')
-        .in('id', uniqueAutomationIds);
-
-    if (error) {
+    let automations: Automation[];
+    try {
+        const automationsResult = await pool.query(
+            'SELECT created_at, edges, id, name, nodes, status, team_id FROM automations WHERE id = ANY($1::uuid[])',
+            [uniqueAutomationIds]
+        );
+        automations = automationsResult.rows;
+    } catch (error) {
         console.error(`[DISPATCHER] ERRO: Falha ao buscar automações.`, error);
         return;
     }
@@ -66,64 +71,60 @@ const handleMetaMessageEvent = async (userId: string, contact: Contact, message:
     
     console.log(`[HANDLER] Processing Meta message event for contact ${contact.id}. Type: ${messageType}, Body: "${messageBody}", Button Payload: "${buttonPayload}"`);
 
-    // 2. Get Team ID
-    const { data: teamData, error: teamError } = await supabaseAdmin.from('teams').select('id').eq('owner_id', userId).single();
-    if (teamError || !teamData) {
-        console.error(`[HANDLER] Could not find team for user ${userId} in MetaMessageEvent. Aborting.`);
-        return;
-    }
-    const teamId = teamData.id;
-
-    const matchingTriggers: TriggerInfo[] = [];
-
-    // 3. Check for Button Click Triggers
-    if (buttonPayload) {
-        const { data: buttonTriggers, error } = await supabaseAdmin
-            .from('automation_triggers')
-            .select('automation_id, node_id')
-            .eq('team_id', teamId)
-            .eq('trigger_type', 'button_clicked')
-            .eq('trigger_key', buttonPayload);
-        
-        if (error) {
-            console.error("[HANDLER] Error fetching button triggers:", error);
-        } else if (buttonTriggers && buttonTriggers.length > 0) {
-            console.log(`[HANDLER] Found ${buttonTriggers.length} matching button triggers for payload "${buttonPayload}".`);
-            matchingTriggers.push(...(buttonTriggers as TriggerInfo[]));
+    try {
+        // 2. Get Team ID
+        const teamResult = await pool.query('SELECT id FROM teams WHERE owner_id = $1', [userId]);
+        if (teamResult.rows.length === 0) {
+            console.error(`[HANDLER] Could not find team for user ${userId} in MetaMessageEvent. Aborting.`);
+            return;
         }
-    }
+        const teamId = teamResult.rows[0].id;
 
-    // 4. Check for Keyword Triggers (ONLY for text messages)
-    if (messageType === 'text' && messageBody) {
-        const { data: allKeywordTriggers, error } = await supabaseAdmin
-            .from('automation_triggers')
-            .select('automation_id, node_id, trigger_key')
-            .eq('team_id', teamId)
-            .eq('trigger_type', 'message_received_with_keyword');
+        const matchingTriggers: TriggerInfo[] = [];
 
-        if (error) {
-            console.error("[HANDLER] Error fetching keyword triggers:", error);
-        } else if (allKeywordTriggers) {
-            console.log(`[HANDLER] Checking ${allKeywordTriggers.length} keyword triggers for message: "${messageBody}"`);
-            for (const trigger of allKeywordTriggers) {
-                const keyword = trigger.trigger_key;
-                if (keyword && typeof keyword === 'string' && messageBody.includes(keyword.toLowerCase())) {
-                    console.log(`[HANDLER] Match found! Keyword: "${keyword}". Dispatching automation ${trigger.automation_id}`);
-                    matchingTriggers.push({ automation_id: trigger.automation_id, node_id: trigger.node_id });
+        // 3. Check for Button Click Triggers
+        if (buttonPayload) {
+            const buttonTriggersResult = await pool.query(
+                'SELECT automation_id, node_id FROM automation_triggers WHERE team_id = $1 AND trigger_type = $2 AND trigger_key = $3',
+                [teamId, 'button_clicked', buttonPayload]
+            );
+            if (buttonTriggersResult.rows.length > 0) {
+                console.log(`[HANDLER] Found ${buttonTriggersResult.rows.length} matching button triggers for payload "${buttonPayload}".`);
+                matchingTriggers.push(...buttonTriggersResult.rows);
+            }
+        }
+
+        // 4. Check for Keyword Triggers (ONLY for text messages)
+        if (messageType === 'text' && messageBody) {
+            const keywordTriggersResult = await pool.query(
+                'SELECT automation_id, node_id, trigger_key FROM automation_triggers WHERE team_id = $1 AND trigger_type = $2',
+                [teamId, 'message_received_with_keyword']
+            );
+
+            if (keywordTriggersResult.rows.length > 0) {
+                console.log(`[HANDLER] Checking ${keywordTriggersResult.rows.length} keyword triggers for message: "${messageBody}"`);
+                for (const trigger of keywordTriggersResult.rows) {
+                    const keyword = trigger.trigger_key;
+                    if (keyword && typeof keyword === 'string' && messageBody.includes(keyword.toLowerCase())) {
+                        console.log(`[HANDLER] Match found! Keyword: "${keyword}". Dispatching automation ${trigger.automation_id}`);
+                        matchingTriggers.push({ automation_id: trigger.automation_id, node_id: trigger.node_id });
+                    }
                 }
             }
         }
-    }
-    
-    // 5. Dispatch if matches found
-    if (matchingTriggers.length > 0) {
-       // Using a Set to ensure unique automations are dispatched if multiple keywords/buttons match
-       const uniqueTriggers = Array.from(new Map(matchingTriggers.map(item => [item.node_id, item])).values());
-       console.log(`[HANDLER] Dispatching ${uniqueTriggers.length} unique automations.`);
-       const triggerData = { type: 'meta_message', payload: message };
-       await dispatchAutomations(userId, uniqueTriggers, contact, triggerData);
-    } else {
-        console.log('[HANDLER] No matching automation triggers found for this message.');
+
+        // 5. Dispatch if matches found
+        if (matchingTriggers.length > 0) {
+           // Using a Set to ensure unique automations are dispatched if multiple keywords/buttons match
+           const uniqueTriggers = Array.from(new Map(matchingTriggers.map(item => [item.node_id, item])).values());
+           console.log(`[HANDLER] Dispatching ${uniqueTriggers.length} unique automations.`);
+           const triggerData = { type: 'meta_message', payload: message };
+           await dispatchAutomations(userId, uniqueTriggers, contact, triggerData);
+        } else {
+            console.log('[HANDLER] No matching automation triggers found for this message.');
+        }
+    } catch (error) {
+        console.error('[HANDLER] A general error occurred in handleMetaMessageEvent:', error);
     }
 };
 
@@ -152,103 +153,134 @@ const handleNewContactEvent = async (userId: string, contact: Contact) => {
         const triggerData = { type: 'new_contact', payload: { contact } };
         await dispatchAutomations(userId, triggers as unknown as TriggerInfo[], contact, triggerData);
     }
+
+    // 5. Dispatch if matches found
+    if (matchingTriggers.length > 0) {
+       // Using a Set to ensure unique automations are dispatched if multiple keywords/buttons match
+       const uniqueTriggers = Array.from(new Map(matchingTriggers.map(item => [item.node_id, item])).values());
+       console.log(`[HANDLER] Dispatching ${uniqueTriggers.length} unique automations.`);
+       const triggerData = { type: 'meta_message', payload: message };
+       await dispatchAutomations(userId, uniqueTriggers, contact, triggerData);
+    } else {
+        console.log('[HANDLER] No matching automation triggers found for this message.');
+    }
+};
+
+const handleNewContactEvent = async (userId: string, contact: Contact) => {
+    console.log(`[HANDLER] Processing new_contact event for contact ${contact.id}`);
+    try {
+        const teamResult = await pool.query('SELECT id FROM teams WHERE owner_id = $1', [userId]);
+        if (teamResult.rows.length === 0) {
+            console.error(`[HANDLER] Could not find team for user ${userId} in NewContactEvent. Aborting.`);
+            return;
+        }
+        const teamId = teamResult.rows[0].id;
+
+        const triggersResult = await pool.query(
+            'SELECT automation_id, node_id FROM automation_triggers WHERE team_id = $1 AND trigger_type = $2',
+            [teamId, 'new_contact']
+        );
+
+        if (triggersResult.rows.length > 0) {
+            const triggerData = { type: 'new_contact', payload: { contact } };
+            await dispatchAutomations(userId, triggersResult.rows, contact, triggerData);
+        }
+    } catch (error) {
+        console.error(`[HANDLER] Error in NewContactEvent:`, error);
+    }
 };
 
 export const handleTagAddedEvent = async (userId: string, contact: Contact, addedTag: string) => {
     console.log(`[HANDLER] Processing tag_added event for contact ${contact.id}. Tag: "${addedTag}"`);
+    try {
+        const teamResult = await pool.query('SELECT id FROM teams WHERE owner_id = $1', [userId]);
+        if (teamResult.rows.length === 0) {
+            console.error(`[HANDLER] Could not find team for user ${userId} in TagAddedEvent. Aborting.`);
+            return;
+        }
+        const teamId = teamResult.rows[0].id;
 
-    const { data: teamData, error: teamError } = await supabaseAdmin.from('teams').select('id').eq('owner_id', userId).single();
-    if (teamError || !teamData) {
-        console.error(`[HANDLER] Could not find team for user ${userId} in TagAddedEvent. Aborting.`);
-        return;
-    }
-    const teamId = teamData.id;
-
-    const { data: triggers, error } = await supabaseAdmin
-        .from('automation_triggers')
-        .select('automation_id, node_id')
-        .eq('team_id', teamId)
-        .eq('trigger_type', 'new_contact_with_tag')
-        .ilike('trigger_key', addedTag);
+        const triggersResult = await pool.query(
+            'SELECT automation_id, node_id FROM automation_triggers WHERE team_id = $1 AND trigger_type = $2 AND trigger_key ILIKE $3',
+            [teamId, 'new_contact_with_tag', addedTag]
+        );
         
-    if (error) {
-        console.error(`[HANDLER] Erro em TagAddedEvent:`, error);
-        return;
-    }
-    
-    if (triggers && triggers.length > 0) {
-        const triggerData = { type: 'tag_added', payload: { contact, addedTag } };
-        await dispatchAutomations(userId, triggers as unknown as TriggerInfo[], contact, triggerData);
+        if (triggersResult.rows.length > 0) {
+            const triggerData = { type: 'tag_added', payload: { contact, addedTag } };
+            await dispatchAutomations(userId, triggersResult.rows, contact, triggerData);
+        }
+    } catch (error) {
+        console.error(`[HANDLER] Error in TagAddedEvent:`, error);
     }
 };
 
 const handleDealCreatedEvent = async (userId: string, contact: Contact, deal: Deal) => {
     console.log(`[HANDLER] Processing deal_created event for deal ${deal.id}`);
-    const { data: teamData, error: teamError } = await supabaseAdmin.from('teams').select('id').eq('owner_id', userId).single();
-    if (teamError || !teamData) {
-        console.error(`[HANDLER] Could not find team for user ${userId} in DealCreatedEvent. Aborting.`);
-        return;
-    }
-    const { data: triggers, error } = await supabaseAdmin.from('automation_triggers').select('automation_id, node_id').eq('team_id', teamData.id).eq('trigger_type', 'deal_created');
-    if (error) { console.error(`[HANDLER] Error in DealCreatedEvent:`, error); return; }
-    if (triggers && triggers.length > 0) {
-        const triggerData = { type: 'deal_created', payload: { deal } };
-        await dispatchAutomations(userId, triggers as unknown as TriggerInfo[], contact, triggerData);
+    try {
+        const teamResult = await pool.query('SELECT id FROM teams WHERE owner_id = $1', [userId]);
+        if (teamResult.rows.length === 0) {
+            console.error(`[HANDLER] Could not find team for user ${userId} in DealCreatedEvent. Aborting.`);
+            return;
+        }
+        const teamId = teamResult.rows[0].id;
+
+        const triggersResult = await pool.query(
+            'SELECT automation_id, node_id FROM automation_triggers WHERE team_id = $1 AND trigger_type = $2',
+            [teamId, 'deal_created']
+        );
+
+        if (triggersResult.rows.length > 0) {
+            const triggerData = { type: 'deal_created', payload: { deal } };
+            await dispatchAutomations(userId, triggersResult.rows, contact, triggerData);
+        }
+    } catch (error) {
+        console.error(`[HANDLER] Error in DealCreatedEvent:`, error);
     }
 };
 
 const handleDealStageChangedEvent = async (userId: string, contact: Contact, deal: Deal, new_stage_id: string) => {
     console.log(`[HANDLER] Processing deal_stage_changed event for deal ${deal.id} to stage ${new_stage_id}`);
-    const { data: teamData, error: teamError } = await supabaseAdmin.from('teams').select('id').eq('owner_id', userId).single();
-    if (teamError || !teamData) {
-        console.error(`[HANDLER] Could not find team for user ${userId}. Aborting.`);
-        return;
-    }
-    const teamId = teamData.id;
+    try {
+        const teamResult = await pool.query('SELECT id FROM teams WHERE owner_id = $1', [userId]);
+        if (teamResult.rows.length === 0) {
+            console.error(`[HANDLER] Could not find team for user ${userId}. Aborting.`);
+            return;
+        }
+        const teamId = teamResult.rows[0].id;
 
-    const { data: stageData, error: stageError } = await supabaseAdmin
-        .from('pipeline_stages')
-        .select('pipeline_id')
-        .eq('id', new_stage_id)
-        .single();
-    if (stageError || !stageData) {
-        console.error(`[HANDLER] Could not find pipeline for stage ${new_stage_id}. Aborting.`);
-        return;
-    }
-    const pipelineIdOfNewStage = stageData.pipeline_id;
+        const stageResult = await pool.query('SELECT pipeline_id FROM pipeline_stages WHERE id = $1', [new_stage_id]);
+        if (stageResult.rows.length === 0) {
+            console.error(`[HANDLER] Could not find pipeline for stage ${new_stage_id}. Aborting.`);
+            return;
+        }
+        const pipelineIdOfNewStage = stageResult.rows[0].pipeline_id;
 
-    const { data: allTriggers, error } = await supabaseAdmin
-        .from('automation_triggers')
-        .select('automation_id, node_id, trigger_key')
-        .eq('team_id', teamId)
-        .eq('trigger_type', 'deal_stage_changed');
+        const allTriggersResult = await pool.query(
+            'SELECT automation_id, node_id, trigger_key FROM automation_triggers WHERE team_id = $1 AND trigger_type = $2',
+            [teamId, 'deal_stage_changed']
+        );
 
-    if (error) {
-        console.error(`[HANDLER] Error fetching deal_stage_changed triggers:`, error);
-        return;
-    }
-    if (!allTriggers || allTriggers.length === 0) {
-        console.log('[HANDLER] No deal_stage_changed triggers found for this team.');
-        return;
-    }
+        if (allTriggersResult.rows.length === 0) {
+            console.log('[HANDLER] No deal_stage_changed triggers found for this team.');
+            return;
+        }
 
-    const matchingTriggers: TriggerInfo[] = [];
-    const specificStageTriggers = allTriggers.filter(t => t.trigger_key === new_stage_id);
-    specificStageTriggers.forEach(t => matchingTriggers.push({ automation_id: t.automation_id, node_id: t.node_id }));
+        const allTriggers = allTriggersResult.rows;
+        const matchingTriggers: TriggerInfo[] = [];
 
-    const anyStageTriggers = allTriggers.filter(t => t.trigger_key === null);
-    const automationIdsToFetch = [...new Set(anyStageTriggers.map(t => t.automation_id))];
+        const specificStageTriggers = allTriggers.filter(t => t.trigger_key === new_stage_id);
+        matchingTriggers.push(...specificStageTriggers);
 
-    if (automationIdsToFetch.length > 0) {
-        const { data: automationsData, error: automationsError } = await supabaseAdmin
-            .from('automations')
-            .select('id, nodes')
-            .in('id', automationIdsToFetch);
+        const anyStageTriggers = allTriggers.filter(t => t.trigger_key === null);
+        const automationIdsToFetch = [...new Set(anyStageTriggers.map(t => t.automation_id))];
 
-        if (automationsError) {
-            console.error('[HANDLER] Error fetching automations for "any stage" triggers:', automationsError);
-        } else if (automationsData) {
-            const automationsMap = new Map((automationsData as any[]).map(a => [a.id, a.nodes]));
+        if (automationIdsToFetch.length > 0) {
+            const automationsResult = await pool.query(
+                'SELECT id, nodes FROM automations WHERE id = ANY($1::uuid[])',
+                [automationIdsToFetch]
+            );
+
+            const automationsMap = new Map(automationsResult.rows.map(a => [a.id, a.nodes]));
             for (const trigger of anyStageTriggers) {
                 const nodes = automationsMap.get(trigger.automation_id);
                 if (nodes) {
@@ -262,15 +294,17 @@ const handleDealStageChangedEvent = async (userId: string, contact: Contact, dea
                 }
             }
         }
-    }
 
-    if (matchingTriggers.length > 0) {
-        const uniqueTriggers = Array.from(new Map(matchingTriggers.map(item => [`${item.automation_id}-${item.node_id}`, item])).values());
-        console.log(`[HANDLER] Found ${uniqueTriggers.length} matching triggers for stage change.`);
-        const triggerData = { type: 'deal_stage_changed', payload: { deal, new_stage_id } };
-        await dispatchAutomations(userId, uniqueTriggers, contact, triggerData);
-    } else {
-        console.log(`[HANDLER] No matching triggers found for stage change to ${new_stage_id}.`);
+        if (matchingTriggers.length > 0) {
+            const uniqueTriggers = Array.from(new Map(matchingTriggers.map(item => [`${item.automation_id}-${item.node_id}`, item])).values());
+            console.log(`[HANDLER] Found ${uniqueTriggers.length} matching triggers for stage change.`);
+            const triggerData = { type: 'deal_stage_changed', payload: { deal, new_stage_id } };
+            await dispatchAutomations(userId, uniqueTriggers, contact, triggerData);
+        } else {
+            console.log(`[HANDLER] No matching triggers found for stage change to ${new_stage_id}.`);
+        }
+    } catch (error) {
+        console.error(`[HANDLER] Error fetching deal_stage_changed triggers:`, error);
     }
 };
 
