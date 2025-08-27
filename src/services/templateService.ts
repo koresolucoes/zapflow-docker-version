@@ -1,29 +1,13 @@
-import { supabase } from '../lib/supabaseClient.js';
-import { MessageTemplate, MessageTemplateInsert, MetaConfig, TemplateCategory, TemplateStatus, Json } from '../types/index.js';
+import { apiGet, apiPost } from '../lib/apiClient.js';
+import { MessageTemplate, MessageTemplateInsert, MetaConfig } from '../types/index.js';
 import { createMetaTemplate } from './meta/templates.js';
-import { MetaTemplateComponent } from './meta/types.js';
+
+export const fetchTemplates = async (): Promise<MessageTemplate[]> => {
+    return await apiGet<MessageTemplate[]>('/templates');
+};
 
 const addTemplateToDb = async (template: MessageTemplateInsert): Promise<MessageTemplate> => {
-    const dbTemplate: MessageTemplateInsert = {
-        ...template,
-        components: template.components as unknown as MetaTemplateComponent[],
-    };
-    
-    const { data, error } = await supabase
-      .from('message_templates')
-      .insert(dbTemplate as any)
-      .select()
-      .single();
-
-    if (error) throw error;
-    
-    const newTemplateData = data as any;
-    return {
-        ...newTemplateData,
-        category: newTemplateData.category as TemplateCategory,
-        status: newTemplateData.status as TemplateStatus,
-        components: (newTemplateData.components as unknown as MetaTemplateComponent[]) || []
-    };
+    return await apiPost<MessageTemplate>('/templates', template);
 };
 
 export const createTemplateOnMetaAndDb = async (
@@ -31,6 +15,11 @@ export const createTemplateOnMetaAndDb = async (
     templateData: Omit<MessageTemplateInsert, 'id' | 'team_id' | 'created_at' | 'status' | 'meta_id'>,
     teamId: string
 ): Promise<MessageTemplate> => {
+    // TODO: This logic should ideally live on the backend.
+    // The frontend should not be responsible for two separate API calls (one to Meta, one to our backend)
+    // and should not have access to the Meta access token.
+    // A better architecture would be a single POST /api/templates endpoint that handles both.
+
     // 1. Create on Meta platform
     const metaResult = await createMetaTemplate(metaConfig, {
         templateName: templateData.template_name,
@@ -43,9 +32,11 @@ export const createTemplateOnMetaAndDb = async (
         ...templateData,
         team_id: teamId,
         meta_id: metaResult.id,
-        status: 'PENDING'
+        status: 'PENDING',
+        content: templateData.content || '', // Ensure content is not undefined
+        components: templateData.components || [],
     };
     
-    // 3. Insert into our DB
+    // 3. Insert into our DB via our API
     return addTemplateToDb(templateForDb);
 };

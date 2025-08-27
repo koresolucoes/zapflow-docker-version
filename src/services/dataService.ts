@@ -3,14 +3,15 @@ import { Campaign, CampaignWithMetrics, MessageStatus, TemplateCategory, Templat
 import { MetaTemplateComponent } from './meta/types.js';
 import { fetchContacts } from './contactService.js';
 import { fetchCampaigns } from './campaignService.js';
+import { fetchTemplates } from './templateService.js';
 
 export const fetchAllInitialData = async (teamId: string) => {
-    // Refactor in progress. Fetch contacts and campaigns from the new API endpoints.
+    // Refactor in progress.
     const contacts = await fetchContacts();
     const campaigns = await fetchCampaigns();
+    const templates = await fetchTemplates();
 
-    const [templatesRes, automationsRes, pipelinesRes, stagesRes, dealsRes, customFieldsRes, cannedResponsesRes] = await Promise.all([
-        supabase.from('message_templates').select('*').eq('team_id', teamId).order('created_at', { ascending: false }),
+    const [automationsRes, pipelinesRes, stagesRes, dealsRes, customFieldsRes, cannedResponsesRes] = await Promise.all([
         supabase.from('automations').select('*').eq('team_id', teamId).order('created_at', { ascending: false }),
         supabase.from('pipelines').select('*').eq('team_id', teamId).order('created_at', { ascending: true }),
         supabase.from('pipeline_stages').select('*, pipelines!inner(team_id)').eq('pipelines.team_id', teamId),
@@ -19,7 +20,6 @@ export const fetchAllInitialData = async (teamId: string) => {
         supabase.from('canned_responses').select('*').eq('team_id', teamId).order('shortcut', { ascending: true }),
     ]);
 
-    if (templatesRes.error) console.error("DataService Error (Templates):", templatesRes.error);
     if (automationsRes.error) console.error("DataService Error (Automations):", automationsRes.error);
     if (pipelinesRes.error) console.error("DataService Error (Pipelines):", pipelinesRes.error);
     if (stagesRes.error) console.error("DataService Error (Stages):", stagesRes.error);
@@ -27,14 +27,6 @@ export const fetchAllInitialData = async (teamId: string) => {
     if (customFieldsRes.error) console.error("DataService Error (CustomFields):", customFieldsRes.error);
     if (cannedResponsesRes.error) console.error("DataService Error (CannedResponses):", cannedResponsesRes.error);
 
-    // Process Templates
-    const templates = ((templatesRes.data as any[]) || []).map(t => ({
-        ...t,
-        category: t.category as TemplateCategory,
-        status: t.status as TemplateStatus,
-        components: (t.components as unknown as MetaTemplateComponent[]) || [],
-    } as MessageTemplate));
-    
     // Process Automations
     const automationsData = (automationsRes.data as any[]) || [];
     const automations = automationsData.map((a) => ({
