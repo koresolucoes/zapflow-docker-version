@@ -1,7 +1,6 @@
-import { supabaseAdmin } from '../../supabaseAdmin.js';
-import { ActionHandler } from '../types.js';
+import pool from '../../db.js';
+import { ActionHandler, DealInsert } from '../../types.js';
 import { resolveVariables } from '../helpers.js';
-import { TablesInsert } from '../../database.types.js';
 import { publishEvent } from '../trigger-handler.js';
 
 export const createDeal: ActionHandler = async ({ profile, contact, node, trigger, teamId }) => {
@@ -17,7 +16,7 @@ export const createDeal: ActionHandler = async ({ profile, contact, node, trigge
     const dealName = resolveVariables(config.deal_name, context);
     const dealValue = config.deal_value ? parseFloat(resolveVariables(config.deal_value, context)) : 0;
 
-    const dealPayload: TablesInsert<'deals'> = {
+    const dealPayload: DealInsert = {
         name: dealName,
         value: isNaN(dealValue) ? 0 : dealValue,
         pipeline_id: config.pipeline_id,
@@ -27,13 +26,12 @@ export const createDeal: ActionHandler = async ({ profile, contact, node, trigge
         status: 'Aberto'
     };
 
-    const { data: newDeal, error } = await supabaseAdmin.from('deals').insert(dealPayload as any).select('*').single();
+    const { rows } = await pool.query(
+        'INSERT INTO deals (name, value, pipeline_id, stage_id, contact_id, team_id, status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [dealPayload.name, dealPayload.value, dealPayload.pipeline_id, dealPayload.stage_id, dealPayload.contact_id, dealPayload.team_id, dealPayload.status]
+    );
+    const newDeal = rows[0];
 
-    if (error) {
-        console.error("Erro ao criar negócio via automação:", error);
-        throw error;
-    }
-    
     // Dispara o evento de "deal_created" para que outros gatilhos possam reagir
     await publishEvent('deal_created', profile.id, { contact, deal: newDeal });
 
@@ -49,45 +47,35 @@ export const updateDealStage: ActionHandler = async ({ profile, contact, node })
         throw new Error('Nenhuma etapa de destino foi selecionada.');
     }
     
-    // Lógica para encontrar o negócio mais recente do contato que ainda está 'Aberto'
-    const { data: latestDeal, error: dealError } = await supabaseAdmin
-        .from('deals')
-        .select('*')
-        .eq('contact_id', contact.id)
-        .eq('status', 'Aberto')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+    const dealResult = await pool.query(
+        'SELECT * FROM deals WHERE contact_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
+        [contact.id, 'Aberto']
+    );
 
-    if (dealError || !latestDeal) {
+    if (dealResult.rows.length === 0) {
         return { details: 'Nenhum negócio aberto encontrado para este contato. Nenhuma ação executada.' };
     }
+    const latestDeal = dealResult.rows[0];
     
-    const { data: targetStage, error: stageError } = await supabaseAdmin
-        .from('pipeline_stages')
-        .select('type')
-        .eq('id', config.stage_id)
-        .single();
-
-    if (stageError) throw stageError;
+    const stageResult = await pool.query('SELECT type FROM pipeline_stages WHERE id = $1', [config.stage_id]);
+    if (stageResult.rows.length === 0) {
+        throw new Error(`Pipeline stage with id ${config.stage_id} not found.`);
+    }
+    const targetStage = stageResult.rows[0];
 
     const updatePayload: any = { stage_id: config.stage_id };
+    let closedAt = null;
     if (targetStage.type === 'Ganho' || targetStage.type === 'Perdido') {
         updatePayload.status = targetStage.type;
-        updatePayload.closed_at = new Date().toISOString();
+        closedAt = new Date().toISOString();
     }
     
-    const { data: updatedDeal, error: updateError } = await supabaseAdmin
-        .from('deals')
-        .update(updatePayload as any)
-        .eq('id', latestDeal.id)
-        .select('*')
-        .single();
-    
-    if (updateError) {
-        console.error(`Erro ao atualizar etapa do negócio ${latestDeal.id}:`, updateError);
-        throw updateError;
-    }
+    const { rows: updatedRows } = await pool.query(
+        'UPDATE deals SET stage_id = $1, status = $2, closed_at = $3 WHERE id = $4 RETURNING *',
+        [updatePayload.stage_id, updatePayload.status || latestDeal.status, closedAt, latestDeal.id]
+    );
+
+    const updatedDeal = updatedRows[0];
 
     // Dispara o evento de "deal_stage_changed"
     await publishEvent('deal_stage_changed', profile.id, { contact, deal: updatedDeal, new_stage_id: config.stage_id });

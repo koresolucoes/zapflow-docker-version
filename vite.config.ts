@@ -11,11 +11,7 @@ export default defineConfig(({ mode }) => {
     const envWithProcessPrefix = {
         'process.env': `${JSON.stringify(env)}`,
         'import.meta.env': `${JSON.stringify(env)}`,
-        'import.meta.env.VITE_SUPABASE_URL': `"${env.VITE_SUPABASE_URL}"`,
-        'import.meta.env.VITE_SUPABASE_ANON_KEY': `"${env.VITE_SUPABASE_ANON_KEY}"`,
         'import.meta.env.VITE_APP_URL': `"${env.VITE_APP_URL || 'http://localhost:5173'}"`,
-        'process.env.VITE_SUPABASE_URL': `"${env.VITE_SUPABASE_URL}"`,
-        'process.env.VITE_SUPABASE_ANON_KEY': `"${env.VITE_SUPABASE_ANON_KEY}"`,
         'process.env.VITE_APP_URL': `"${env.VITE_APP_URL || 'http://localhost:5173'}"`,
         'process.env.GEMINI_API_KEY': `"${env.VITE_GEMINI_API_KEY || ''}"`
     };
@@ -52,14 +48,6 @@ export default defineConfig(({ mode }) => {
                     target: 'http://localhost:3001',
                     changeOrigin: true,
                     secure: false,
-                },
-                // Proxy para as funções do Supabase
-                '/functions/v1': {
-                    target: 'https://mdcfnybfshkvdleundvz.supabase.co',
-                    changeOrigin: true,
-                    rewrite: (path) => path.replace(/^\/functions\/v1/, '/functions/v1'),
-                    secure: false,
-                    ws: true,
                 }
             },
         },

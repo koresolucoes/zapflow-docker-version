@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../../supabaseAdmin.js';
+import pool from '../../db.js';
 import { Contact } from '../../types.js';
 import { handleTagAddedEvent } from '../trigger-handler.js';
 import { ActionHandler } from '../types.js';
@@ -17,17 +17,16 @@ export const addTag: ActionHandler = async ({ profile, contact, node, trigger })
         }
 
         const newTags = Array.from(new Set([...(contact.tags || []), tagToAdd]));
-        const updatePayload: any = { tags: newTags };
-        const { data: updatedContact, error } = await supabaseAdmin
-            .from('contacts')
-            .update(updatePayload as any)
-            .eq('id', contact.id)
-            .select('*')
-            .single();
 
-        if (error) throw error;
-        if (!updatedContact) throw new Error('Failed to update contact after adding tag.');
-        const finalContact = updatedContact as unknown as Contact;
+        const { rows } = await pool.query(
+            'UPDATE contacts SET tags = $1 WHERE id = $2 RETURNING *',
+            [JSON.stringify(newTags), contact.id]
+        );
+
+        if (rows.length === 0) {
+            throw new Error('Failed to update contact after adding tag.');
+        }
+        const finalContact = rows[0] as Contact;
 
         handleTagAddedEvent(profile.id, finalContact, tagToAdd);
         
@@ -44,11 +43,16 @@ export const removeTag: ActionHandler = async ({ contact, node, trigger }) => {
     if (config.tag) {
         const tagToRemove = resolveVariables(config.tag, { contact, trigger });
         const newTags = (contact.tags || []).filter(t => t !== tagToRemove);
-        const updatePayload: any = { tags: newTags };
-        const { data, error } = await supabaseAdmin.from('contacts').update(updatePayload as any).eq('id', contact.id).select('*').single();
-        if (error) throw error;
-        if (!data) throw new Error('Failed to update contact after removing tag.');
-        return { updatedContact: data as unknown as Contact, details: `Tag '${tagToRemove}' removida do contato.` };
+
+        const { rows } = await pool.query(
+            'UPDATE contacts SET tags = $1 WHERE id = $2 RETURNING *',
+            [JSON.stringify(newTags), contact.id]
+        );
+
+        if (rows.length === 0) {
+            throw new Error('Failed to update contact after removing tag.');
+        }
+        return { updatedContact: rows[0] as Contact, details: `Tag '${tagToRemove}' removida do contato.` };
     }
     throw new Error('Tag a ser removida não está configurada.');
 };
@@ -62,11 +66,16 @@ export const setCustomField: ActionHandler = async ({ contact, node, trigger }) 
         const fieldName = resolveVariables(config.field_name, { contact, trigger }).replace(/\s+/g, '_');
         const fieldValue = resolveVariables(config.field_value || '', { contact, trigger });
         const newCustomFields = { ...(contact.custom_fields as object || {}), [fieldName]: fieldValue };
-        const updatePayload: any = { custom_fields: newCustomFields };
-        const { data, error } = await supabaseAdmin.from('contacts').update(updatePayload as any).eq('id', contact.id).select('*').single();
-        if (error) throw error;
-        if (!data) throw new Error('Failed to update contact after setting custom field.');
-        return { updatedContact: data as unknown as Contact, details: `Campo '${fieldName}' atualizado para '${fieldValue}'.` };
+
+        const { rows } = await pool.query(
+            'UPDATE contacts SET custom_fields = $1 WHERE id = $2 RETURNING *',
+            [newCustomFields, contact.id]
+        );
+
+        if (rows.length === 0) {
+            throw new Error('Failed to update contact after setting custom field.');
+        }
+        return { updatedContact: rows[0] as Contact, details: `Campo '${fieldName}' atualizado para '${fieldValue}'.` };
     }
     throw new Error('Nome do campo personalizado não está configurado.');
 };

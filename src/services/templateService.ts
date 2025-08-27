@@ -1,13 +1,12 @@
 import { supabase } from '../lib/supabaseClient.js';
-import { MessageTemplate, MessageTemplateInsert, MetaConfig, TemplateCategory, TemplateStatus } from '../types/index.js';
-import { TablesInsert, Json } from '@/src/types/database.types.js';
+import { MessageTemplate, MessageTemplateInsert, MetaConfig, TemplateCategory, TemplateStatus, Json } from '../types/index.js';
 import { createMetaTemplate } from './meta/templates.js';
 import { MetaTemplateComponent } from './meta/types.js';
 
 const addTemplateToDb = async (template: MessageTemplateInsert): Promise<MessageTemplate> => {
-    const dbTemplate: TablesInsert<'message_templates'> = {
+    const dbTemplate: MessageTemplateInsert = {
         ...template,
-        components: template.components as unknown as Json,
+        components: template.components as unknown as MetaTemplateComponent[],
     };
     
     const { data, error } = await supabase

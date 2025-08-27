@@ -1,9 +1,8 @@
 import { supabase } from '../lib/supabaseClient.js';
-import { Automation, AutomationNode, Edge, AutomationNodeStats, AutomationNodeLog, AutomationStatus, Json } from '../types/index.js';
-import { TablesInsert, TablesUpdate, Tables } from '../types/database.types.js';
+import { Automation, AutomationNode, Edge, AutomationNodeStats, AutomationNodeLog, AutomationStatus, Json, AutomationInsert } from '../types/index.js';
 
 export const createAutomationInDb = async (teamId: string): Promise<Automation> => {
-    const dbAutomation: TablesInsert<'automations'> = { 
+    const dbAutomation: AutomationInsert = {
         team_id: teamId, 
         name: 'Nova Automação (Rascunho)', 
         status: 'paused', 
@@ -23,7 +22,7 @@ export const createAutomationInDb = async (teamId: string): Promise<Automation> 
 };
 
 export const updateAutomationInDb = async (teamId: string, automation: Automation): Promise<Automation> => {
-    const updatePayload: TablesUpdate<'automations'> = { 
+    const updatePayload: Partial<Automation> = {
         name: automation.name, 
         status: automation.status, 
         nodes: automation.nodes as unknown as Json, 
