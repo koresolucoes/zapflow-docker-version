@@ -8,6 +8,7 @@ import { setupTeamRoutes } from './handlers/teamHandler.js';
 import authRoutes from './routes/auth.js';
 import contactsRoutes from './routes/contacts.js';
 import campaignsRoutes from './routes/campaigns.js';
+import webhookLogsRoutes from './routes/webhookLogs.js';
 import { conversationHandler } from './handlers/conversationHandler.js';
 import { metricsHandler } from './handlers/metricsHandler.js';
 import { runTriggerHandler } from './handlers/runTriggerHandler.js';
@@ -81,6 +82,7 @@ app.use('/api/auth', authRoutes);
 // Configuração das rotas principais
 app.use('/api/contacts', contactsRoutes);
 app.use('/api/campaigns', campaignsRoutes);
+app.use('/api/webhook-logs', webhookLogsRoutes);
 app.use('/api/conversations', conversationHandler);
 app.use('/api/metrics', metricsHandler);
 app.use('/api/triggers', runTriggerHandler);
