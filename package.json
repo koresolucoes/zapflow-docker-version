@@ -30,6 +30,7 @@
     "clsx": "^2.1.0",
     "date-fns": "^4.1.0",
     "emoji-picker-react": "^4.11.1",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.536.0",
     "postcss": "^8.4.38",
     "react": "^19.1.0",
