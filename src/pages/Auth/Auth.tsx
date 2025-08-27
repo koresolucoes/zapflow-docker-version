@@ -1,22 +1,23 @@
 import React, { useState, FC } from 'react';
-import { supabase } from '../../lib/supabaseClient.js';
-import { ZAPFLOW_AI_LOGO, GOOGLE_ICON } from '../../components/icons/index.js';
+import { useAuthStore } from '../../stores/authStore.js';
+import { ZAPFLOW_AI_LOGO } from '../../components/icons/index.js';
 import { Button } from '../../components/common/Button.js';
 import { Card } from '../../components/common/Card.js';
-import { useUiStore } from '../../stores/uiStore.js';
 
-type AuthView = 'login' | 'signup' | 'reset_password';
+type AuthView = 'login' | 'signup';
 
 const Auth: FC = () => {
   const [view, setView] = useState<AuthView>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const theme = useUiStore(state => state.theme);
 
-  const handlePasswordAuth = async (e: React.FormEvent) => {
+  const { login, register } = useAuthStore();
+
+  const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -24,24 +25,12 @@ const Auth: FC = () => {
 
     try {
       if (view === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await login(email, password);
+        // O redirecionamento será tratado pelo App.tsx
       } else if (view === 'signup') {
-        const { data, error } = await supabase.auth.signUp({ 
-          email, 
-          password, 
-          options: { 
-            data: { company_name: 'Minha Empresa' } 
-          } 
-        });
-        if (error) throw error;
-        setMessage("Cadastro realizado! Verifique seu e-mail para confirmar a conta.");
-      } else if (view === 'reset_password') {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { 
-          redirectTo: window.location.origin 
-        });
-        if (error) throw error;
-        setMessage("Instruções para redefinição de senha enviadas para o seu e-mail.");
+        await register(email, password, companyName);
+        setMessage("Cadastro realizado com sucesso! Você já pode fazer o login.");
+        setView('login');
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro.');
@@ -49,20 +38,11 @@ const Auth: FC = () => {
       setLoading(false);
     }
   };
-  
-  const handleOAuthLogin = async (provider: 'google') => {
-      setLoading(true);
-      setError(null);
-      const { error } = await supabase.auth.signInWithOAuth({ provider });
-      if (error) {
-          setError(error.message);
-          setLoading(false);
-      }
-  };
 
   const switchView = (newView: AuthView) => {
       setEmail('');
       setPassword('');
+      setCompanyName('');
       setError(null);
       setMessage(null);
       setView(newView);
@@ -74,14 +54,10 @@ const Auth: FC = () => {
         <div className="flex flex-col items-center mb-8">
           <ZAPFLOW_AI_LOGO className="h-12 w-auto mb-4 text-foreground" />
           <h1 className="text-2xl font-bold text-foreground text-center">
-            {view === 'login' && 'Acesse sua conta'}
-            {view === 'signup' && 'Crie sua conta'}
-            {view === 'reset_password' && 'Redefinir senha'}
+            {view === 'login' ? 'Acesse sua conta' : 'Crie sua conta'}
           </h1>
           <p className="text-sm text-muted-foreground mt-2 text-center">
-            {view === 'login' && 'Entre para gerenciar suas campanhas'}
-            {view === 'signup' && 'Crie uma conta para começar a usar o ZapFlow'}
-            {view === 'reset_password' && 'Digite seu e-mail para redefinir sua senha'}
+            {view === 'login' ? 'Entre para gerenciar suas campanhas' : 'Crie uma conta para começar a usar o ZapFlow'}
           </p>
         </div>
 
@@ -97,7 +73,23 @@ const Auth: FC = () => {
           </div>
         )}
 
-        <form onSubmit={handlePasswordAuth} className="space-y-4">
+        <form onSubmit={handleAuthAction} className="space-y-4">
+          {view === 'signup' && (
+            <div>
+              <label htmlFor="companyName" className="block text-sm font-medium text-foreground mb-1">
+                Nome da Empresa
+              </label>
+              <input
+                id="companyName"
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring/30 bg-background text-foreground"
+                placeholder="Sua Empresa Inc."
+                required
+              />
+            </div>
+          )}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
               E-mail
@@ -113,42 +105,19 @@ const Auth: FC = () => {
             />
           </div>
 
-          {view !== 'reset_password' && (
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
-                Senha
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring/30 bg-background text-foreground"
-                placeholder="••••••••"
-                required={view === 'login' || view === 'signup'}
-              />
-            </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            {view === 'login' && (
-              <button
-                type="button"
-                onClick={() => switchView('reset_password')}
-                className="text-sm text-primary hover:text-primary/80 hover:underline"
-              >
-                Esqueceu sua senha?
-              </button>
-            )}
-            {view === 'reset_password' && (
-              <button
-                type="button"
-                onClick={() => switchView('login')}
-                className="text-sm text-primary hover:text-primary/80 hover:underline"
-              >
-                Voltar para login
-              </button>
-            )}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
+              Senha
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring/30 bg-background text-foreground"
+              placeholder="••••••••"
+              required
+            />
           </div>
 
           <Button
@@ -156,45 +125,11 @@ const Auth: FC = () => {
             className="w-full justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
             disabled={loading}
           >
-            {loading ? (
-              'Carregando...'
-            ) : view === 'login' ? (
-              'Entrar'
-            ) : view === 'signup' ? (
-              'Criar conta'
-            ) : (
-              'Enviar link de redefinição'
-            )}
+            {loading ? 'Carregando...' : view === 'login' ? 'Entrar' : 'Criar conta'}
           </Button>
         </form>
 
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-background text-muted-foreground">
-                Ou continue com
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full justify-center py-2 px-4 border border-input rounded-md shadow-sm text-sm font-medium text-foreground bg-background hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
-              onClick={() => handleOAuthLogin('google')}
-              disabled={loading}
-            >
-              <GOOGLE_ICON className="h-5 w-5 mr-2" />
-              Google
-            </Button>
-          </div>
-        </div>
-
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           {view === 'login' ? (
             <>
               Não tem uma conta?{' '}
@@ -206,7 +141,7 @@ const Auth: FC = () => {
                 Cadastre-se
               </button>
             </>
-          ) : view === 'signup' ? (
+          ) : (
             <>
               Já tem uma conta?{' '}
               <button
@@ -217,7 +152,7 @@ const Auth: FC = () => {
                 Faça login
               </button>
             </>
-          ) : null}
+          )}
         </p>
       </Card>
     </div>
