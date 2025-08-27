@@ -1,5 +1,5 @@
-import { Json as DbJson, Database, Enums, Tables, TablesInsert, TablesUpdate } from './database.types';
-import { MetaTemplateComponent } from './meta/types';
+import { Json as DbJson, Database, Enums, Tables, TablesInsert, TablesUpdate } from './database.types.js';
+import { MetaTemplateComponent } from './meta/types.js';
 
 export type Json = DbJson;
 export type { TablesInsert, TablesUpdate };
