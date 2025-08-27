@@ -43,23 +43,21 @@ const FullPageSuspenseFallback = () => (
 
 const App: React.FC = () => {
   const { 
-    session, 
+    token,
     loading, 
+    isInitialized,
     currentPage, 
     activeTeam, 
     fetchInitialData, 
     dataLoadedForTeam, 
     clearAllData,
-    initializeAuth,
+    checkAuth,
   } = useAuthStore();
   const { setTheme } = useUiStore();
 
   useEffect(() => {
-    const unsubscribe = initializeAuth();
-    return () => {
-      unsubscribe();
-    };
-  }, [initializeAuth]);
+    checkAuth();
+  }, [checkAuth]);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme');
@@ -122,13 +120,13 @@ const App: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !isInitialized) {
     return <FullPageSuspenseFallback />;
   }
 
   return (
     <Suspense fallback={<FullPageSuspenseFallback />}>
-      {session ? (
+      {token ? (
         <MainLayout>
           <Suspense fallback={<PageSuspenseFallback />}>
             {renderPage()}

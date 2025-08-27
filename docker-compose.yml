@@ -1,20 +1,35 @@
 
 services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         - VITE_APP_URL=${VITE_APP_URL}
-        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     ports:
       - "5173:80"
     environment:
       - NODE_ENV=production
       - VITE_APP_URL=${VITE_APP_URL}
-      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     depends_on:
       - api
     networks:
@@ -33,14 +48,16 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - APP_URL=${APP_URL}
+      - JWT_SECRET=${JWT_SECRET}
       # configurações explícitas do Redis para BullMQ
       - REDIS_URL=redis://redis:6379
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
+      db:
+        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
@@ -52,13 +69,15 @@ services:
       dockerfile: Dockerfile
     command: ["npm", "run", "worker:campaign"]
     depends_on:
+      db:
+        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
       - NODE_ENV=production
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - APP_URL=${APP_URL}
+      - JWT_SECRET=${JWT_SECRET}
       - REDIS_URL=redis://redis:6379
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -103,3 +122,4 @@ networks:
 
 volumes:
   redis_data:
+  postgres_data:

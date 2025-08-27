@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { setupTeamRoutes } from './handlers/teamHandler.js';
-import { setupNewUserHandler } from './handlers/setupNewUserHandler.js';
+import authRoutes from './routes/auth.js';
 import { conversationHandler } from './handlers/conversationHandler.js';
 import { metricsHandler } from './handlers/metricsHandler.js';
 import { runTriggerHandler } from './handlers/runTriggerHandler.js';
@@ -73,8 +73,10 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Rotas de autenticação
+app.use('/api/auth', authRoutes);
+
 // Configuração das rotas principais
-app.use('/api/setup-new-user', setupNewUserHandler);
 app.use('/api/conversations', conversationHandler);
 app.use('/api/metrics', metricsHandler);
 app.use('/api/triggers', runTriggerHandler);

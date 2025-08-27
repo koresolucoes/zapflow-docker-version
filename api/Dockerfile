@@ -18,5 +18,12 @@ COPY . .
 # Porta que a API vai rodar
 EXPOSE 3001
 
+# Tornar o entrypoint executável
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Definir o entrypoint
+ENTRYPOINT ["docker-entrypoint.sh"]
+
 # Comando para iniciar o servidor de desenvolvimento
 CMD ["npx", "tsx", "watch", "server.ts"]
