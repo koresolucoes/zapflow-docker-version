@@ -239,18 +239,49 @@ export const useAuthStore = create<AuthState>((set, get) => {
                 // If user data is not found, it's a new user - run setup
                 if (userError || !userData) {
                     console.log('No user data found, setting up new user...');
-                    const { data: setupData, error: setupError } = await supabase.rpc('setup_new_user', {
-                        user_id: user.id,
-                        user_email: user.email
-                    });
-
-                    if (setupError) {
-                        console.error('Error setting up new user:', setupError);
-                        throw setupError;
+                    
+                    // Tenta primeiro via RPC (mais rápido se existir)
+                    try {
+                        console.log('Tentando setup via RPC setup_new_user...');
+                        const { data: setupData, error: setupError } = await supabase.rpc('setup_new_user', {
+                            user_id: user.id,
+                            user_email: user.email
+                        });
+                        
+                        if (setupError) {
+                            throw setupError;
+                        }
+                        
+                        console.log('Setup via RPC bem-sucedido:', setupData);
+                        
+                    } catch (rpcErr) {
+                        console.warn('RPC setup_new_user falhou, tentando via API backend...', rpcErr);
+                        
+                        // Fallback para API se RPC falhar
+                        try {
+                            console.log('Chamando API /api/setup-new-user para novo usuário...');
+                            const resp = await fetch('/api/setup-new-user', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId: user.id, email: user.email })
+                            });
+                            
+                            if (!resp.ok) {
+                                const err = await resp.json().catch(() => ({}));
+                                throw new Error(err.message || `Falha na API /api/setup-new-user: ${resp.status}`);
+                            }
+                            
+                            const setupResult = await resp.json();
+                            console.log('Setup via API bem-sucedido:', setupResult);
+                            
+                        } catch (apiErr) {
+                            console.error('Erro ao configurar novo usuário via API:', apiErr);
+                            throw new Error('Falha ao configurar novo usuário via RPC e API');
+                        }
                     }
-                    console.log('New user setup complete:', setupData);
 
                     // After setup, fetch the user data again
+                    console.log('Buscando dados do usuário após setup...');
                     const { data: refetchData, error: refetchError } = await supabase.rpc('get_user_teams_and_profile');
                     
                     if (refetchError) {

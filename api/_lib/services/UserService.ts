@@ -9,32 +9,56 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
  */
 export class UserService {
   /**
-   * Configura um novo usuário no sistema
+   * Configura um novo usuário no sistema usando a função RPC
    * @param userId ID do usuário
    * @param userEmail Email do usuário
    * @returns Resultado da operação
    */
   async setupNewUser(userId: string, userEmail: string) {
     try {
-      // Verificar se o usuário já existe
-      const existingUser = await userRepository.findById(userId);
-      if (existingUser) {
-        console.log(`[UserService] Usuário ${userId} já existe no sistema`);
-        return { success: true, user: existingUser };
+      // Verificar se o usuário já tem times
+      const { data: existingTeams, error: teamsError } = await supabaseAdmin
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', userId);
+
+      if (teamsError) {
+        console.error('[UserService] Erro ao verificar times existentes:', teamsError);
       }
 
-      // Usar a função RPC para configuração inicial
-      const { data, error } = await supabaseAdmin
-        .rpc('setup_new_user', { 
-          user_id: userId, 
-          user_email: userEmail 
-        })
-        .single();
+      if (existingTeams && existingTeams.length > 0) {
+        console.log(`[UserService] Usuário ${userId} já tem times associados`);
+        return { 
+          success: true, 
+          data: { 
+            team_id: existingTeams[0].team_id,
+            already_configured: true 
+          } 
+        };
+      }
 
-      if (error) throw error;
+      // Se não tiver times, chama a função RPC para configurar
+      console.log(`[UserService] Configurando novo usuário via RPC: ${userId}`);
       
-      console.log(`[UserService] Novo usuário configurado: ${userId}`);
-      return { success: true, data };
+      const { data: setupData, error: setupError } = await supabaseAdmin
+        .rpc('setup_new_user', {
+          user_id: userId,
+          user_email: userEmail
+        });
+
+      if (setupError) {
+        console.error('[UserService] Erro na função RPC setup_new_user:', setupError);
+        throw new Error('Falha ao configurar novo usuário');
+      }
+
+      console.log(`[UserService] Novo usuário configurado via RPC: ${userId}`, setupData);
+      return { 
+        success: true, 
+        data: { 
+          team_id: setupData.team?.id,
+          already_configured: false
+        } 
+      };
     } catch (error) {
       console.error('[UserService] Erro ao configurar novo usuário:', error);
       throw new Error('Falha ao configurar novo usuário');
@@ -44,19 +68,178 @@ export class UserService {
   /**
    * Busca o perfil e times de um usuário
    * @param userId ID do usuário
+   * @returns Objeto contendo o perfil e times do usuário
    */
-  async getUserProfileAndTeams(userId: string) {
+  async getUserProfileAndTeams(userId: string): Promise<{ 
+    profile: any; 
+    teams: Array<{ 
+      id: string; 
+      name: string; 
+      owner_id: string | null; 
+      created_at: string; 
+      role: string 
+    }> 
+  }> {
     try {
-      const { data, error } = await supabaseAdmin
-        .rpc('get_user_teams_and_profile')
-        .eq('user_id', userId)
-        .single();
+      // 1. Garante que o perfil existe primeiro
+      const profile = await this.ensureProfileExists(userId);
+      
+      // 2. Tenta buscar times usando o método RPC
+      try {
+        const { data: rpcData, error: rpcError } = await supabaseAdmin
+          .rpc('get_user_teams_and_profile')
+          .eq('user_id', userId)
+          .single();
 
-      if (error) throw error;
-      return data;
+        if (!rpcError && rpcData) {
+          // Se o RPC retornou dados, formata a resposta
+          const teams = Array.isArray(rpcData.teams) 
+            ? rpcData.teams.map((team: any) => ({
+                id: team.id,
+                name: team.name || `Time ${team.id.substring(0, 8)}`,
+                owner_id: team.owner_id,
+                created_at: team.created_at || new Date().toISOString(),
+                role: team.owner_id === userId ? 'owner' : 'member'
+              }))
+            : [];
+
+          return {
+            profile: rpcData.profile || profile,
+            teams: teams
+          };
+        } else if (rpcError) {
+          console.warn('[UserService] RPC get_user_teams_and_profile falhou, usando fallback:', rpcError);
+        }
+      } catch (rpcError) {
+        console.warn('[UserService] Erro ao chamar RPC get_user_teams_and_profile:', rpcError);
+      }
+
+      // 3. Fallback: Busca times onde o usuário é dono
+      const { data: ownedTeams = [], error: teamsError } = await supabaseAdmin
+        .from('teams')
+        .select('*')
+        .eq('owner_id', userId);
+
+      if (teamsError) {
+        console.error('[UserService] Erro ao buscar times do usuário:', teamsError);
+      }
+
+      // 4. Busca times onde o usuário é membro (mas não dono)
+      const { data: teamMemberships = [], error: membershipsError } = await supabaseAdmin
+        .from('team_members')
+        .select('*, teams(*)')
+        .eq('user_id', userId);
+
+      if (membershipsError) {
+        console.error('[UserService] Erro ao buscar associações do usuário:', membershipsError);
+      }
+
+      // 5. Se não tiver times, tenta configurar o usuário
+      if ((!ownedTeams || ownedTeams.length === 0) && (!teamMemberships || teamMemberships.length === 0)) {
+        console.log(`[UserService] Nenhum time encontrado para o usuário ${userId}, tentando configurar...`);
+        
+        // Obtém o email do usuário para configuração
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
+        const userEmail = userData?.user?.email || `${userId}@example.com`;
+        
+        const result = await this.setupNewUser(userId, userEmail);
+        if (result.success) {
+          // Se a configuração foi bem-sucedida, tenta novamente
+          return this.getUserProfileAndTeams(userId);
+        } else {
+          console.error('[UserService] Falha ao configurar usuário:', result);
+          throw new Error('Falha ao configurar o usuário');
+        }
+      }
+
+      // 6. Formata os times do usuário
+      const userTeams = [
+        // Times onde o usuário é dono
+        ...(ownedTeams || []).map(t => ({
+          id: t.id,
+          name: t.name || `Time ${t.id.substring(0, 8)}`,
+          owner_id: t.owner_id,
+          created_at: t.created_at || new Date().toISOString(),
+          role: 'owner' as const
+        })),
+        // Times onde o usuário é membro (mas não é dono)
+        ...((teamMemberships || [])
+          .filter(tm => !tm.teams?.owner_id || tm.teams.owner_id !== userId) // Remove se for dono (já incluído acima)
+          .map(tm => ({
+            id: tm.team_id,
+            name: tm.teams?.name || `Time ${tm.team_id.substring(0, 8)}`,
+            owner_id: tm.teams?.owner_id || null,
+            created_at: tm.created_at || new Date().toISOString(),
+            role: (tm.role || 'member') as string
+          })))
+      ];
+
+      // 7. Remove duplicatas (caso existam)
+      const uniqueTeams = Array.from(new Map(userTeams.map(team => [team.id, team])).values());
+
+      return {
+        profile,
+        teams: uniqueTeams
+      };
     } catch (error) {
       console.error('[UserService] Erro ao buscar perfil e times:', error);
       throw new Error('Falha ao buscar perfil e times do usuário');
+    }
+  }
+
+  /**
+   * Garante que o perfil do usuário existe, criando um padrão se necessário
+   * @param userId ID do usuário
+   * @returns Perfil do usuário
+   */
+  private async ensureProfileExists(userId: string): Promise<any> {
+    try {
+      // Primeiro tenta buscar o perfil existente
+      const { data: existingProfile, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (existingProfile) {
+        return existingProfile;
+      }
+
+      // Se não existir, usa a função RPC para criar perfil e time padrão
+      console.log(`[UserService] Criando perfil e time padrão para usuário ${userId}`);
+      
+      // Obtém o email do usuário
+      const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+      const userEmail = userData?.user?.email || `${userId}@example.com`;
+      
+      // Chama a função RPC para configurar o novo usuário
+      const { data: setupData, error: setupError } = await supabaseAdmin
+        .rpc('setup_new_user', {
+          user_id: userId,
+          user_email: userEmail
+        });
+
+      if (setupError) {
+        console.error('[UserService] Erro ao configurar novo usuário via RPC:', setupError);
+        throw new Error('Falha ao configurar o perfil do usuário');
+      }
+
+      // Busca o perfil recém-criado
+      const { data: newProfile, error: fetchError } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (fetchError || !newProfile) {
+        console.error('[UserService] Erro ao buscar perfil recém-criado:', fetchError);
+        throw new Error('Falha ao recuperar o perfil do usuário');
+      }
+
+      return newProfile;
+    } catch (error) {
+      console.error('[UserService] Erro ao garantir perfil do usuário:', error);
+      throw new Error('Falha ao garantir perfil do usuário');
     }
   }
 

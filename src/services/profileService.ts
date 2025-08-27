@@ -15,12 +15,26 @@ export const getProfile = async (userId: string): Promise<Profile | null> => {
 };
 
 export const updateProfileInDb = async (userId: string, profileData: EditableProfile): Promise<Profile> => {
+    // Tenta update; se não houver linha (PGRST116), faz upsert
     const { data, error } = await supabase
         .from('profiles')
         .update(profileData as any)
         .eq('id', userId)
         .select('*')
+        .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') {
+        throw error;
+    }
+
+    if (data) return data as unknown as Profile;
+
+    const { data: upserted, error: upsertError } = await supabase
+        .from('profiles')
+        .upsert({ id: userId, ...(profileData as any) }, { onConflict: 'id' })
+        .select('*')
         .single();
-    if (error) throw error;
-    return data as unknown as Profile;
+
+    if (upsertError) throw upsertError;
+    return upserted as unknown as Profile;
 };

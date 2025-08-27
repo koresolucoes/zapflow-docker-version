@@ -95,9 +95,22 @@ const TeamSwitcher: React.FC = () => {
 
 const Header: React.FC = () => {
   const user = useAuthStore(state => state.user);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    window.location.href = '/login';
   };
 
   return (
@@ -107,12 +120,35 @@ const Header: React.FC = () => {
           <TeamSwitcher />
         </div>
         <div className="flex-1" />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3" ref={profileRef}>
           <ThemeToggle />
-          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-            <span className="text-sm font-semibold text-foreground">
-              {user?.email?.charAt(0).toUpperCase()}
-            </span>
+          <div className="relative">
+            <button
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="flex items-center justify-center h-8 w-8 rounded-full bg-muted hover:bg-muted/80 transition-colors focus:outline-none"
+              aria-haspopup="true"
+              aria-expanded={isProfileOpen}
+            >
+              <span className="text-sm font-semibold text-foreground">
+                {user?.email?.charAt(0).toUpperCase()}
+              </span>
+            </button>
+            
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-popover border border-border overflow-hidden z-10">
+                <div className="py-1">
+                  <div className="px-4 py-2 text-sm text-foreground border-b border-border">
+                    <div className="font-medium">{user?.email}</div>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    Sair
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
