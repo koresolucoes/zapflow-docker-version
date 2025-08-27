@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabaseClient.js';
 import { CannedResponse, CannedResponseInsert } from '../types/index.js';
-import { TablesUpdate } from '../types/database.types.js';
 
 export const fetchCannedResponses = async (teamId: string): Promise<CannedResponse[]> => {
     const { data, error } = await supabase
@@ -22,7 +21,7 @@ export const addCannedResponse = async (teamId: string, response: Omit<CannedRes
     return data as unknown as CannedResponse;
 };
 
-export const updateCannedResponse = async (id: string, teamId: string, updates: TablesUpdate<'canned_responses'>): Promise<CannedResponse> => {
+export const updateCannedResponse = async (id: string, teamId: string, updates: Partial<CannedResponse>): Promise<CannedResponse> => {
     const { data, error } = await supabase
         .from('canned_responses')
         .update(updates as any)

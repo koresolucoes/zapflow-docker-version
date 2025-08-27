@@ -9,7 +9,6 @@ import type {
 } from '../types/index.js';
 import { updateProfileInDb } from '../services/profileService.js';
 import { fetchAllInitialData } from '../services/dataService.js';
-import type { TablesUpdate } from '../types/database.types.js';
 import { useUiStore } from './uiStore.js';
 
 // Representa o objeto de usuário que recebemos da nossa API

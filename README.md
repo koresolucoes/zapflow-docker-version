@@ -14,15 +14,15 @@ ZapFlow é uma plataforma completa de automação de marketing que combina CRM, 
 
 ## 🏗️ Arquitetura
 
-O projeto é construído sobre uma arquitetura moderna usando Docker, Supabase e React, garantindo escalabilidade, funcionalidade em tempo real e uma experiência de desenvolvedor perfeita.
+O projeto é construído sobre uma arquitetura moderna e autocontida usando Docker, garantindo portabilidade e uma experiência de desenvolvedor simplificada.
 
 ### Stack Tecnológica
 
 - **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS
-- **Backend:** Node.js + Express + TypeScript (Docker)
-- **Banco de Dados:** Supabase (PostgreSQL)
+- **Backend:** Node.js + Express + TypeScript
+- **Banco de Dados:** PostgreSQL
 - **Cache/Fila:** Redis + BullMQ
-- **Autenticação:** Supabase Auth
+- **Autenticação:** Local, baseada em JWT (JSON Web Tokens)
 - **Deploy:** Docker Compose
 
 ## 📋 Pré-requisitos
@@ -32,7 +32,6 @@ Antes de começar, certifique-se de ter instalado:
 - [Node.js](https://nodejs.org/) (versão 18 ou superior)
 - [Docker](https://www.docker.com/) e [Docker Compose](https://docs.docker.com/compose/)
 - [Git](https://git-scm.com/)
-- Uma conta no [Supabase](https://supabase.com/) para o banco de dados.
 
 ## 🛠️ Configuração do Ambiente
 
@@ -45,45 +44,44 @@ cd zapflow-docker-version
 
 ### Passo 2: Configurar Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto ou configure essas variáveis diretamente no seu ambiente Docker.
+Crie um arquivo `.env` na raiz do projeto, copiando o `.env.example`. As configurações padrão já estão prontas para um ambiente de desenvolvimento local.
 
-```env
-# Supabase Configuration
-VITE_SUPABASE_URL=sua_url_do_supabase
-VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
-SUPABASE_URL=sua_url_do_supabase
-SUPABASE_SERVICE_ROLE_KEY=sua_chave_service_role_do_supabase
-
-# API Configuration
-PORT=3001
-NODE_ENV=production
-
-# Redis Configuration
-REDIS_URL=redis://redis:6379
-
-# App Configuration
-APP_URL=http://localhost:5173
+```bash
+cp .env.example .env
 ```
+
+O arquivo `.env` gerado conterá:
+```env
+# Configuração da Aplicação
+VITE_APP_URL=http://localhost:5173
+APP_URL=http://localhost:3001
+
+# Configuração do Banco de Dados (PostgreSQL)
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=zapflow
+
+# Configuração de Autenticação (JWT)
+JWT_SECRET=your-super-secret-and-long-jwt-key
+
+# Configuração do Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+```
+**Importante:** Para produção, altere `POSTGRES_PASSWORD` e `JWT_SECRET` para valores seguros.
 
 ### Passo 3: Executar com Docker
 
-1. Construa e inicie os containers:
+Construa e inicie os containers:
 ```bash
 docker-compose up --build
 ```
+A aplicação estará disponível em:
+- **Frontend:** http://localhost:5173
+- **API:** http://localhost:3001
+- **Redis Commander:** http://localhost:8081
 
-2. A aplicação estará disponível em:
-   - Frontend: http://localhost:5173
-   - API: http://localhost:3001
-   - Redis Commander: http://localhost:8081
-
-### Passo 4: Configurar Webhooks
-
-Após o deploy, configure os webhooks no Supabase para apontar para:
-
-```
-http://localhost:3001/api/webhook/<SEU_USER_ID>
-```
+No primeiro login, o banco de dados será migrado automaticamente.
 
 ## 🚀 Desenvolvimento Local
 

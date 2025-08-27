@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabaseClient.js';
 import { Pipeline, PipelineStage, DealInsert, DealWithContact, StageType, Deal } from '../types/index.js';
-import { TablesInsert, TablesUpdate } from '@/src/types/database.types.js';
 
 export const addDealToDb = async (dealData: DealInsert): Promise<DealWithContact> => {
     const { data, error } = await supabase.from('deals').insert(dealData as any).select('*, contacts(id, name)').single();
@@ -8,7 +7,7 @@ export const addDealToDb = async (dealData: DealInsert): Promise<DealWithContact
     return data as unknown as DealWithContact;
 };
 
-export const updateDealInDb = async (dealId: string, teamId: string, updates: TablesUpdate<'deals'>): Promise<DealWithContact> => {
+export const updateDealInDb = async (dealId: string, teamId: string, updates: Partial<Deal>): Promise<DealWithContact> => {
     const { data, error } = await supabase.from('deals').update({ ...updates, updated_at: new Date().toISOString() } as any).eq('id', dealId).eq('team_id', teamId).select('*, contacts(id, name)').single();
     if (error) throw error;
     return data as unknown as DealWithContact;
@@ -32,7 +31,7 @@ export const createDefaultPipelineInDb = async (teamId: string): Promise<{ pipel
         { name: 'Ganhos', sort_order: 4, type: 'Ganho' }, 
         { name: 'Perdidos', sort_order: 5, type: 'Perdido' } 
     ];
-    const stagesToInsert: TablesInsert<'pipeline_stages'>[] = defaultStages.map(stage => ({ ...stage, pipeline_id: pipeline.id }));
+    const stagesToInsert: Partial<PipelineStage>[] = defaultStages.map(stage => ({ ...stage, pipeline_id: pipeline.id }));
     const { data: stagesData, error: stagesError } = await supabase.from('pipeline_stages').insert(stagesToInsert as any).select('*');
 
     if (stagesError || !stagesData) {
@@ -48,7 +47,7 @@ export const addPipelineToDb = async (teamId: string, name: string): Promise<{ p
     if (error || !pipelineData) throw error || new Error("Falha ao criar funil.");
 
     const pipeline = pipelineData as unknown as Pipeline;
-    const stagePayload: TablesInsert<'pipeline_stages'> = { name: 'Nova Etapa', sort_order: 0, pipeline_id: pipeline.id, type: 'Intermediária' };
+    const stagePayload: Partial<PipelineStage> = { name: 'Nova Etapa', sort_order: 0, pipeline_id: pipeline.id, type: 'Intermediária' };
     const { data: stageData, error: stageError } = await supabase.from('pipeline_stages').insert(stagePayload as any).select('*').single();
     if (stageError || !stageData) throw stageError || new Error("Falha ao criar etapa inicial.");
 
@@ -67,7 +66,7 @@ export const deletePipelineFromDb = async (id: string, teamId: string): Promise<
 };
 
 export const addStageToDb = async (pipelineId: string, sortOrder: number): Promise<PipelineStage> => {
-    const newStagePayload: TablesInsert<'pipeline_stages'> = {
+    const newStagePayload: Partial<PipelineStage> = {
         pipeline_id: pipelineId,
         name: 'Nova Etapa',
         sort_order: sortOrder,
@@ -78,7 +77,7 @@ export const addStageToDb = async (pipelineId: string, sortOrder: number): Promi
     return data as unknown as PipelineStage;
 };
 
-export const updateStageInDb = async (id: string, updates: TablesUpdate<'pipeline_stages'>): Promise<PipelineStage> => {
+export const updateStageInDb = async (id: string, updates: Partial<PipelineStage>): Promise<PipelineStage> => {
     const { data, error } = await supabase.from('pipeline_stages').update(updates as any).eq('id', id).select('*').single();
     if (error || !data) throw error || new Error("Falha ao atualizar etapa.");
     return data as unknown as PipelineStage;

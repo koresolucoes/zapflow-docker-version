@@ -1,6 +1,5 @@
-import { supabaseAdmin } from '../supabaseAdmin.js';
+import pool from '../db.js';
 import { Automation, Contact, Json, Profile } from '../types.js';
-import { TablesInsert } from '../database.types.js';
 import { actionHandlers } from './handlers/index.js';
 import { ActionResult } from './types.js';
 import { ExecutionLifecycleHooks } from './ExecutionLifecycleHooks.js';
@@ -14,26 +13,38 @@ export const createDefaultLoggingHooks = (automationId: string, contactId: strin
     let runId: string | null = null;
 
     hooks.addHandler('workflowExecuteBefore', async () => {
-        const { data, error } = await supabaseAdmin.from('automation_runs').insert({
-            automation_id: automationId,
-            contact_id: contactId,
-            team_id: teamId,
-            status: 'running'
-        } as any).select('id').single();
+        const query = `
+            INSERT INTO automation_runs (automation_id, contact_id, team_id, status)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id;
+        `;
+        const values = [automationId, contactId, teamId, 'running'];
 
-        if (error) {
+        try {
+            const res = await pool.query(query, values);
+            if (res.rows.length === 0) {
+                throw new Error('Failed to retrieve automation run ID after creation.');
+            }
+            runId = res.rows[0].id;
+        } catch (error) {
             console.error(`[Execution Logging] Failed to create automation_run record for automation ${automationId}`, error);
             throw new Error('Failed to start execution log.');
         }
-        if (!data) {
-            throw new Error('Failed to retrieve automation run ID after creation.');
-        }
-        runId = (data as any).id;
     });
 
     hooks.addHandler('workflowExecuteAfter', async (status, details) => {
         if (!runId) return;
-        await supabaseAdmin.from('automation_runs').update({ status, details } as any).eq('id', runId);
+        const query = `
+            UPDATE automation_runs
+            SET status = $1, details = $2, updated_at = NOW()
+            WHERE id = $3;
+        `;
+        const values = [status, details, runId];
+        try {
+            await pool.query(query, values);
+        } catch (error) {
+            console.error(`[Execution Logging] Failed to update automation_run record for run ${runId}`, error);
+        }
     });
 
     hooks.addHandler('nodeExecuteBefore', async (_node) => {
@@ -42,27 +53,31 @@ export const createDefaultLoggingHooks = (automationId: string, contactId: strin
 
     hooks.addHandler('nodeExecuteAfter', async (node, status, details) => {
         if (!runId) return;
-        const logEntry: TablesInsert<'automation_node_logs'> = {
-            run_id: runId,
-            node_id: node.id,
-            team_id: teamId,
-            status,
-            details,
-        };
-        const { error: logError } = await supabaseAdmin.from('automation_node_logs').insert(logEntry as any);
-        if (logError) {
-            console.error(`[Execution Logging] Failed to create node log for node ${node.id} in run ${runId}`, logError);
+        const logQuery = `
+            INSERT INTO automation_node_logs (run_id, node_id, team_id, status, details)
+            VALUES ($1, $2, $3, $4, $5);
+        `;
+        const logValues = [runId, node.id, teamId, status, details];
+        try {
+            await pool.query(logQuery, logValues);
+        } catch (error) {
+            console.error(`[Execution Logging] Failed to create node log for node ${node.id} in run ${runId}`, error);
         }
 
-        const { error: rpcError } = await supabaseAdmin.rpc('increment_node_stat', {
-            p_automation_id: automationId,
-            p_node_id: node.id,
-            p_team_id: teamId,
-            p_status: status,
-        });
-        if (rpcError) {
-            console.error(`[Execution Logging] Failed to update node stats for node ${node.id} in run ${runId}`, rpcError);
-        }
+        // TODO: Re-implement node stats increment logic.
+        // The original implementation used a Supabase RPC ('increment_node_stat').
+        // This needs to be replaced with a direct SQL query, likely an
+        // INSERT ... ON CONFLICT DO UPDATE on an 'automation_node_stats' table.
+        //
+        // const { error: rpcError } = await supabaseAdmin.rpc('increment_node_stat', {
+        //     p_automation_id: automationId,
+        //     p_node_id: node.id,
+        //     p_team_id: teamId,
+        //     p_status: status,
+        // });
+        // if (rpcError) {
+        //     console.error(`[Execution Logging] Failed to update node stats for node ${node.id} in run ${runId}`, rpcError);
+        // }
     });
 
     return hooks;
