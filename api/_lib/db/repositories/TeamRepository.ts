@@ -1,277 +1,95 @@
 import { BaseRepository } from '../BaseRepository.js';
-import { Database } from '../../database.types.js';
-import { supabaseAdmin } from '../../supabaseAdmin.js';
-import { logger } from '../../utils/logger.js';
-
-type Team = Database['public']['Tables']['teams']['Row'];
-type TeamInsert = Database['public']['Tables']['teams']['Insert'];
-type TeamUpdate = Database['public']['Tables']['teams']['Update'];
-type TeamMember = Database['public']['Tables']['team_members']['Row'];
-
-interface TeamWithMembers extends Team {
-  members: Array<{
-    user_id: string;
-    user_email?: string;
-    role: string;
-    created_at: string;
-  }>;
-}
+import { Team, TeamMember, TeamMemberWithEmail, TeamRole } from '../../types.js';
 
 /**
  * Repositório para operações relacionadas a equipes (teams)
  */
-export class TeamRepository extends BaseRepository<'teams'> {
+export class TeamRepository extends BaseRepository {
   constructor() {
     super('teams');
   }
 
-  /**
-   * Busca uma equipe pelo nome
-   * @param name Nome da equipe
-   * @param ownerId ID do dono da equipe (opcional)
-   */
-  async findByName(name: string, ownerId?: string): Promise<Team | null> {
-    try {
-      let query = this.query
-        .select('*')
-        .eq('name', name);
-
-      if (ownerId) {
-        query = query.eq('owner_id', ownerId);
-      }
-
-      const { data, error } = await query.maybeSingle();
-
-      if (error) {
-        throw error;
-      }
-
-      return data;
-    } catch (error) {
-      logger.error('Erro ao buscar equipe por nome', { error, name, ownerId });
-      return null;
-    }
-  }
-
-  /**
-   * Busca todas as equipes de um usuário
-   * @param userId ID do usuário
-   */
-  async findByMember(userId: string): Promise<Team[]> {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from('team_members')
-        .select('team_id')
-        .eq('user_id', userId);
-
-      if (error) {
-        throw error;
-      }
-
-      return data.map(item => item.team_id) || [];
-    } catch (error) {
-      logger.error('Erro ao buscar equipes do usuário', { error, userId });
-      return [];
-    }
-  }
-
-  /**
-   * Busca os membros de uma equipe
-   * @param teamId ID da equipe
-   * @param role Filtro opcional por função
-   */
-  async getTeamMembers(teamId: string, role?: string): Promise<Array<{
-    user_id: string;
-    user_email?: string;
-    role: string;
-    created_at: string;
-  }>> {
-    try {
-      let query = supabaseAdmin
-        .from('team_members')
-        .select('user_id, role, created_at, profiles(email)')
-        .eq('team_id', teamId);
-
-      if (role) {
-        query = query.eq('role', role);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        throw error;
-      }
-
-      return data.map(member => ({
-        user_id: member.user_id,
-        user_email: (member as any).profiles?.email,
-        role: member.role,
-        created_at: member.created_at
-      }));
-    } catch (error) {
-      logger.error('Erro ao buscar membros da equipe', { error, teamId, role });
-      return [];
-    }
-  }
-
-  /**
-   * Obtém um membro específico de uma equipe
-   * @param teamId ID da equipe
-   * @param userId ID do usuário
-   */
-  async getTeamMember(teamId: string, userId: string): Promise<{
-    user_id: string;
-    role: string;
-    created_at: string;
-  } | null> {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from('team_members')
-        .select('user_id, role, created_at')
-        .eq('team_id', teamId)
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error) {
-        throw error;
-      }
-
-      return data;
-    } catch (error) {
-      logger.error('Erro ao buscar membro da equipe', { error, teamId, userId });
-      return null;
-    }
-  }
-
-  /**
-   * Adiciona um membro a uma equipe
-   * @param teamId ID da equipe
-   * @param userId ID do usuário
-   * @param role Função do membro na equipe
-   */
-  async addTeamMember(teamId: string, userId: string, role = 'member'): Promise<boolean> {
-    try {
-      const { error } = await supabaseAdmin
-        .from('team_members')
-        .upsert(
-          { team_id: teamId, user_id: userId, role },
-          { onConflict: 'team_id,user_id' }
-        );
-
-      if (error) {
-        throw error;
-      }
-
-      logger.info('Membro adicionado à equipe', { teamId, userId, role });
-      return true;
-    } catch (error) {
-      logger.error('Erro ao adicionar membro à equipe', { error, teamId, userId, role });
-      return false;
-    }
-  }
-
-  /**
-   * Remove um membro de uma equipe
-   * @param teamId ID da equipe
-   * @param userId ID do usuário
-   */
-  async removeTeamMember(teamId: string, userId: string): Promise<boolean> {
-    try {
-      const { error } = await supabaseAdmin
-        .from('team_members')
-        .delete()
-        .eq('team_id', teamId)
-        .eq('user_id', userId);
-
-      if (error) {
-        throw error;
-      }
-
-      logger.info('Membro removido da equipe', { teamId, userId });
-      return true;
-    } catch (error) {
-      logger.error('Erro ao remover membro da equipe', { error, teamId, userId });
-      return false;
-    }
-  }
-
-  /**
-   * Atualiza a função de um membro na equipe
-   * @param teamId ID da equipe
-   * @param userId ID do usuário
-   * @param role Nova função do membro
-   */
-  async updateTeamMemberRole(teamId: string, userId: string, role: string): Promise<boolean> {
-    try {
-      const { error } = await supabaseAdmin
-        .from('team_members')
-        .update({ role })
-        .eq('team_id', teamId)
-        .eq('user_id', userId);
-
-      if (error) {
-        throw error;
-      }
-
-      logger.info('Função do membro atualizada', { teamId, userId, role });
-      return true;
-    } catch (error) {
-      logger.error('Erro ao atualizar função do membro', { error, teamId, userId, role });
-      return false;
-    }
-  }
-
-  /**
-   * Verifica se um usuário é membro de uma equipe
-   * @param teamId ID da equipe
-   * @param userId ID do usuário
-   */
-  async isTeamMember(teamId: string, userId: string): Promise<boolean> {
-    try {
-      const member = await this.getTeamMember(teamId, userId);
-      return !!member;
-    } catch (error) {
-      logger.error('Erro ao verificar se usuário é membro', { error, teamId, userId });
-      return false;
-    }
-  }
-
-  /**
-   * Verifica se um usuário é administrador de uma equipe
-   * @param teamId ID da equipe
-   * @param userId ID do usuário
-   */
-  async isTeamAdmin(teamId: string, userId: string): Promise<boolean> {
-    try {
-      const member = await this.getTeamMember(teamId, userId);
-      return member?.role === 'admin';
-    } catch (error) {
-      logger.error('Erro ao verificar se usuário é administrador', { error, teamId, userId });
-      return false;
-    }
-  }
-
-  /**
-   * Busca uma equipe por ID
-   * @param id ID da equipe
-   */
   async findById(id: string): Promise<Team | null> {
-    try {
-      const { data, error } = await supabaseAdmin
-        .from('teams')
-        .select('*')
-        .eq('id', id)
-        .single();
+    const query = `SELECT * FROM ${this.tableName} WHERE id = $1`;
+    return this.executeQuerySingle<Team>(query, [id]);
+  }
 
-      if (error) {
-        throw error;
-      }
-
-      return data;
-    } catch (error) {
-      logger.error('Erro ao buscar equipe por ID', { error, id });
-      return null;
+  async findByName(name: string, ownerId?: string): Promise<Team | null> {
+    let query = `SELECT * FROM ${this.tableName} WHERE name = $1`;
+    const params: any[] = [name];
+    if (ownerId) {
+      query += ' AND owner_id = $2';
+      params.push(ownerId);
     }
+    return this.executeQuerySingle<Team>(query, params);
+  }
+
+  async findByMember(userId: string): Promise<Team[]> {
+    const query = `
+      SELECT t.*
+      FROM teams t
+      JOIN team_members tm ON t.id = tm.team_id
+      WHERE tm.user_id = $1
+    `;
+    return this.executeQuery<Team>(query, [userId]);
+  }
+
+  async getTeamMembers(teamId: string, role?: TeamRole): Promise<TeamMemberWithEmail[]> {
+    let query = `
+      SELECT tm.user_id, u.email, tm.role, tm.created_at
+      FROM team_members tm
+      JOIN users u ON tm.user_id = u.id
+      WHERE tm.team_id = $1
+    `;
+    const params: any[] = [teamId];
+    if (role) {
+      query += ' AND tm.role = $2';
+      params.push(role);
+    }
+    return this.executeQuery<TeamMemberWithEmail>(query, params);
+  }
+
+  async getTeamMember(teamId: string, userId: string): Promise<TeamMember | null> {
+    const query = 'SELECT * FROM team_members WHERE team_id = $1 AND user_id = $2';
+    return this.executeQuerySingle<TeamMember>(query, [teamId, userId]);
+  }
+
+  async addTeamMember(teamId: string, userId: string, role: TeamRole = 'member'): Promise<TeamMember | null> {
+    const query = `
+      INSERT INTO team_members (team_id, user_id, role)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (team_id, user_id) DO UPDATE SET role = $3
+      RETURNING *
+    `;
+    return this.executeQuerySingle<TeamMember>(query, [teamId, userId, role]);
+  }
+
+  async removeTeamMember(teamId: string, userId: string): Promise<boolean> {
+    const query = 'DELETE FROM team_members WHERE team_id = $1 AND user_id = $2';
+    const result = await this.executeQuery(query, [teamId, userId]);
+    // The query returns an empty array on success, so we can't check rowCount.
+    // If it doesn't throw, we assume success. A more robust check might be needed.
+    return true;
+  }
+
+  async updateTeamMemberRole(teamId: string, userId: string, role: TeamRole): Promise<TeamMember | null> {
+    const query = `
+      UPDATE team_members
+      SET role = $1
+      WHERE team_id = $2 AND user_id = $3
+      RETURNING *
+    `;
+    return this.executeQuerySingle<TeamMember>(query, [role, teamId, userId]);
+  }
+
+  async isTeamMember(teamId: string, userId: string): Promise<boolean> {
+    const member = await this.getTeamMember(teamId, userId);
+    return !!member;
+  }
+
+  async isTeamAdmin(teamId: string, userId: string): Promise<boolean> {
+    const member = await this.getTeamMember(teamId, userId);
+    return member?.role === 'admin';
   }
 }
 

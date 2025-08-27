@@ -2,61 +2,15 @@ import { supabase } from '../lib/supabaseClient.js';
 import { Campaign, CampaignWithMetrics, MessageStatus, TemplateCategory, TemplateStatus, AutomationStatus, Edge, AutomationNode, MessageTemplate, Automation, Pipeline, PipelineStage, DealWithContact, CustomFieldDefinition, CannedResponse } from '../types/index.js';
 import { MetaTemplateComponent } from './meta/types.js';
 import { fetchContacts } from './contactService.js';
-
-const fetchCampaignsWithMetrics = async (campaignsData: Campaign[]): Promise<CampaignWithMetrics[]> => {
-    if (campaignsData.length === 0) return [];
-
-    const campaignIds = campaignsData.map(c => c.id);
-    const { data, error } = await supabase
-        .from('messages')
-        .select('campaign_id, status')
-        .in('campaign_id', campaignIds);
-
-    if (error) {
-        console.error("Error fetching campaign metrics:", error);
-        return campaignsData.map(c => ({
-            ...c,
-            metrics: { sent: 0, delivered: 0, read: 0, failed: 0 }
-        }));
-    }
-
-    const metricsByCampaignId = (data as any[]).reduce((acc, msg) => {
-        if (!msg.campaign_id) return acc;
-        if (!acc[msg.campaign_id]) {
-            acc[msg.campaign_id] = { sent: 0, delivered: 0, read: 0, failed: 0 };
-        }
-        if (msg.status !== 'failed') {
-            acc[msg.campaign_id].sent++;
-        }
-        if (msg.status === 'delivered' || msg.status === 'read') {
-            acc[msg.campaign_id].delivered++;
-        }
-        if (msg.status === 'read') {
-            acc[msg.campaign_id].read++;
-        }
-        if (msg.status === 'failed') {
-            acc[msg.campaign_id].failed++;
-        }
-        return acc;
-    }, {} as Record<string, CampaignWithMetrics['metrics']>);
-    
-    return campaignsData.map(campaign => ({
-        ...campaign,
-        metrics: metricsByCampaignId[campaign.id] || { sent: 0, delivered: 0, read: 0, failed: 0 }
-    }));
-};
-
-
-import { fetchContacts } from './contactService.js';
+import { fetchCampaigns } from './campaignService.js';
 
 export const fetchAllInitialData = async (teamId: string) => {
-    // Refactor in progress. Fetch contacts from the new API endpoint.
+    // Refactor in progress. Fetch contacts and campaigns from the new API endpoints.
     const contacts = await fetchContacts();
+    const campaigns = await fetchCampaigns();
 
-    const [templatesRes, campaignsRes, automationsRes, pipelinesRes, stagesRes, dealsRes, customFieldsRes, cannedResponsesRes] = await Promise.all([
+    const [templatesRes, automationsRes, pipelinesRes, stagesRes, dealsRes, customFieldsRes, cannedResponsesRes] = await Promise.all([
         supabase.from('message_templates').select('*').eq('team_id', teamId).order('created_at', { ascending: false }),
-        // Contacts are now fetched above
-        supabase.from('campaigns').select('*').eq('team_id', teamId).order('created_at', { ascending: false }),
         supabase.from('automations').select('*').eq('team_id', teamId).order('created_at', { ascending: false }),
         supabase.from('pipelines').select('*').eq('team_id', teamId).order('created_at', { ascending: true }),
         supabase.from('pipeline_stages').select('*, pipelines!inner(team_id)').eq('pipelines.team_id', teamId),
@@ -66,7 +20,6 @@ export const fetchAllInitialData = async (teamId: string) => {
     ]);
 
     if (templatesRes.error) console.error("DataService Error (Templates):", templatesRes.error);
-    if (campaignsRes.error) console.error("DataService Error (Campaigns):", campaignsRes.error);
     if (automationsRes.error) console.error("DataService Error (Automations):", automationsRes.error);
     if (pipelinesRes.error) console.error("DataService Error (Pipelines):", pipelinesRes.error);
     if (stagesRes.error) console.error("DataService Error (Stages):", stagesRes.error);
@@ -91,12 +44,9 @@ export const fetchAllInitialData = async (teamId: string) => {
         status: a.status as AutomationStatus,
     } as Automation));
     
-    // Process Campaigns
-    const campaigns = await fetchCampaignsWithMetrics((campaignsRes.data as unknown as Campaign[]) || []);
-
     return {
         templates,
-        contacts: contacts,
+        contacts,
         campaigns,
         automations,
         pipelines: (pipelinesRes.data as unknown as Pipeline[]) || [],
